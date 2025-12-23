@@ -1,6 +1,5 @@
 package official.sketchBook.game.screen_related;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -9,7 +8,8 @@ import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.camera_related.utils.CameraUtils;
 import official.sketchBook.engine.screen_related.BaseScreen;
 
-import static official.sketchBook.game.util_related.GameConstants.Debug.show_fps_ups_metrics;
+import static official.sketchBook.game.util_related.constants.DebugC.show_fps_ups_metrics;
+
 
 public class MenuScreen extends BaseScreen {
 

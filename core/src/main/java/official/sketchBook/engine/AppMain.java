@@ -13,6 +13,8 @@ public class AppMain extends Game {
     public SpriteBatch gameBatch;
     public SpriteBatch uiBatch;
 
+    //TODO: Adicionar a capacidade de realizar dispose de dados estaticos
+
     @Override
     public void create() {
         gameBatch = new SpriteBatch();

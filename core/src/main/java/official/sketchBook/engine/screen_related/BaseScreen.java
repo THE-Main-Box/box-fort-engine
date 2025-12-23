@@ -7,9 +7,9 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import official.sketchBook.engine.AppMain;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 
-import static official.sketchBook.game.util_related.GameConstants.Physics.FIXED_TIMESTAMP;
-import static official.sketchBook.game.util_related.GameConstants.Physics.MAX_ACCUMULATOR;
-import static official.sketchBook.game.util_related.GameConstants.Rendering.FPS_TARGET;
+import static official.sketchBook.game.util_related.constants.PhysicsC.FIXED_TIMESTAMP;
+import static official.sketchBook.game.util_related.constants.PhysicsC.MAX_ACCUMULATOR;
+import static official.sketchBook.game.util_related.constants.RenderingC.FPS_TARGET;
 
 public abstract class BaseScreen implements Screen {
 
