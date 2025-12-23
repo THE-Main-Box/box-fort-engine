@@ -3,6 +3,7 @@ package official.sketchBook.engine;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import official.sketchBook.game.screen_related.MenuScreen;
+import official.sketchBook.game.screen_related.PlayScreen;
 
 /**
  * {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms.
@@ -12,6 +13,9 @@ public class AppMain extends Game {
     public SpriteBatch gameBatch;
     public SpriteBatch uiBatch;
 
+    private MenuScreen menuScreen;
+    private PlayScreen playScreen;
+
     //TODO: Adicionar a capacidade de realizar dispose de dados estáticos
 
     @Override
@@ -19,7 +23,10 @@ public class AppMain extends Game {
         gameBatch = new SpriteBatch();
         uiBatch = new SpriteBatch();
 
-        this.setScreen(new MenuScreen(this));
+        menuScreen = new MenuScreen(this);
+        playScreen = new PlayScreen(this);
+
+        this.setScreen(menuScreen);
     }
 
     @Override
@@ -37,5 +44,11 @@ public class AppMain extends Game {
         }
     }
 
+    public MenuScreen getMenuScreen() {
+        return menuScreen;
+    }
 
+    public PlayScreen getPlayScreen() {
+        return playScreen;
+    }
 }

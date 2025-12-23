@@ -25,7 +25,7 @@ public abstract class BaseScreen implements Screen {
     private int updatesCounter = 0;
 
     /// Referência ao Inicializador do app
-    private final AppMain app;
+    protected final AppMain app;
 
     public BaseScreen(AppMain app) {
         this.app = app;
@@ -162,8 +162,8 @@ public abstract class BaseScreen implements Screen {
     @Override
     public void hide() {
     }
-
     @Override
     public void dispose() {
+
     }
 }

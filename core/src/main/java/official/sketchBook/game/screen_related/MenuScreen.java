@@ -1,35 +1,20 @@
 package official.sketchBook.game.screen_related;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import official.sketchBook.engine.AppMain;
-import official.sketchBook.engine.animation_related.ObjectAnimationPlayer;
-import official.sketchBook.engine.animation_related.Sprite;
-import official.sketchBook.engine.animation_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.camera_related.utils.CameraUtils;
 import official.sketchBook.engine.screen_related.BaseScreen;
-import official.sketchBook.game.util_related.path.GameAssetsPaths;
-
-import java.util.Arrays;
-
-import static official.sketchBook.game.util_related.constants.DebugC.show_fps_ups_metrics;
 
 
 public class MenuScreen extends BaseScreen {
 
     private final OrthographicCameraManager uiCameraManager;
-    private final BitmapFont font;
 
     public MenuScreen(AppMain app) {
         super(app);
 
         uiCameraManager = CameraUtils.createScreenCamera();
-
-        font = new BitmapFont();
-        font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-
     }
 
     @Override
@@ -52,32 +37,19 @@ public class MenuScreen extends BaseScreen {
     protected void prepareGameBatchAndRender() {
         //mantemos vazia pois não iremos preparar para renderizar nada do jogo
     }
-
     @Override
     public void drawGame(SpriteBatch batch) {
         //Não renderizamos jogo
     }
 
     @Override
-    protected void prepareUIBatchAndRender() {
-        super.prepareUIBatchAndRender();
-    }
-
-    @Override
     public void drawUI(SpriteBatch batch) {
-        batch.setProjectionMatrix(uiCameraManager.getCamera().combined);
-
-        if (show_fps_ups_metrics) {
-
-            font.draw(batch, "FPS: " + getFps(), 10, this.screenHeightInPx - 10);
-            font.draw(batch, "UPS: " + getUps(), 10, this.screenHeightInPx - 30);
-        }
 
     }
 
     @Override
     public void show() {
-
+        this.app.setScreen(app.getPlayScreen());
     }
 
     @Override
@@ -90,6 +62,5 @@ public class MenuScreen extends BaseScreen {
     public void dispose() {
         super.dispose();
 
-        this.font.dispose();
     }
 }
