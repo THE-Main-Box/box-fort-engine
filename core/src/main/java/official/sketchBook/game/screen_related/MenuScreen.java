@@ -4,39 +4,51 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import official.sketchBook.engine.AppMain;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.camera_related.utils.CameraUtils;
+import official.sketchBook.engine.components_related.system_utils.SingleThreadRenderSystem;
+import official.sketchBook.engine.components_related.system_utils.SingleThreadUpdateSystem;
 import official.sketchBook.engine.screen_related.BaseScreen;
 
 
 public class MenuScreen extends BaseScreen {
 
-    private final OrthographicCameraManager uiCameraManager;
+    private OrthographicCameraManager uiCameraManager;
 
     public MenuScreen(AppMain app) {
         super(app);
+    }
+
+    @Override
+    protected void initSystems() {
+        super.initSystems();
 
         uiCameraManager = CameraUtils.createScreenCamera();
+
+        this.updateSystem = new SingleThreadUpdateSystem(
+            null,
+            this
+        );
+        this.renderSystem = new SingleThreadRenderSystem(
+            this,
+            null,
+            null
+        );
+
     }
 
     @Override
-    public void update(float delta) {
+    public void updateScreen(float delta) {
 
     }
 
     @Override
-    public void postUpdate() {
-        //Garante que a matrix esteja atualizada
-        uiCameraManager.getCamera().update();
+    public void postScreenUpdate() {
     }
 
-    @Override
     public void updateVisuals(float delta) {
+        uiCameraManager.getCamera().update();
 
     }
 
-    @Override
-    protected void prepareGameBatchAndRender() {
-        //mantemos vazia pois não iremos preparar para renderizar nada do jogo
-    }
     @Override
     public void drawGame(SpriteBatch batch) {
         //Não renderizamos jogo

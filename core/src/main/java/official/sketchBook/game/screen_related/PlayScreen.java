@@ -1,44 +1,95 @@
 package official.sketchBook.game.screen_related;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.AppMain;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.camera_related.utils.CameraUtils;
+import official.sketchBook.engine.components_related.system_utils.MultiThreadUpdateSystem;
+import official.sketchBook.engine.components_related.system_utils.SingleThreadRenderSystem;
+import official.sketchBook.engine.components_related.system_utils.SingleThreadUpdateSystem;
 import official.sketchBook.engine.screen_related.BaseScreen;
+import official.sketchBook.game.dataManager_related.WorldDataManager;
+import official.sketchBook.game.gameObject_related.Player;
 
 import static official.sketchBook.game.util_related.constants.DebugC.show_fps_ups_metrics;
+import static official.sketchBook.game.util_related.constants.PhysicsC.*;
 
 public class PlayScreen extends BaseScreen {
-    private final OrthographicCameraManager uiCameraManager;
-    private final OrthographicCameraManager gameCameraManager;
-    private final BitmapFont font;
+    private OrthographicCameraManager uiCameraManager;
+    private OrthographicCameraManager gameCameraManager;
+    private BitmapFont font;
+
+    private WorldDataManager worldManager;
+
+    private Player player;
 
     public PlayScreen(AppMain app) {
         super(app);
-
-        uiCameraManager = CameraUtils.createScreenCamera();
-        gameCameraManager = CameraUtils.createScreenCamera();
-
-        font = new BitmapFont();
-        font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
     }
 
     @Override
-    public void update(float delta) {
+    protected void initSystems() {
+        super.initSystems();
 
+        this.uiCameraManager = CameraUtils.createScreenCamera();
+        this.gameCameraManager = CameraUtils.createScreenCamera();
+
+        this.font = new BitmapFont();
+        this.font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        this.worldManager = new WorldDataManager(
+            new World(
+                new Vector2(),
+                true
+            ),
+            FIXED_TIMESTAMP,
+            VELOCITY_ITERATIONS,
+            POSITION_ITERATIONS
+        );
+
+        this.renderSystem = new SingleThreadRenderSystem(
+            this,
+            this.app.gameBatch,
+            this.app.uiBatch
+        );
+
+        this.updateSystem = new SingleThreadUpdateSystem(
+            worldManager,
+            this
+        );
+
+        player = new Player(
+            worldManager
+        );
     }
 
     @Override
-    public void postUpdate() {
-        uiCameraManager.getCamera().update();
-        gameCameraManager.getCamera().update();
+    public void updateScreen(float delta) {
+        if(Gdx.input.isKeyPressed(
+            Input.Keys.ESCAPE
+        )){
+            player.destroy();
+            worldManager.destroyManager();
+        }
+    }
+
+    @Override
+    public void postScreenUpdate() {
+
     }
 
     @Override
     public void updateVisuals(float delta) {
+        uiCameraManager.getCamera().update();
+        gameCameraManager.getCamera().update();
     }
+
 
     @Override
     public void drawGame(SpriteBatch batch) {
