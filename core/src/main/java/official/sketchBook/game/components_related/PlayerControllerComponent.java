@@ -36,9 +36,13 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     }
 
     public void left(boolean pressed) {
+
+        player.getTransformC().setxAxisInverted(true);
+
     }
 
     public void right(boolean pressed) {
+        player.getTransformC().setxAxisInverted(false);
     }
 
 }

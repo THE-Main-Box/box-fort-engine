@@ -40,16 +40,6 @@ public class SingleThreadUpdateSystem implements UpdateSystem {
 
     }
 
-    @Override
-    public void postUpdate() {
-        if(worldManager != null) {
-            worldManager.postUpdateGameObjects();
-        }
-
-        //Pós atualização da screen
-        screen.postScreenUpdate();
-    }
-
     public BaseWorldDataManager getWorldManager() {
         return worldManager;
     }

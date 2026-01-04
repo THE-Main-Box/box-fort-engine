@@ -75,6 +75,7 @@ public class PlayScreen extends BaseScreen {
             worldManager
         );
 
+
     }
 
     @Override
@@ -84,11 +85,6 @@ public class PlayScreen extends BaseScreen {
         )){
             worldManager.destroyManager();
         }
-    }
-
-    @Override
-    public void postScreenUpdate() {
-
     }
 
     @Override

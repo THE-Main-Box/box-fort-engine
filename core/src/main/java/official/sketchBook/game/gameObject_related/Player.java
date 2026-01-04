@@ -6,16 +6,16 @@ import official.sketchBook.engine.animation_related.Sprite;
 import official.sketchBook.engine.animation_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.StaticResourceDisposable;
 import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
-import official.sketchBook.engine.gameObject_related.RenderableGameObject;
+import official.sketchBook.engine.gameObject_related.AnimatedRenderableGameObject;
 import official.sketchBook.game.components_related.PlayerControllerComponent;
 import official.sketchBook.game.util_related.path.GameAssetsPaths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Player extends RenderableGameObject implements StaticResourceDisposable {
+public class Player extends AnimatedRenderableGameObject implements StaticResourceDisposable {
 
-    private static Texture playerSheet;
+    public static Texture playerSheet;
 
     private PlayerControllerComponent controllerC;
 

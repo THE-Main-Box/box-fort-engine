@@ -41,10 +41,6 @@ public class MenuScreen extends BaseScreen {
 
     }
 
-    @Override
-    public void postScreenUpdate() {
-    }
-
     public void updateVisuals(float delta) {
         uiCameraManager.getCamera().update();
 

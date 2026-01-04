@@ -9,7 +9,7 @@ import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
 
 import java.util.List;
 
-public abstract class RenderableGameObject extends BaseGameObject implements RenderAbleObject {
+public abstract class AnimatedRenderableGameObject extends BaseGameObject implements RenderAbleObject {
 
     protected TransformComponent transformC;
 
@@ -18,7 +18,7 @@ public abstract class RenderableGameObject extends BaseGameObject implements Ren
 
     protected boolean isRenderDimensionEqualsToObject = true;
 
-    public RenderableGameObject(
+    public AnimatedRenderableGameObject(
         float x,
         float y,
         float z,
@@ -75,6 +75,8 @@ public abstract class RenderableGameObject extends BaseGameObject implements Ren
 
     @Override
     public void updateVisuals(float delta) {
+        if (spriteHandlerList.isEmpty() || animationPlayerList.isEmpty()) return;
+
         for (int i = 0; i < spriteHandlerList.size(); i++) {
             SpriteSheetDataHandler currentHandler = spriteHandlerList.get(i);
             ObjectAnimationPlayer currentAnimationPlayer = animationPlayerList.get(i);
@@ -110,24 +112,17 @@ public abstract class RenderableGameObject extends BaseGameObject implements Ren
 
     @Override
     public void render(SpriteBatch batch) {
-        if (!spriteHandlerList.isEmpty() && !animationPlayerList.isEmpty()) {
-            //renderizamos primeiro tudo o que tivermos para renderizar do objeto do jogador
-            for (int i = 0; i < spriteHandlerList.size(); i++) {
-                SpriteSheetDataHandler currentHandler = spriteHandlerList.get(i);
+        if (spriteHandlerList.isEmpty() || animationPlayerList.isEmpty()) return;
 
-                currentHandler.setxAxisInvert(
-                    transformC.isxAxisInverted()
-                );
+        //renderizamos primeiro tudo o que tivermos para renderizar do objeto do jogador
+        for (int i = 0; i < spriteHandlerList.size(); i++) {
 
-                currentHandler.setyAxisInvert(
-                    transformC.isyAxisInverted()
-                );
+            //Obtemos o nosso handler e chamamos para renderizar
+            spriteHandlerList.get(i).renderSprite(
+                batch,
+                animationPlayerList.get(i).getCurrentSprite()
+            );
 
-                currentHandler.renderSprite(batch,
-                    animationPlayerList.get(i).getCurrentSprite()
-                );
-
-            }
         }
     }
 
@@ -155,7 +150,7 @@ public abstract class RenderableGameObject extends BaseGameObject implements Ren
     }
 
     @Override
-    public int getZIndex() {
+    public int getRenderIndex() {
         return (int) transformC.getZ();
     }
 }

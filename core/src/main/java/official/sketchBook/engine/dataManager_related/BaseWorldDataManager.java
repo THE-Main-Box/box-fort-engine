@@ -11,9 +11,9 @@ import java.util.*;
 
 public abstract class BaseWorldDataManager implements Disposable {
 
-    protected float timeStep;
-    protected int velIterations;
-    protected int posIterations;
+    protected final float timeStep;
+    protected final int velIterations;
+    protected final int posIterations;
 
     /// Se existe um mundo foi gerado
     protected boolean physicsWorldExists;
@@ -57,39 +57,60 @@ public abstract class BaseWorldDataManager implements Disposable {
 
     /// Atualização do manager
     public void update(float delta) {
-
-        //Tenta adicionar os objetos novos
-        if (!gameObjectToAddList.isEmpty()) {
-            gameObjectList.addAll(gameObjectToAddList);
-            gameObjectToAddList.clear();
-        }
-
-        //Itera de cima pra baixo
-        for (int i = gameObjectList.size() - 1; i >= 0; i--) {
-            //Obtém uma referencia
-            BaseGameObject object = gameObjectList.get(i);
-
-            if (object.isPendingRemoval()) {                    //Se estiver pendente para remoção
-                gameObjectList.remove(i);                       //Remove da lista de objetos ativos
-
-                if(object instanceof RenderAbleObject){
-                    renderAbleObjectList.remove((RenderAbleObject) object);
-                }
-
-                object.destroy();                               //Executa a pipeline contendo a sequencia de destruição
-                continue;                                       //Passa pro próximo objeto
-            }
-
-            object.update(delta);                               //Atualização padrão
-        }
-
+        this.addNewObjectsToPipeLine();                         //Tenta adicionar os novos objetos
+        this.updateGameObjectsOnOriginalPipeLine(delta);        //Realiza a atualização interna dos objetos
         this.worldStep();                                       //Tenta realizar um step
         this.postUpdateGameObjects();                           //Pós-atualização manual
 
     }
 
+    /// Executa a sequencia de atualização
+    protected void updateGameObjectsOnOriginalPipeLine(float delta){
+        //Itera de cima pra baixo
+        for (int i = gameObjectList.size() - 1; i >= 0; i--) {
+            //Obtém uma referencia
+            BaseGameObject object = gameObjectList.get(i);
+
+            //Se estiver pendente para remoção
+            if (object.isPendingRemoval()) {
+                removePendingObject(i, object);                 //Executa a remoção da pipeline
+                continue;                                       //Passa pro próximo objeto
+            }
+
+            object.update(delta);                               //Atualização padrão
+        }
+    }
+
+    /**
+     * Executa a remoção do objeto pendente para remoção
+     *
+     * @param i Index presente na lista
+     * @param object referência do objeto, para impedir ter que obter a referencia diretamente
+     */
+    protected void removePendingObject(int i, BaseGameObject object) {
+        gameObjectList.remove(i);                       //Remove da lista de objetos ativos
+
+        //remove da pipeline de render caso seja renderizável e esteja marcado para remoção
+        if (object instanceof RenderAbleObject) {
+            renderAbleObjectList.remove(
+                (RenderAbleObject) object
+            );
+        }
+
+        object.destroy();                               //Executa a pipeline contendo a sequencia de destruição
+    }
+
+    /// Tenta inserir os objetos pendentes na lista para atualização antes de começar a atualização geral
+    protected void addNewObjectsToPipeLine() {
+        //Tenta adicionar os objetos novos
+        if (!gameObjectToAddList.isEmpty()) {
+            gameObjectList.addAll(gameObjectToAddList);
+            gameObjectToAddList.clear();
+        }
+    }
+
     /// Tenta realizar um step do world caso ele exista
-    public void worldStep() {
+    protected void worldStep() {
         if (!physicsWorldExists) return;
 
         physicsWorld.step(
@@ -100,26 +121,27 @@ public abstract class BaseWorldDataManager implements Disposable {
 
     }
 
-    public void postUpdateGameObjects() {
+    /// Atualização tardia dos objetos, geralmente aqueles que precisam ter dados atualizados após o step do mundo
+    protected void postUpdateGameObjects() {
         for (BaseGameObject gameObject : gameObjectList) {
-            if (!gameObject.isPendingRemoval()) {
-                gameObject.postUpdate();
-            }
+            if (gameObject.isPendingRemoval()) continue;
+            gameObject.postUpdate();
         }
     }
 
     /// Destrói o manager e todos os seus dados, não executa sequencia de destruição para os objetos presentes
     public final void destroyManager() {
-        if(disposed) return;
+        if (disposed) return;
         this.onManagerDestruction();
         this.dispose();
     }
 
+    /// Sequencia por instancia de destruição de manager
     protected abstract void onManagerDestruction();
 
     /// Dispose completo do manager
     public final void dispose() {
-        if(disposed) return;
+        if (disposed) return;
 
         disposeGameObjectInstances();
         disposeGameObjectsStaticResourcesOnce();
@@ -129,14 +151,15 @@ public abstract class BaseWorldDataManager implements Disposable {
         disposed = true;
     }
 
-    protected void disposeGameObjectInstances(){
+    /// Realiza um dispose dos dados pro instancia dos GameObjects existentes dentro do manager
+    protected void disposeGameObjectInstances() {
         for (BaseGameObject gameObject : gameObjectList) {
             gameObject.dispose();
         }
     }
 
     /// Limpa as listas existentes
-    protected void disposeLists(){
+    protected void disposeLists() {
         gameObjectList.clear();
         gameObjectToAddList.clear();
         registeredClasses.clear();
@@ -144,7 +167,7 @@ public abstract class BaseWorldDataManager implements Disposable {
     }
 
     /// Limpa o mundo físico
-    protected void disposePhysicsWorld(){
+    protected void disposePhysicsWorld() {
         // Limpamos a física se ela existir
         if (physicsWorldExists) {
             physicsWorld.dispose();
@@ -156,13 +179,13 @@ public abstract class BaseWorldDataManager implements Disposable {
 
     /**
      * Limpa recursos estáticos de forma SEGURA.
-     *
+     * <p>
      * Itera por TODAS as classes registradas (em registeredClasses),
      * não apenas as que ainda estão ativas.
      * Isso garante que mesmo classes cujos objetos foram removidos
      * tenham seus recursos estáticos limpos.
      */
-    public void disposeGameObjectsStaticResourcesOnce() {
+    protected final void disposeGameObjectsStaticResourcesOnce() {
         Set<Class<? extends BaseGameObject>> cleanedClasses = new HashSet<>();
 
         // Usa registeredClasses (todas as classes que PASSARAM pelo manager)
@@ -174,7 +197,7 @@ public abstract class BaseWorldDataManager implements Disposable {
                 continue;
             }
 
-            // ✅ Só tenta reflection se implementar interface
+            // Só tenta reflection se implementar interface
             if (!StaticResourceDisposable.class.isAssignableFrom(clazz)) {
                 continue;
             }
@@ -188,38 +211,43 @@ public abstract class BaseWorldDataManager implements Disposable {
                     " implementa StaticResourceDisposable mas não tem disposeStaticResources()");
             } catch (Exception e) {
                 System.err.println("Erro ao disposar recursos estáticos de " + clazz.getSimpleName());
-//                e.printStackTrace();
             }
         }
     }
 
+    /// Adiciona um gameObject para ser gerenciado
     public void addGameObject(BaseGameObject go) {
+        //Prepara para inserir na pipeline
         gameObjectToAddList.add(go);
+        //Registra a classe para permitir a limpeza de dados estaticos futuramente
         registeredClasses.add(go.getClass());
 
-        if(go instanceof RenderAbleObject){
-            renderAbleObjectList.add((RenderAbleObject) go);
-            renderingNeedsSorting = true;
+        //Verificamos se o objeto pode ser renderizado e inserimos ele na pipeline de render
+        if (go instanceof RenderAbleObject) {
+            renderAbleObjectList.add((RenderAbleObject) go);    //Adicionamos à pipeline
+            notifyRenderIndexUpdate();                          //Notificamos a necessidade de ordenar a lista
         }
     }
 
+    /// Realiza a ordenação dos objetos que serão mostrados na tela
     public void sortRenderables() {
         if (renderingNeedsSorting) {
             // Ordenação estável para não tremer objetos no mesmo Z
             renderAbleObjectList.sort(
-                Comparator.comparingInt(RenderAbleObject::getZIndex)
+                Comparator.comparingInt(RenderAbleObject::getRenderIndex)
             );
             renderingNeedsSorting = false;
         }
     }
 
+    /// Usa a pipeline interna para marcar um objeto para ser destruido internamente
     public void removeGameObject(BaseGameObject go) {
         if (gameObjectList.contains(go)) {
             go.markToDestroy();
         }
     }
 
-    public void notifyRenderIndexUpdate(){
+    public void notifyRenderIndexUpdate() {
         this.renderingNeedsSorting = true;
     }
 
@@ -243,24 +271,12 @@ public abstract class BaseWorldDataManager implements Disposable {
         return timeStep;
     }
 
-    public void setTimeStep(float timeStep) {
-        this.timeStep = timeStep;
-    }
-
     public int getVelIterations() {
         return velIterations;
     }
 
-    public void setVelIterations(int velIterations) {
-        this.velIterations = velIterations;
-    }
-
     public int getPosIterations() {
         return posIterations;
-    }
-
-    public void setPosIterations(int posIterations) {
-        this.posIterations = posIterations;
     }
 
     public boolean isDisposed() {

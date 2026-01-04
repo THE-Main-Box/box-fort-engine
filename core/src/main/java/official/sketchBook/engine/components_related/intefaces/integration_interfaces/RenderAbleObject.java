@@ -8,7 +8,7 @@ public interface RenderAbleObject {
     boolean isxAxisInverted();
     boolean isyAxisInverted();
 
-    int getZIndex();
+    int getRenderIndex();
     void updateVisuals(float delta);
     void render(SpriteBatch batch);
     boolean isPendingRemoval();

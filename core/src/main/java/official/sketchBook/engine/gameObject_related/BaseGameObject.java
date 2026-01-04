@@ -13,10 +13,12 @@ public abstract class BaseGameObject implements Disposable {
     protected boolean pendingRemoval = false;
     protected boolean disposed = false;
 
-    /// Manager único do object
+    /// Manager dono do objeto, onde ele será gerenciado
     protected final BaseWorldDataManager worldDataManager;
 
+    /// Lista de componentes que precisam ser atualizados normalmente
     protected List<Component> toUpdateComponentList;
+    /// Lista de componentes que precisam ser atualizados após o update
     protected List<Component> toPostUpdateComponentList;
 
     public BaseGameObject(BaseWorldDataManager worldDataManager) {
@@ -58,7 +60,7 @@ public abstract class BaseGameObject implements Disposable {
     /// Callback para lógica customizada de destruição
     protected abstract void onObjectDestruction();
 
-    /// Dispose de dados gerais
+    /// Dispose dos dados
     public final void dispose() {
         if (disposed) return;
         disposeAllComponents();
@@ -66,6 +68,7 @@ public abstract class BaseGameObject implements Disposable {
         disposed = true;
     }
 
+    /// Realiza um dispose de todos os componentes
     protected void disposeAllComponents(){
         for(Component component : toUpdateComponentList){
             if(component.isDisposed()) continue;

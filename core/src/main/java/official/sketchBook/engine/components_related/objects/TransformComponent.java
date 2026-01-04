@@ -35,7 +35,6 @@ public class TransformComponent implements Component {
 
     @Override
     public void update(float delta) {
-        return;
     }
 
     @Override

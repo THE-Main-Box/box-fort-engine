@@ -40,9 +40,7 @@ public abstract class BaseScreen implements Screen {
     /// Função para atualização geral
     public abstract void updateScreen(float delta);
 
-    /// Função para atualização de visuais
-    public abstract void postScreenUpdate();
-
+    /// Atualiza os visuais antes de renderizar
     public abstract void updateVisuals(float delta);
 
     /**
@@ -63,7 +61,6 @@ public abstract class BaseScreen implements Screen {
     @Override
     public void render(float delta) {
         updateSystem.update(delta);         //Atualização
-        updateSystem.postUpdate();          //pós-atualização
 
         updateMetrics(delta);               //Atualiza as métricas para visualização
 
