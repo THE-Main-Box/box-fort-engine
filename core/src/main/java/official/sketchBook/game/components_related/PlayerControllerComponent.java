@@ -8,7 +8,7 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
 
     private final Player player;
 
-    private float speed = 10;
+    private final float speed = 10;
 
     public PlayerControllerComponent(Player player) {
         this.player = player;
@@ -20,15 +20,11 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     }
 
     public void up(boolean pressed) {
-        if(pressed){
-            player.getTransformC().setY(
-                player.getTransformC().getY() + speed
-            );
-        }
+
     }
 
     public void down(boolean pressed) {
-        if(pressed){
+        if (pressed) {
             player.getTransformC().setY(
                 player.getTransformC().getY() - speed
             );
@@ -36,13 +32,26 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     }
 
     public void left(boolean pressed) {
-
-        player.getTransformC().setxAxisInverted(true);
+        if (pressed) {
+            player.getMoveC().setCanAccelerateX(true);
+            player.getTransformC().setxAxisInverted(true);
+            player.getMoveC().setxAccelInMeters(-speed);
+        } else {
+            player.getMoveC().setCanAccelerateX(false);
+            player.getMoveC().setxAccelInMeters(0);
+        }
 
     }
 
     public void right(boolean pressed) {
-        player.getTransformC().setxAxisInverted(false);
+        if (pressed) {
+            player.getMoveC().setCanAccelerateX(true);
+            player.getTransformC().setxAxisInverted(false);
+            player.getMoveC().setxAccelInMeters(speed);
+        } else {
+            player.getMoveC().setCanAccelerateX(false);
+            player.getMoveC().setxAccelInMeters(0);
+        }
     }
 
 }

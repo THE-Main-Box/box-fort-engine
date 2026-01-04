@@ -5,6 +5,7 @@ import official.sketchBook.engine.animation_related.ObjectAnimationPlayer;
 import official.sketchBook.engine.animation_related.Sprite;
 import official.sketchBook.engine.animation_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.StaticResourceDisposable;
+import official.sketchBook.engine.components_related.objects.MovementComponent;
 import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
 import official.sketchBook.engine.gameObject_related.AnimatedRenderableGameObject;
 import official.sketchBook.game.components_related.PlayerControllerComponent;
@@ -18,6 +19,7 @@ public class Player extends AnimatedRenderableGameObject implements StaticResour
     public static Texture playerSheet;
 
     private PlayerControllerComponent controllerC;
+    private MovementComponent moveC;
 
     public Player(
         float x,
@@ -49,16 +51,27 @@ public class Player extends AnimatedRenderableGameObject implements StaticResour
         initSpriteSheet();
         initAnimations();
         initController();
-
-        initComponents();
-    }
-
-    private void initComponents(){
-        this.toUpdateComponentList.add(controllerC);
+        initMovementComponent();
     }
 
     private void initController(){
         this.controllerC = new PlayerControllerComponent(this);
+        this.toUpdateComponentList.add(controllerC);
+    }
+
+    private void initMovementComponent(){
+        this.moveC = new MovementComponent(
+            15,
+            15,
+            5,
+            5,
+            true,
+            true,
+            true,
+            true,
+            1
+        );
+        this.toUpdateComponentList.add(moveC);
     }
 
     private void initAnimations() {
@@ -99,6 +112,15 @@ public class Player extends AnimatedRenderableGameObject implements StaticResour
     @Override
     public void update(float delta) {
         super.update(delta);
+
+        this.transformC.setX(
+            this.transformC.getX() + this.moveC.getxSpeedInMeters()
+        );
+
+        this.transformC.setY(
+            this.transformC.getY() + this.moveC.getySpeedInMeters()
+        );
+
     }
 
     @Override
@@ -123,5 +145,9 @@ public class Player extends AnimatedRenderableGameObject implements StaticResour
 
     public PlayerControllerComponent getControllerC() {
         return controllerC;
+    }
+
+    public MovementComponent getMoveC() {
+        return moveC;
     }
 }

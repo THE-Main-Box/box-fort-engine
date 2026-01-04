@@ -2,7 +2,6 @@ package official.sketchBook.engine.camera_related.utils;
 
 import com.badlogic.gdx.Gdx;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
-import official.sketchBook.engine.screen_related.BaseScreen;
 
 public class CameraUtils {
     public static OrthographicCameraManager createScreenCamera() {
