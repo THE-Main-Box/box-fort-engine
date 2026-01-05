@@ -1,8 +1,16 @@
 package official.sketchBook.engine.components_related.objects;
 
+import com.badlogic.gdx.math.Vector2;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.MovableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.MovablePhysicalObjectII;
+
+import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
 
 public class MovementComponent implements Component {
+
+    /// Referencia ao objeto capaz de se mover
+    private final MovableObjectII mob;
 
     /// Valores de velocidade em metros
     private float xSpeedInMeters, ySpeedInMeters;
@@ -22,12 +30,16 @@ public class MovementComponent implements Component {
     /// Flags para determinar se podemos manter uma aceleração nos eixos respectivos
     private boolean canAccelerateX, canAccelerateY;
 
+    /// se devemos deixar o sistema aplicar a velocidade no objeto automaticamente
+    private final boolean autoApplySpeed;
+
     /// Valor de suavização de movimentação
     private float weight;
 
     private boolean disposed = false;
 
     public MovementComponent(
+        MovableObjectII mob,
         float xMaxSpeedInMeters,
         float yMaxSpeedInMeters,
         float xDeceleration,
@@ -36,23 +48,40 @@ public class MovementComponent implements Component {
         boolean canMoveY,
         boolean canAccelerateX,
         boolean canAccelerateY,
+        boolean autoApplySpeed,
         float weight
     ) {
+        this.mob = mob;
+
         this.xMaxSpeedInMeters = xMaxSpeedInMeters;
         this.yMaxSpeedInMeters = yMaxSpeedInMeters;
+
         this.xDeceleration = xDeceleration;
         this.yDeceleration = yDeceleration;
+
         this.canMoveX = canMoveX;
         this.canMoveY = canMoveY;
+
         this.canAccelerateX = canAccelerateX;
         this.canAccelerateY = canAccelerateY;
+
+        this.autoApplySpeed = autoApplySpeed;
+
         this.weight = weight;
     }
 
     @Override
     public void update(float delta) {
-        updateXAxis();
-        updateYAxis();
+        if (!canMoveX && !canMoveY) {
+            return;
+        }
+
+        updateXAxis(delta);
+        updateYAxis(delta);
+
+        if (autoApplySpeed) {
+            applyMovementToMob(delta);
+        }
     }
 
     @Override
@@ -60,8 +89,19 @@ public class MovementComponent implements Component {
 
     }
 
+    public void applyMovementToMob(float delta) {
+        mob.getTransformC().setX(
+            mob.getTransformC().getX() + this.xSpeedInMeters * delta
+        );
+
+        mob.getTransformC().setY(
+            mob.getTransformC().getY() + this.ySpeedInMeters * delta
+        );
+
+    }
+
     /// Atualização interna da movimentação do eixo x
-    private void updateXAxis() {
+    private void updateXAxis(float delta) {
         // 1. Constraint Mestra (Guard Clause)
         if (!canMoveX) {
             resetXMovement();
@@ -79,7 +119,10 @@ public class MovementComponent implements Component {
         // Se chegou aqui, ou canAccelerateX é false ou não há aceleração vindo do input
         xAccelInMeters = 0;
         if (isMovingX()) {
-            xSpeedInMeters = applyFriction(xSpeedInMeters, xDeceleration);
+            xSpeedInMeters = applyFriction(
+                xSpeedInMeters,
+                xDeceleration * delta
+            );
         }
 
         // 4. Constraint Final
@@ -87,11 +130,14 @@ public class MovementComponent implements Component {
     }
 
     private void applyXSpeedClamp() {
-        if (xSpeedInMeters > xMaxSpeedInMeters) xSpeedInMeters = xMaxSpeedInMeters;
-        else if (xSpeedInMeters < -xMaxSpeedInMeters) xSpeedInMeters = -xMaxSpeedInMeters;
+        if (xSpeedInMeters > xMaxSpeedInMeters) {
+            xSpeedInMeters = xMaxSpeedInMeters;
+        } else if (xSpeedInMeters < -xMaxSpeedInMeters) {
+            xSpeedInMeters = -xMaxSpeedInMeters;
+        }
     }
 
-    private void updateYAxis() {
+    private void updateYAxis(float delta) {
         // 1. Constraint Mestra
         if (!canMoveY) {
             resetYMovement();
@@ -111,7 +157,7 @@ public class MovementComponent implements Component {
         if (isMovingY()) {
             ySpeedInMeters = applyFriction(
                 ySpeedInMeters,
-                yDeceleration
+                yDeceleration * delta
             );
         }
 
@@ -121,8 +167,12 @@ public class MovementComponent implements Component {
     }
 
     private void applyYSpeedClamp() {
-        if (ySpeedInMeters > yMaxSpeedInMeters) ySpeedInMeters = yMaxSpeedInMeters;
-        else if (ySpeedInMeters < -yMaxSpeedInMeters) ySpeedInMeters = -yMaxSpeedInMeters;
+        if (ySpeedInMeters > yMaxSpeedInMeters) {
+            ySpeedInMeters = yMaxSpeedInMeters;
+        }
+        else if (ySpeedInMeters < -yMaxSpeedInMeters) {
+            ySpeedInMeters = -yMaxSpeedInMeters;
+        }
     }
 
     /// Aplica a desaceleração

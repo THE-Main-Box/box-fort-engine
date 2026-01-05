@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Texture;
 import official.sketchBook.engine.animation_related.ObjectAnimationPlayer;
 import official.sketchBook.engine.animation_related.Sprite;
 import official.sketchBook.engine.animation_related.SpriteSheetDataHandler;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.StaticResourceDisposable;
 import official.sketchBook.engine.components_related.objects.MovementComponent;
 import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
@@ -14,7 +15,7 @@ import official.sketchBook.game.util_related.path.GameAssetsPaths;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Player extends AnimatedRenderableGameObject implements StaticResourceDisposable {
+public class Player extends AnimatedRenderableGameObject implements StaticResourceDisposable, MovableObjectII {
 
     public static Texture playerSheet;
 
@@ -61,17 +62,20 @@ public class Player extends AnimatedRenderableGameObject implements StaticResour
 
     private void initMovementComponent(){
         this.moveC = new MovementComponent(
-            5,
-            15,
-            0.5F,
+            this,
+            350,
+            900,
+            800f,
             1,
             true,
             true,
             true,
             true,
-            1
+            true,
+            4
         );
         this.toUpdateComponentList.add(moveC);
+//        this.toPostUpdateComponentList.add(moveC);
     }
 
     private void initAnimations() {
@@ -112,15 +116,6 @@ public class Player extends AnimatedRenderableGameObject implements StaticResour
     @Override
     public void update(float delta) {
         super.update(delta);
-
-        this.transformC.setX(
-            this.transformC.getX() + this.moveC.getxSpeedInMeters()
-        );
-
-        this.transformC.setY(
-            this.transformC.getY() + this.moveC.getySpeedInMeters()
-        );
-
     }
 
     @Override

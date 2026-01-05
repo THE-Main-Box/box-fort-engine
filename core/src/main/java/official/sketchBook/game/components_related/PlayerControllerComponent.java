@@ -9,7 +9,7 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
 
     private final Player player;
 
-    private float accelToApply = 10;
+    private float accelToApply = 100;
 
     private boolean leftPressed = false;
     private boolean rightPressed = false;
