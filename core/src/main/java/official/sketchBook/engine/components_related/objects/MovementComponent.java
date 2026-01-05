@@ -1,11 +1,7 @@
 package official.sketchBook.engine.components_related.objects;
 
-import com.badlogic.gdx.math.Vector2;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.MovableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.MovablePhysicalObjectII;
-
-import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 
 public class MovementComponent implements Component {
 

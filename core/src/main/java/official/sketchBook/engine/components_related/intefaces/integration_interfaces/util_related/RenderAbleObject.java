@@ -1,4 +1,4 @@
-package official.sketchBook.engine.components_related.intefaces.integration_interfaces;
+package official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import official.sketchBook.engine.components_related.objects.TransformComponent;

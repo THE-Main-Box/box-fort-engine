@@ -2,8 +2,8 @@ package official.sketchBook.engine.dataManager_related;
 
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Disposable;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.RenderAbleObject;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.StaticResourceDisposable;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.gameObject_related.BaseGameObject;
 
 import java.lang.reflect.Method;

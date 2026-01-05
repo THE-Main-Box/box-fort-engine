@@ -1,11 +1,13 @@
 package official.sketchBook.game.gameObject_related;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.physics.box2d.Body;
 import official.sketchBook.engine.animation_related.ObjectAnimationPlayer;
 import official.sketchBook.engine.animation_related.Sprite;
 import official.sketchBook.engine.animation_related.SpriteSheetDataHandler;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.MovableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.StaticResourceDisposable;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.components_related.objects.MovementComponent;
 import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
 import official.sketchBook.engine.gameObject_related.AnimatedRenderableGameObject;
@@ -15,12 +17,16 @@ import official.sketchBook.game.util_related.path.GameAssetsPaths;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Player extends AnimatedRenderableGameObject implements StaticResourceDisposable, MovableObjectII {
+public class Player extends AnimatedRenderableGameObject implements StaticResourceDisposable, MovableObjectII, PhysicalObjectII {
 
     public static Texture playerSheet;
 
     private PlayerControllerComponent controllerC;
     private MovementComponent moveC;
+
+    private Body body;
+
+    private short mask, category;
 
     public Player(
         float x,
@@ -53,6 +59,12 @@ public class Player extends AnimatedRenderableGameObject implements StaticResour
         initAnimations();
         initController();
         initMovementComponent();
+
+        initBody();
+    }
+
+    protected void initBody(){
+//        this.body;
     }
 
     private void initController(){
@@ -144,5 +156,10 @@ public class Player extends AnimatedRenderableGameObject implements StaticResour
 
     public MovementComponent getMoveC() {
         return moveC;
+    }
+
+    @Override
+    public Body getBody() {
+        return body;
     }
 }

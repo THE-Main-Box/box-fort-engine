@@ -3,7 +3,7 @@ package official.sketchBook.engine.components_related.system_utils;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.RenderSystem;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.RenderAbleObject;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
 import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
 import official.sketchBook.engine.screen_related.BaseScreen;
 

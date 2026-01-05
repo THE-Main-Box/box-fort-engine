@@ -1,4 +1,4 @@
-package official.sketchBook.engine.components_related.intefaces.integration_interfaces;
+package official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related;
 
 public interface StaticResourceDisposable {
     /// Dispose dos recursos estáticos da classe
