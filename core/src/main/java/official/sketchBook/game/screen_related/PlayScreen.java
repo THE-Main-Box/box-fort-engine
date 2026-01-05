@@ -16,8 +16,9 @@ import official.sketchBook.engine.screen_related.BaseScreen;
 import official.sketchBook.game.dataManager_related.WorldDataManager;
 import official.sketchBook.game.gameObject_related.Player;
 
-import static official.sketchBook.game.util_related.constants.DebugC.show_fps_ups_metrics;
+import static official.sketchBook.game.util_related.constants.DebugC.*;
 import static official.sketchBook.game.util_related.constants.PhysicsC.*;
+import static official.sketchBook.game.util_related.constants.RenderingC.*;
 
 public class PlayScreen extends BaseScreen {
     private OrthographicCameraManager uiCameraManager;
@@ -37,7 +38,13 @@ public class PlayScreen extends BaseScreen {
         super.initSystems();
 
         this.uiCameraManager = CameraUtils.createScreenCamera();
-        this.gameCameraManager = CameraUtils.createScreenCamera();
+        this.gameCameraManager = new OrthographicCameraManager(
+            VIRTUAL_WIDTH_PX,
+            VIRTUAL_HEIGHT_PX
+        );
+
+        updateZoom(0.5f);
+        this.gameCameraManager.setZoom(zoom);
 
         this.font = new BitmapFont();
         this.font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
@@ -65,25 +72,42 @@ public class PlayScreen extends BaseScreen {
         );
 
         player = new Player(
-            100,
-            100,
+            300,
+            300,
             0,
-            64,
-            64,
+            20,
+            16,
             false,
             false,
             worldManager
         );
+
+        player.setRenderDimensionEqualsToObject(false);
 
 
     }
 
     @Override
     public void updateScreen(float delta) {
-        if(Gdx.input.isKeyPressed(
-            Input.Keys.ESCAPE
-        )){
-            worldManager.destroyManager();
+//        if (Gdx.input.isKeyPressed(
+//            Input.Keys.ESCAPE
+//        )) {
+//            worldManager.destroyManager();
+//        }
+
+        if(change_of_zoom_allowed) {
+            if (Gdx.input.isKeyPressed(
+                Input.Keys.U
+            )) {
+                updateZoom(zoom - 0.1f);
+                this.gameCameraManager.setZoom(zoom);
+            }
+            if (Gdx.input.isKeyPressed(
+                Input.Keys.J
+            )) {
+                updateZoom(zoom + 0.1f);
+                this.gameCameraManager.setZoom(zoom);
+            }
         }
     }
 
@@ -99,6 +123,12 @@ public class PlayScreen extends BaseScreen {
         // Aplica a câmera do JOGO
         batch.setProjectionMatrix(gameCameraManager.getCamera().combined);
 
+        if (show_hit_boxes && worldManager.isPhysicsWorldExists()) {
+            worldManager.getDebugRenderer().render(
+                worldManager.getPhysicsWorld(),
+                gameCameraManager.getCamera().combined.scl(PPM)
+            );
+        }
     }
 
     @Override

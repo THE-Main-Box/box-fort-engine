@@ -153,4 +153,12 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
     public int getRenderIndex() {
         return (int) transformC.getZ();
     }
+
+    public List<SpriteSheetDataHandler> getSpriteHandlerList() {
+        return spriteHandlerList;
+    }
+
+    public List<ObjectAnimationPlayer> getAnimationPlayerList() {
+        return animationPlayerList;
+    }
 }

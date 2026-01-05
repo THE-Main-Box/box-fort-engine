@@ -6,6 +6,9 @@ import official.sketchBook.engine.components_related.intefaces.base_interfaces.R
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
 import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
 import official.sketchBook.engine.screen_related.BaseScreen;
+import official.sketchBook.game.util_related.constants.DebugC;
+
+import static official.sketchBook.game.util_related.constants.DebugC.show_hit_boxes;
 
 public class SingleThreadRenderSystem implements RenderSystem {
     private final BaseScreen screen;

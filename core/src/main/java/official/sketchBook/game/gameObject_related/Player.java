@@ -1,7 +1,9 @@
 package official.sketchBook.game.gameObject_related;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
 import official.sketchBook.engine.animation_related.ObjectAnimationPlayer;
 import official.sketchBook.engine.animation_related.Sprite;
 import official.sketchBook.engine.animation_related.SpriteSheetDataHandler;
@@ -11,13 +13,21 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.objects.MovementComponent;
 import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
 import official.sketchBook.engine.gameObject_related.AnimatedRenderableGameObject;
+import official.sketchBook.engine.util_related.enumerators.ObjectType;
+import official.sketchBook.engine.util_related.helper.BodyCreatorHelper;
+import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.game.components_related.PlayerControllerComponent;
 import official.sketchBook.game.util_related.path.GameAssetsPaths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Player extends AnimatedRenderableGameObject implements StaticResourceDisposable, MovableObjectII, PhysicalObjectII {
+import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
+
+public class Player extends AnimatedRenderableGameObject implements
+    StaticResourceDisposable,
+    MovableObjectII,
+    PhysicalObjectII {
 
     public static Texture playerSheet;
 
@@ -25,8 +35,8 @@ public class Player extends AnimatedRenderableGameObject implements StaticResour
     private MovementComponent moveC;
 
     private Body body;
-
-    private short mask, category;
+    private short maskBit, categoryBit;
+    private float density, frict, rest;
 
     public Player(
         float x,
@@ -60,19 +70,54 @@ public class Player extends AnimatedRenderableGameObject implements StaticResour
         initController();
         initMovementComponent();
 
-        initBody();
+        initBodyData();
+        createBody();
     }
 
-    protected void initBody(){
-//        this.body;
+    protected void initBodyData() {
+        this.maskBit = ALLY_ENTITY.bit();
+        this.categoryBit = (short) (SENSOR.bit() | ENVIRONMENT.bit());
+
+        this.density = 0.5f;
+        this.frict = 1f;
+        this.rest = 0;
     }
 
-    private void initController(){
+    public void createBody() {
+        this.body = BodyCreatorHelper.createCapsule(
+            this.worldDataManager.getPhysicsWorld(),
+            new Vector2(
+                this.transformC.getX(),
+                this.transformC.getY()
+            ),
+            this.transformC.getWidth(),
+            this.transformC.getHeight(),
+            BodyDef.BodyType.DynamicBody,
+            density,
+            frict,
+            rest,
+            categoryBit,
+            maskBit
+        );
+
+        this.body.setFixedRotation(true);
+        this.body.resetMassData();
+
+        this.body.setUserData(
+            new GameObjectTag(
+                ObjectType.ENTITY,
+                this
+            )
+        );
+
+    }
+
+    private void initController() {
         this.controllerC = new PlayerControllerComponent(this);
         this.toUpdateComponentList.add(controllerC);
     }
 
-    private void initMovementComponent(){
+    private void initMovementComponent() {
         this.moveC = new MovementComponent(
             this,
             350,
@@ -87,7 +132,6 @@ public class Player extends AnimatedRenderableGameObject implements StaticResour
             4
         );
         this.toUpdateComponentList.add(moveC);
-//        this.toPostUpdateComponentList.add(moveC);
     }
 
     private void initAnimations() {
@@ -114,8 +158,8 @@ public class Player extends AnimatedRenderableGameObject implements StaticResour
             new SpriteSheetDataHandler(
                 transformC.getX(),
                 transformC.getY(),
+                16,
                 8,
-                0,
                 5,
                 4,
                 transformC.isxAxisInverted(),
@@ -161,5 +205,30 @@ public class Player extends AnimatedRenderableGameObject implements StaticResour
     @Override
     public Body getBody() {
         return body;
+    }
+
+    @Override
+    public short getMaskBit() {
+        return maskBit;
+    }
+
+    @Override
+    public short getCategoryBit() {
+        return categoryBit;
+    }
+
+    @Override
+    public float getDensity() {
+        return density;
+    }
+
+    @Override
+    public float getFrict() {
+        return frict;
+    }
+
+    @Override
+    public float getRest() {
+        return rest;
     }
 }

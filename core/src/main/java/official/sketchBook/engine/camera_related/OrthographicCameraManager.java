@@ -122,6 +122,11 @@ public class OrthographicCameraManager {
         viewport.update(width, height, true);
     }
 
+    public void setZoom(float zoom){
+        camera.zoom = zoom;
+        camera.update();
+    }
+
     public OrthographicCamera getCamera() { return camera; }
     public Viewport getViewport() { return viewport; }
 }
