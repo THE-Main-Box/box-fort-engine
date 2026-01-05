@@ -61,10 +61,10 @@ public class Player extends AnimatedRenderableGameObject implements StaticResour
 
     private void initMovementComponent(){
         this.moveC = new MovementComponent(
-            15,
-            15,
             5,
-            5,
+            15,
+            0.5F,
+            1,
             true,
             true,
             true,

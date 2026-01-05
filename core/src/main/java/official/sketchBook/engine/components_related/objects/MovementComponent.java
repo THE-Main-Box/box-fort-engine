@@ -51,11 +51,8 @@ public class MovementComponent implements Component {
 
     @Override
     public void update(float delta) {
-        applyAcceleration();
-        applyDeceleration();
-        limitSpeed();
-
-        enforceSpeedAxisConstraints();
+        updateXAxis();
+        updateYAxis();
     }
 
     @Override
@@ -63,96 +60,69 @@ public class MovementComponent implements Component {
 
     }
 
-    protected void applyAcceleration() {
-        enforceXAcceleration();
-        enforceYAcceleration();
-    }
+    /// Atualização interna da movimentação do eixo x
+    private void updateXAxis() {
+        // 1. Constraint Mestra (Guard Clause)
+        if (!canMoveX) {
+            resetXMovement();
+            return;
+        }
 
-    /// Aplica a aceleração na velocidade x suavizada pela weight
-    protected void enforceXAcceleration() {
-        if (canAccelerateX && canMoveX) {   //Se pudermos acelerar e nos mover
+        // 2. Fluxo de Aceleração
+        if (canAccelerateX && isAcceleratingX()) {
             xSpeedInMeters += xAccelInMeters / weight;
-        } else {
-            xAccelInMeters = 0;             //Caso não possamos acelerar colocamos a aceleração em 0
+            applyXSpeedClamp(); // Limita imediatamente após alteração
+            return; // Sai da função pois já acelerou, não precisa de fricção
         }
+
+        // 3. Fluxo de Deceleração (Inércia)
+        // Se chegou aqui, ou canAccelerateX é false ou não há aceleração vindo do input
+        xAccelInMeters = 0;
+        if (isMovingX()) {
+            xSpeedInMeters = applyFriction(xSpeedInMeters, xDeceleration);
+        }
+
+        // 4. Constraint Final
+        applyXSpeedClamp();
     }
 
-    /// Aplica a aceleração na velocidade y suavizada pela weight
-    protected void enforceYAcceleration() {
-        if (canAccelerateY && canMoveY) {   //Se pudermos nos acelerar e nos mover
+    private void applyXSpeedClamp() {
+        if (xSpeedInMeters > xMaxSpeedInMeters) xSpeedInMeters = xMaxSpeedInMeters;
+        else if (xSpeedInMeters < -xMaxSpeedInMeters) xSpeedInMeters = -xMaxSpeedInMeters;
+    }
+
+    private void updateYAxis() {
+        // 1. Constraint Mestra
+        if (!canMoveY) {
+            resetYMovement();
+            return;
+        }
+
+        // 2. Fluxo de Aceleração
+        if (canAccelerateY && isAcceleratingY()) {
             ySpeedInMeters += yAccelInMeters / weight;
-        } else {
-            yAccelInMeters = 0;             //Caso não possamos acelerar colocamos a aceleração em 0
+            applyYSpeedClamp(); // Limita imediatamente após alteração
+            return; // Sai da função pois já acelerou, não precisa de fricção
         }
-    }
 
-    /// Limita velocidade
-    private void limitSpeed() {
-        enforceXSpeedLimit();
-        enforceYSpeedLimit();
-    }
-
-    /// Limita a velocidade no eixo x
-    protected void enforceXSpeedLimit() {
-        //Caso não estejamos nos movendo no eixo x não precisamos limitar a velocidade
-        if (!isMovingX()) return;
-
-        //A velocidade x tem que estar dentro do limite pré-determinado
-        xSpeedInMeters = Math.max(
-            -xMaxSpeedInMeters,
-            Math.min(
-                xSpeedInMeters,
-                xMaxSpeedInMeters
-            )
-        );
-    }
-
-    /// Limita a velocidade no eixo y
-    protected void enforceYSpeedLimit() {
-        //Caso não estejamos nos movendo no eixo y não precisamos limitar a velocidade
-        if (!isMovingY()) return;
-
-        //A velocidade y tem que estar dentro do limite pré-determinado
-        ySpeedInMeters = Math.max(
-            -yMaxSpeedInMeters,
-            Math.min(
+        // 3. Fluxo de Deceleração (Inércia)
+        // Se chegou aqui, ou canAccelerateX é false ou não há aceleração vindo do input
+        yAccelInMeters = 0;
+        if (isMovingY()) {
+            ySpeedInMeters = applyFriction(
                 ySpeedInMeters,
-                yMaxSpeedInMeters
-            )
-        );
-    }
+                yDeceleration
+            );
+        }
 
-    protected void applyDeceleration() {
-        enforceXDeceleration();
-        enforceYDeceleration();
-    }
-
-    protected void enforceXDeceleration() {
-        //Se estiver acelerando podemos ignorar
-        if (isAcceleratingX()) return;
-
-        xSpeedInMeters = applyFriction(
-            xSpeedInMeters,
-            xDeceleration
-        );
+        // 4. Constraint Final
+        applyYSpeedClamp();
 
     }
 
-    protected void enforceYDeceleration() {
-        //Se estiver acelerando podemos ignorar
-        if (isAcceleratingY()) return;
-
-        ySpeedInMeters = applyFriction(
-            ySpeedInMeters,
-            yDeceleration
-        );
-
-    }
-
-    /// Impede que tenhamos uma velocidade armazenada caso não possamos nos mover
-    protected void enforceSpeedAxisConstraints() {
-        if (!canMoveX) resetXMovement();
-        if (!canMoveY) resetYMovement();
+    private void applyYSpeedClamp() {
+        if (ySpeedInMeters > yMaxSpeedInMeters) ySpeedInMeters = yMaxSpeedInMeters;
+        else if (ySpeedInMeters < -yMaxSpeedInMeters) ySpeedInMeters = -yMaxSpeedInMeters;
     }
 
     /// Aplica a desaceleração
