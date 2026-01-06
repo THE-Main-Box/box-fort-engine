@@ -19,7 +19,8 @@ public enum TileType {
         0,
         0,
         NONE.bit(),
-        NONE.bit()
+        NONE.bit(),
+        false
     ),
 
     /*
@@ -33,6 +34,7 @@ public enum TileType {
      * ou seja servirá de apoio para outros corpos
      *  Pode interagir com objetos sólidos como entidades, projéteis,
      * mas também pode interagir com sensores.
+     *  Pode ser fundida com outras do mesmo tipo
      */
     BLOCK(
         1,
@@ -45,7 +47,8 @@ public enum TileType {
             ENTITIES.bit() |
                 PROJECTILES.bit() |
                 SENSOR.bit()
-        )
+        ),
+        true
     );
 
     /// Id com o qual podemos identificar a tile
@@ -65,6 +68,7 @@ public enum TileType {
     /// Determina com quem a tile pode interagir físicamente
     private final short maskBit;
 
+    private final boolean isMergeable;
 
     TileType(
         int id,
@@ -73,7 +77,8 @@ public enum TileType {
         float density,
         float restt,
         float categoryBit,
-        float maskBit
+        float maskBit,
+        boolean isMergeable
     ) {
         this.id = id;
         this.solid = solid;
@@ -83,6 +88,12 @@ public enum TileType {
 
         this.maskBit = (short) maskBit;
         this.categoryBit = (short) categoryBit;
+
+        this.isMergeable = isMergeable;
+    }
+
+    public boolean isMergeable() {
+        return isMergeable;
     }
 
     public short getMaskBit() {

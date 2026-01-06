@@ -7,11 +7,23 @@ import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.game.util_related.enumerators.TileType;
 
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.ALL;
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.ENVIRONMENT;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static official.sketchBook.game.util_related.constants.WorldC.TILE_SIZE_PX;
 
 public class RoomBodyDataGeneratorHelper {
+
+    /// Registro de factories por tipo de tile
+    private static final Map<TileType, TileBodyFactory> tileFactories = new HashMap<>();
+
+    /// Inicializa as factories padrão
+    static {
+        register(TileType.BLOCK, TileFactory::createBlockBody);
+    }
+
     /**
      * Valida se existem tiles ao redor do mesmo tipo, se sim nós não criamos.
      * Validamos também se são sólidos,
@@ -43,7 +55,7 @@ public class RoomBodyDataGeneratorHelper {
     }
 
     /// Cria uma body padrão para as tiles
-    private static Body createBoxBodyForTiles(
+    public static Body createBoxBodyForTiles(
         World world,
         TileType type,
         BodyDef.BodyType bodyType,
@@ -100,4 +112,129 @@ public class RoomBodyDataGeneratorHelper {
         );
     }
 
+    public static List<Body> buildTileMergedBodies(TileType[][] tiles, World world) {
+        int rows = tiles.length;
+        int cols = tiles[0].length;
+        boolean[][] visited = new boolean[rows][cols];
+        List<Body> bodies = new ArrayList<>();
+
+        // Percorre o mapa de cima para baixo
+        for (int y = 0; y < rows; y++) {
+            for (int x = 0; x < cols; x++) {
+
+                // Verifica se ainda não visitou e se é sólida e se devemos criar ela
+                if (!visited[y][x] && tiles[y][x].isSolid() && shouldCreateBody(x, y, tiles)) {
+                    TileType currentType = tiles[y][x];
+
+                    int width = 1;
+                    int height = 1;
+
+                    // Se a tile pode ser merged, tenta encontrar o maior retângulo
+                    if (currentType.isMergeable()) {
+                        // Encontra a largura
+                        while (x + width < cols &&
+                            tiles[y][x + width] == currentType &&
+                            !visited[y][x + width]
+                        ) {
+                            width++;
+                        }
+
+                        // Encontra a altura
+                        boolean done = false;
+                        while (!done &&
+                            y + height < rows
+                        ) {
+                            for (int dx = 0; dx < width; dx++) {
+                                if (tiles[y + height][x + dx] != currentType ||
+                                    visited[y + height][x + dx]
+                                ) {
+                                    done = true;
+                                    break;
+                                }
+                            }
+                            if (!done) {
+                                height++;
+                            }
+                        }
+                    }
+                    // Se não pode ser merged, deixa width/height como 1
+
+                    // Marca como visitado
+                    for (int dy = 0; dy < height; dy++) {
+                        for (int dx = 0; dx < width; dx++) {
+                            visited[y + dy][x + dx] = true;
+                        }
+                    }
+
+                    // Obtém a factory e cria as bodies
+                    TileBodyFactory factory = getFactory(currentType);
+                    List<Body> createdBodies = factory.createBodies(
+                        world,
+                        currentType,
+                        x, y,
+                        width, height,
+                        rows
+                    );
+
+                    bodies.addAll(createdBodies);
+                }
+            }
+        }
+
+        return bodies;
+    }
+
+    /**
+     * Converte um mapa de inteiros para um mapa de tipos de tiles
+     * Cada ID é convertido para seu TileType correspondente
+     *
+     * @param tileIds matriz bidimensional com IDs de tiles
+     * @return matriz bidimensional de TileType
+     */
+    public static TileType[][] convertToTileTypeMap(int[][] tileIds) {
+        int rows = tileIds.length;
+        int cols = tileIds[0].length;
+        TileType[][] tiles = new TileType[rows][cols];
+
+        /// Percorre cada ID e obtém seu TileType correspondente
+        for (int y = 0; y < rows; y++) {
+            for (int x = 0; x < cols; x++) {
+                tiles[y][x] = TileType.fromId(tileIds[y][x]);
+            }
+        }
+
+        return tiles;
+    }
+
+    /**
+     * Converte um mapa de tipos de tiles para um mapa de inteiros
+     * Cada TileType é convertido para seu ID correspondente
+     *
+     * @param tiles matriz bidimensional de TileType
+     * @return matriz bidimensional com IDs de tiles
+     */
+    public static int[][] convertToIntMap(TileType[][] tiles) {
+        int rows = tiles.length;
+        int cols = tiles[0].length;
+        int[][] tileIds = new int[rows][cols];
+
+        /// Percorre cada TileType e obtém seu ID correspondente
+        for (int y = 0; y < rows; y++) {
+            for (int x = 0; x < cols; x++) {
+                tileIds[y][x] = tiles[y][x].getId();
+            }
+        }
+
+        return tileIds;
+    }
+
+    /// Registra uma factory customizada para um tipo de tile
+    public static void register(TileType tileType, TileBodyFactory factory) {
+        tileFactories.put(tileType, factory);
+    }
+
+    /// Obtém a factory para um tipo de tile
+    private static TileBodyFactory getFactory(TileType type) {
+        return tileFactories.getOrDefault(type, TileFactory::createBlockBody);
+    }
 }
