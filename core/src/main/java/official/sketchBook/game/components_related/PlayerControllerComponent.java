@@ -108,8 +108,9 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
         }
 
         if (lastAppliedAccel != accel) {
-            player.getMoveC().setxAccelInMeters(accel);
+            player.getMoveC().setxAccel(accel);
             lastAppliedAccel = accel;
+
         }
     }
 

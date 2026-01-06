@@ -13,12 +13,16 @@ public class TransformComponent implements Component {
     /// Inversão de percepção do objeto em relação ao eixo
     private boolean xAxisInverted, yAxisInverted;
 
+    /// Rotação atual do sprite em graus
+    private float radians;
+
     private boolean disposed = false;
 
     public TransformComponent(
         float x,
         float y,
         float z,
+        float radians,
         float width,
         float height,
         boolean xAxisInverted,
@@ -27,6 +31,7 @@ public class TransformComponent implements Component {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.radians = radians;
         this.width = width;
         this.height = height;
         this.xAxisInverted = xAxisInverted;
@@ -45,6 +50,14 @@ public class TransformComponent implements Component {
     @Override
     public void dispose() {
         disposed = true;
+    }
+
+    public void setRadians(float radians) {
+        this.radians = radians;
+    }
+
+    public float getRadians() {
+        return radians;
     }
 
     public float getX() {

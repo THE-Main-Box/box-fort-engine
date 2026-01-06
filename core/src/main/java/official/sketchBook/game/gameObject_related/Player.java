@@ -10,7 +10,9 @@ import official.sketchBook.engine.animation_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
+import official.sketchBook.engine.components_related.objects.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.objects.MovementComponent;
+import official.sketchBook.engine.components_related.objects.PhysicsComponent;
 import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
 import official.sketchBook.engine.gameObject_related.AnimatedRenderableGameObject;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
@@ -23,8 +25,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
+import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
 
-public class Player extends AnimatedRenderableGameObject implements
+public class Player
+    extends
+    AnimatedRenderableGameObject
+    implements
     StaticResourceDisposable,
     MovableObjectII,
     PhysicalObjectII {
@@ -33,6 +39,7 @@ public class Player extends AnimatedRenderableGameObject implements
 
     private PlayerControllerComponent controllerC;
     private MovementComponent moveC;
+    private MovableObjectPhysicsComponent physicsC;
 
     private Body body;
     private short maskBit, categoryBit;
@@ -42,6 +49,7 @@ public class Player extends AnimatedRenderableGameObject implements
         float x,
         float y,
         float z,
+        float rotation,
         float width,
         float height,
         boolean xAxisInverted,
@@ -52,6 +60,7 @@ public class Player extends AnimatedRenderableGameObject implements
             x,
             y,
             z,
+            rotation,
             width,
             height,
             xAxisInverted,
@@ -74,6 +83,13 @@ public class Player extends AnimatedRenderableGameObject implements
         createBody();
     }
 
+    private void initPhysicsComponent(){
+        this.physicsC = new MovableObjectPhysicsComponent(this);
+
+        this.toUpdateComponentList.add(physicsC);
+        this.toPostUpdateComponentList.add(physicsC);
+    }
+
     protected void initBodyData() {
         this.maskBit = ALLY_ENTITY.bit();
         this.categoryBit = (short) (SENSOR.bit() | ENVIRONMENT.bit());
@@ -84,7 +100,7 @@ public class Player extends AnimatedRenderableGameObject implements
     }
 
     public void createBody() {
-        this.body = BodyCreatorHelper.createCapsule(
+        this.body = BodyCreatorHelper.createBox(
             this.worldDataManager.getPhysicsWorld(),
             new Vector2(
                 this.transformC.getX(),
@@ -92,6 +108,7 @@ public class Player extends AnimatedRenderableGameObject implements
             ),
             this.transformC.getWidth(),
             this.transformC.getHeight(),
+            this.transformC.getRadians(),
             BodyDef.BodyType.DynamicBody,
             density,
             frict,
@@ -102,6 +119,7 @@ public class Player extends AnimatedRenderableGameObject implements
 
         this.body.setFixedRotation(true);
         this.body.resetMassData();
+        this.body.setLinearDamping(0);
 
         this.body.setUserData(
             new GameObjectTag(
@@ -109,6 +127,12 @@ public class Player extends AnimatedRenderableGameObject implements
                 this
             )
         );
+
+        initPhysicsComponent();
+    }
+
+    @Override
+    public void onObjectAndBodyPosSync() {
 
     }
 
@@ -158,8 +182,8 @@ public class Player extends AnimatedRenderableGameObject implements
             new SpriteSheetDataHandler(
                 transformC.getX(),
                 transformC.getY(),
-                16,
                 8,
+                0,
                 5,
                 4,
                 transformC.isxAxisInverted(),
@@ -230,5 +254,10 @@ public class Player extends AnimatedRenderableGameObject implements
     @Override
     public float getRest() {
         return rest;
+    }
+
+    @Override
+    public PhysicsComponent getPhysicsC() {
+        return physicsC;
     }
 }

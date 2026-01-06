@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.AppMain;
+import official.sketchBook.engine.animation_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.camera_related.utils.CameraUtils;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadRenderSystem;
@@ -75,7 +76,8 @@ public class PlayScreen extends BaseScreen {
             300,
             300,
             0,
-            20,
+            0,
+            16,
             16,
             false,
             false,

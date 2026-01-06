@@ -24,12 +24,14 @@ public class SpriteSheetDataHandler {
     /// Offset de ajuste para o ponto de renderização (em pixels, nunca escala)
     private float drawOffSetX, drawOffSetY;
 
+    private float originOffSetX, originOffSetY;
+
     /// Origem da rotação (ponto em torno do qual o sprite será rotacionado)
     /// Atualizado automaticamente para o centro quando a escala muda
     private float originX = 0f, originY = 0f;
 
     /// Rotação atual do sprite em graus
-    private float rotation = 0f;
+    private float radians = 0f;
 
     /// Dimensões de cada quadro da sprite sheet (em pixels)
     private final int canvasHeight, canvasWidth;
@@ -158,8 +160,8 @@ public class SpriteSheetDataHandler {
     }
 
     /// Define a rotação atual da imagem em graus
-    public void setRotation(float rotation) {
-        this.rotation = rotation;
+    public void setRadians(float radians) {
+        this.radians = radians;
     }
 
     /**
@@ -181,13 +183,13 @@ public class SpriteSheetDataHandler {
             ),
             x,
             y,
-            originX,
-            originY,
+            originX - originOffSetX,
+            originY - originOffSetY,
             renderWidth,
             renderHeight,
             1f,
             1f,
-            rotation
+            radians
         );
     }
 
@@ -267,8 +269,8 @@ public class SpriteSheetDataHandler {
     }
 
     /// Retorna a rotação atual em graus
-    public float getRotation() {
-        return rotation;
+    public float getRadians() {
+        return radians;
     }
 
     public void setRenderHeight(float renderHeight) {
@@ -277,5 +279,29 @@ public class SpriteSheetDataHandler {
 
     public void setRenderWidth(float renderWidth) {
         this.renderWidth = renderWidth;
+    }
+
+    public float getDrawOffSetY() {
+        return drawOffSetY;
+    }
+
+    public float getDrawOffSetX() {
+        return drawOffSetX;
+    }
+
+    public float getOriginOffSetX() {
+        return originOffSetX;
+    }
+
+    public void setOriginOffSetX(float originOffSetX) {
+        this.originOffSetX = originOffSetX;
+    }
+
+    public float getOriginOffSetY() {
+        return originOffSetY;
+    }
+
+    public void setOriginOffSetY(float originOffSetY) {
+        this.originOffSetY = originOffSetY;
     }
 }

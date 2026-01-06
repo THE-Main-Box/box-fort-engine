@@ -9,13 +9,13 @@ public class MovementComponent implements Component {
     private final MovableObjectII mob;
 
     /// Valores de velocidade em metros
-    private float xSpeedInMeters, ySpeedInMeters;
+    private float xSpeed, ySpeed;
 
     /// Limite de velocidade em metros
-    private float xMaxSpeedInMeters, yMaxSpeedInMeters;
+    private float xMaxSpeed, yMaxSpeed;
 
     /// Valores de aceleração em metros
-    private float xAccelInMeters, yAccelInMeters;
+    private float xAccel, yAccel;
 
     /// Valores de desaceleração em metros
     private float xDeceleration, yDeceleration;
@@ -36,8 +36,8 @@ public class MovementComponent implements Component {
 
     public MovementComponent(
         MovableObjectII mob,
-        float xMaxSpeedInMeters,
-        float yMaxSpeedInMeters,
+        float xMaxSpeed,
+        float yMaxSpeed,
         float xDeceleration,
         float yDeceleration,
         boolean canMoveX,
@@ -49,8 +49,8 @@ public class MovementComponent implements Component {
     ) {
         this.mob = mob;
 
-        this.xMaxSpeedInMeters = xMaxSpeedInMeters;
-        this.yMaxSpeedInMeters = yMaxSpeedInMeters;
+        this.xMaxSpeed = xMaxSpeed;
+        this.yMaxSpeed = yMaxSpeed;
 
         this.xDeceleration = xDeceleration;
         this.yDeceleration = yDeceleration;
@@ -87,11 +87,11 @@ public class MovementComponent implements Component {
 
     public void applyMovementToMob(float delta) {
         mob.getTransformC().setX(
-            mob.getTransformC().getX() + this.xSpeedInMeters * delta
+            mob.getTransformC().getX() + this.xSpeed * delta
         );
 
         mob.getTransformC().setY(
-            mob.getTransformC().getY() + this.ySpeedInMeters * delta
+            mob.getTransformC().getY() + this.ySpeed * delta
         );
 
     }
@@ -106,17 +106,17 @@ public class MovementComponent implements Component {
 
         // 2. Fluxo de Aceleração
         if (canAccelerateX && isAcceleratingX()) {
-            xSpeedInMeters += xAccelInMeters / weight;
+            xSpeed += xAccel / weight;
             applyXSpeedClamp(); // Limita imediatamente após alteração
             return; // Sai da função pois já acelerou, não precisa de fricção
         }
 
         // 3. Fluxo de Deceleração (Inércia)
         // Se chegou aqui, ou canAccelerateX é false ou não há aceleração vindo do input
-        xAccelInMeters = 0;
+        xAccel = 0;
         if (isMovingX()) {
-            xSpeedInMeters = applyFriction(
-                xSpeedInMeters,
+            xSpeed = applyFriction(
+                xSpeed,
                 xDeceleration * delta
             );
         }
@@ -126,10 +126,10 @@ public class MovementComponent implements Component {
     }
 
     private void applyXSpeedClamp() {
-        if (xSpeedInMeters > xMaxSpeedInMeters) {
-            xSpeedInMeters = xMaxSpeedInMeters;
-        } else if (xSpeedInMeters < -xMaxSpeedInMeters) {
-            xSpeedInMeters = -xMaxSpeedInMeters;
+        if (xSpeed > xMaxSpeed) {
+            xSpeed = xMaxSpeed;
+        } else if (xSpeed < -xMaxSpeed) {
+            xSpeed = -xMaxSpeed;
         }
     }
 
@@ -142,17 +142,17 @@ public class MovementComponent implements Component {
 
         // 2. Fluxo de Aceleração
         if (canAccelerateY && isAcceleratingY()) {
-            ySpeedInMeters += yAccelInMeters / weight;
+            ySpeed += yAccel / weight;
             applyYSpeedClamp(); // Limita imediatamente após alteração
             return; // Sai da função pois já acelerou, não precisa de fricção
         }
 
         // 3. Fluxo de Deceleração (Inércia)
         // Se chegou aqui, ou canAccelerateX é false ou não há aceleração vindo do input
-        yAccelInMeters = 0;
+        yAccel = 0;
         if (isMovingY()) {
-            ySpeedInMeters = applyFriction(
-                ySpeedInMeters,
+            ySpeed = applyFriction(
+                ySpeed,
                 yDeceleration * delta
             );
         }
@@ -163,11 +163,11 @@ public class MovementComponent implements Component {
     }
 
     private void applyYSpeedClamp() {
-        if (ySpeedInMeters > yMaxSpeedInMeters) {
-            ySpeedInMeters = yMaxSpeedInMeters;
+        if (ySpeed > yMaxSpeed) {
+            ySpeed = yMaxSpeed;
         }
-        else if (ySpeedInMeters < -yMaxSpeedInMeters) {
-            ySpeedInMeters = -yMaxSpeedInMeters;
+        else if (ySpeed < -yMaxSpeed) {
+            ySpeed = -yMaxSpeed;
         }
     }
 
@@ -184,83 +184,83 @@ public class MovementComponent implements Component {
 
     /// Reseta a movimentação no eixo x de aceleração e velocidade
     public void resetXMovement() {
-        this.xSpeedInMeters = 0;
-        this.xAccelInMeters = 0;
+        this.xSpeed = 0;
+        this.xAccel = 0;
     }
 
     /// Reseta a movimentação no eixo y de aceleração e velocidade
     public void resetYMovement() {
-        this.ySpeedInMeters = 0;
-        this.yAccelInMeters = 0;
+        this.ySpeed = 0;
+        this.yAccel = 0;
     }
 
     /// Verifica se existe aceleração armazenada no eixo x
     public boolean isAcceleratingX() {
-        return xAccelInMeters != 0;
+        return xAccel != 0;
     }
 
     /// Verifica se existe aceleração armazenada no eixo y
     public boolean isAcceleratingY() {
-        return yAccelInMeters != 0;
+        return yAccel != 0;
     }
 
     /// Verifica se existe velocidade armazenada no eixo x
     public boolean isMovingX() {
-        return xSpeedInMeters != 0;
+        return xSpeed != 0;
     }
 
     /// Verifica se existe velocidade armazenada no eixo y
     public boolean isMovingY() {
-        return ySpeedInMeters != 0;
+        return ySpeed != 0;
     }
 
 
-    public float getxSpeedInMeters() {
-        return xSpeedInMeters;
+    public float getxSpeed() {
+        return xSpeed;
     }
 
-    public void setxSpeedInMeters(float xSpeedInMeters) {
-        this.xSpeedInMeters = xSpeedInMeters;
+    public void setxSpeed(float xSpeed) {
+        this.xSpeed = xSpeed;
     }
 
-    public float getySpeedInMeters() {
-        return ySpeedInMeters;
+    public float getySpeed() {
+        return ySpeed;
     }
 
-    public void setySpeedInMeters(float ySpeedInMeters) {
-        this.ySpeedInMeters = ySpeedInMeters;
+    public void setySpeed(float ySpeed) {
+        this.ySpeed = ySpeed;
     }
 
-    public float getxMaxSpeedInMeters() {
-        return xMaxSpeedInMeters;
+    public float getxMaxSpeed() {
+        return xMaxSpeed;
     }
 
-    public void setxMaxSpeedInMeters(float xMaxSpeedInMeters) {
-        this.xMaxSpeedInMeters = xMaxSpeedInMeters;
+    public void setxMaxSpeed(float xMaxSpeed) {
+        this.xMaxSpeed = xMaxSpeed;
     }
 
-    public float getyMaxSpeedInMeters() {
-        return yMaxSpeedInMeters;
+    public float getyMaxSpeed() {
+        return yMaxSpeed;
     }
 
-    public void setyMaxSpeedInMeters(float yMaxSpeedInMeters) {
-        this.yMaxSpeedInMeters = yMaxSpeedInMeters;
+    public void setyMaxSpeed(float yMaxSpeed) {
+        this.yMaxSpeed = yMaxSpeed;
     }
 
-    public float getxAccelInMeters() {
-        return xAccelInMeters;
+    public float getxAccel() {
+        return xAccel;
     }
 
-    public void setxAccelInMeters(float xAccelInMeters) {
-        this.xAccelInMeters = xAccelInMeters;
+    public void setxAccel(float xAccel) {
+        this.xAccel = xAccel;
     }
 
-    public float getyAccelInMeters() {
-        return yAccelInMeters;
+    public float getyAccel() {
+        return yAccel;
     }
 
-    public void setyAccelInMeters(float yAccelInMeters) {
-        this.yAccelInMeters = yAccelInMeters;
+    public void setyAccel(float yAccel) {
+        this.yAccel = yAccel;
     }
 
     public float getxDeceleration() {

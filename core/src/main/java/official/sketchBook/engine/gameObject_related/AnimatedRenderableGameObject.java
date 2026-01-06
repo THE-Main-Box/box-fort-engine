@@ -22,6 +22,7 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
         float x,
         float y,
         float z,
+        float rotation,
         float width,
         float height,
         boolean xAxisInverted,
@@ -33,6 +34,7 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
             x,
             y,
             z,
+            rotation,
             width,
             height,
             xAxisInverted,
@@ -47,6 +49,7 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
         float x,
         float y,
         float z,
+        float rotation,
         float width,
         float height,
         boolean xAxisInverted,
@@ -56,6 +59,7 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
             x,
             y,
             z,
+            rotation,
             width,
             height,
             xAxisInverted,
@@ -85,6 +89,11 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
                 transformC.getX(),
                 transformC.getY()
             );
+
+            currentHandler.setRadians(
+                transformC.getRadians()
+            );
+
             currentHandler.setxAxisInvert(
                 transformC.isxAxisInverted()
             );

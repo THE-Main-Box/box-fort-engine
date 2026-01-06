@@ -1,5 +1,6 @@
 package official.sketchBook.engine.util_related.helper;
 
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 
@@ -24,6 +25,7 @@ public class BodyCreatorHelper {
         Vector2 position,
         float width,
         float height,
+        float rotation,
         BodyDef.BodyType type,
         float density,
         float friction,
@@ -37,6 +39,8 @@ public class BodyCreatorHelper {
             position.x / PPM,
             position.y / PPM
         );
+
+        bodyDef.angle = rotation * MathUtils.degreesToRadians;
 
         Body body = world.createBody(           //Instancia uma body
             bodyDef
@@ -167,6 +171,7 @@ public class BodyCreatorHelper {
         Vector2 position,
         float width,
         float height,
+        float rotation,
         BodyDef.BodyType type,
         float density,
         float friction,
@@ -181,6 +186,8 @@ public class BodyCreatorHelper {
             position.x / PPM,
             position.y / PPM
         );
+
+        bodyDef.angle = rotation * MathUtils.degreesToRadians;
 
         Body body = world.createBody(       //Cria uma instancia da body
             bodyDef
