@@ -1,4 +1,4 @@
-package official.sketchBook.engine.util_related.helper;
+package official.sketchBook.engine.util_related.helper.body;
 
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -23,9 +23,9 @@ public class BodyCreatorHelper {
     public static Body createBox(
         World world,
         Vector2 position,
+        float rotation,
         float width,
         float height,
-        float rotation,
         BodyDef.BodyType type,
         float density,
         float friction,

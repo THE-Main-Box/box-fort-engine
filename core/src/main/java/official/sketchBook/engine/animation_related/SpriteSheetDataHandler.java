@@ -31,7 +31,7 @@ public class SpriteSheetDataHandler {
     private float originX = 0f, originY = 0f;
 
     /// Rotação atual do sprite em graus
-    private float radians = 0f;
+    private float rotation = 0f;
 
     /// Dimensões de cada quadro da sprite sheet (em pixels)
     private final int canvasHeight, canvasWidth;
@@ -160,8 +160,8 @@ public class SpriteSheetDataHandler {
     }
 
     /// Define a rotação atual da imagem em graus
-    public void setRadians(float radians) {
-        this.radians = radians;
+    public void setRotation(float rotation) {
+        this.rotation = rotation;
     }
 
     /**
@@ -189,7 +189,7 @@ public class SpriteSheetDataHandler {
             renderHeight,
             1f,
             1f,
-            radians
+            rotation
         );
     }
 
@@ -269,8 +269,8 @@ public class SpriteSheetDataHandler {
     }
 
     /// Retorna a rotação atual em graus
-    public float getRadians() {
-        return radians;
+    public float getRotation() {
+        return rotation;
     }
 
     public void setRenderHeight(float renderHeight) {

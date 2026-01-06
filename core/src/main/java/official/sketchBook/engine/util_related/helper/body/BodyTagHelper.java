@@ -1,6 +1,7 @@
-package official.sketchBook.engine.util_related.helper;
+package official.sketchBook.engine.util_related.helper.body;
 
 import com.badlogic.gdx.physics.box2d.Fixture;
+import official.sketchBook.engine.util_related.helper.GameObjectTag;
 
 public class BodyTagHelper {
     // Obtém a tag presente em uma body dentro de uma fixture

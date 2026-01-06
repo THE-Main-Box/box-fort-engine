@@ -62,8 +62,8 @@ public class PhysicsComponent implements Component {
         );
 
         float bodyAngleDeg = body.getAngle() * MathUtils.radiansToDegrees;
-        if (Math.abs(transformC.getRadians() - bodyAngleDeg) > 0.01f) {
-            transformC.setRadians(bodyAngleDeg);
+        if (Math.abs(transformC.getRotation() - bodyAngleDeg) > 0.01f) {
+            transformC.setRotation(bodyAngleDeg);
         }
     }
 

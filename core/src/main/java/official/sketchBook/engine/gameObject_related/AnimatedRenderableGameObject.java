@@ -90,8 +90,8 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
                 transformC.getY()
             );
 
-            currentHandler.setRadians(
-                transformC.getRadians()
+            currentHandler.setRotation(
+                transformC.getRotation()
             );
 
             currentHandler.setxAxisInvert(

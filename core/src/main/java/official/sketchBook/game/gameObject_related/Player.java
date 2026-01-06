@@ -16,7 +16,7 @@ import official.sketchBook.engine.components_related.objects.PhysicsComponent;
 import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
 import official.sketchBook.engine.gameObject_related.AnimatedRenderableGameObject;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
-import official.sketchBook.engine.util_related.helper.BodyCreatorHelper;
+import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.game.components_related.PlayerControllerComponent;
 import official.sketchBook.game.util_related.path.GameAssetsPaths;
@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
-import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
 
 public class Player
     extends
@@ -106,9 +105,9 @@ public class Player
                 this.transformC.getX(),
                 this.transformC.getY()
             ),
+            this.transformC.getRotation(),
             this.transformC.getWidth(),
             this.transformC.getHeight(),
-            this.transformC.getRadians(),
             BodyDef.BodyType.DynamicBody,
             density,
             frict,

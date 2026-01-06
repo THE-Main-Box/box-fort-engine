@@ -7,7 +7,6 @@ public enum CollisionLayers {
     ALLY_PROJECTILE(1 << 3),
     ENEMY_PROJECTILE(1 << 4),
     SENSOR(1 << 5),
-    INTERACTIVE(1 << 6),
     NONE(0),
     ENTITIES(
         ALLY_ENTITY.bit() |
@@ -21,8 +20,7 @@ public enum CollisionLayers {
         ENTITIES.bit() |
         PROJECTILES.bit()|
         SENSOR.bit() |
-        ENVIRONMENT.bit() |
-        INTERACTIVE.bit()
+        ENVIRONMENT.bit()
         );
 
     private final short bit;
