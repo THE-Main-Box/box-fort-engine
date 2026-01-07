@@ -87,11 +87,11 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     private void applyDirectionChange(Direction direction) {
         switch (direction) {
             case LEFT:
-                player.getTransformC().setxAxisInverted(true);
+                player.getTransformC().xAxisInverted = true;
                 setXMovement(true, -accelToApply);
                 break;
             case RIGHT:
-                player.getTransformC().setxAxisInverted(false);
+                player.getTransformC().xAxisInverted = false;
                 setXMovement(true, accelToApply);
                 break;
             case STILL:
@@ -103,12 +103,12 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     private void setXMovement(boolean canAccelerate, float accel) {
         // Só faz setters se realmente algo mudou
         if (lastCanAccelerate != canAccelerate) {
-            player.getMoveC().setCanAccelerateX(canAccelerate);
+            player.getMoveC().canAccelerateX = canAccelerate;
             lastCanAccelerate = canAccelerate;
         }
 
         if (lastAppliedAccel != accel) {
-            player.getMoveC().setxAccel(accel);
+            player.getMoveC().xAccel = accel;
             lastAppliedAccel = accel;
 
         }

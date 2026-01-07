@@ -16,7 +16,7 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
     protected List<SpriteSheetDataHandler> spriteHandlerList;
     protected List<ObjectAnimationPlayer> animationPlayerList;
 
-    protected boolean isRenderDimensionEqualsToObject = true;
+    public boolean isRenderDimensionEqualsToObject = true;
 
     public AnimatedRenderableGameObject(
         float x,
@@ -86,19 +86,19 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
             ObjectAnimationPlayer currentAnimationPlayer = animationPlayerList.get(i);
 
             currentHandler.updatePosition(
-                transformC.getX(),
-                transformC.getY()
+                transformC.x,
+                transformC.y
             );
 
             currentHandler.setRotation(
-                transformC.getRotation()
+                transformC.rotation
             );
 
             currentHandler.setxAxisInvert(
-                transformC.isxAxisInverted()
+                transformC.xAxisInverted
             );
             currentHandler.setyAxisInvert(
-                transformC.isyAxisInverted()
+                transformC.yAxisInverted
             );
 
             if (isRenderDimensionEqualsToObject) {
@@ -135,24 +135,6 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
         }
     }
 
-    public boolean isRenderDimensionEqualsToObject() {
-        return isRenderDimensionEqualsToObject;
-    }
-
-    public void setRenderDimensionEqualsToObject(boolean renderDimensionEqualsToObject) {
-        isRenderDimensionEqualsToObject = renderDimensionEqualsToObject;
-    }
-
-    @Override
-    public boolean isxAxisInverted() {
-        return transformC.isxAxisInverted();
-    }
-
-    @Override
-    public boolean isyAxisInverted() {
-        return transformC.isyAxisInverted();
-    }
-
     @Override
     public TransformComponent getTransformC() {
         return transformC;
@@ -160,7 +142,7 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
 
     @Override
     public int getRenderIndex() {
-        return (int) transformC.getZ();
+        return (int) transformC.z;
     }
 
     public List<SpriteSheetDataHandler> getSpriteHandlerList() {

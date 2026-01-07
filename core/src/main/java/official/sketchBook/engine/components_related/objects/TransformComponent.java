@@ -5,16 +5,16 @@ import official.sketchBook.engine.components_related.intefaces.base_interfaces.C
 public class TransformComponent implements Component {
 
     /// Valores da posição em seus eixos relativos em pixel
-    private float x, y, z;
+    public float x, y, z;
 
     /// Valores de dimensão em pixels
-    private float width, height;
+    private final float width, height;
 
     /// Inversão de percepção do objeto em relação ao eixo
-    private boolean xAxisInverted, yAxisInverted;
+    public boolean xAxisInverted, yAxisInverted;
 
     /// Rotação atual do sprite em graus
-    private float rotation;
+    public float rotation;
 
     private boolean disposed = false;
 
@@ -52,68 +52,12 @@ public class TransformComponent implements Component {
         disposed = true;
     }
 
-    public void setRotation(float rotation) {
-        this.rotation = rotation;
-    }
-
-    public float getRotation() {
-        return rotation;
-    }
-
-    public float getX() {
-        return x;
-    }
-
-    public void setX(float x) {
-        this.x = x;
-    }
-
-    public float getY() {
-        return y;
-    }
-
-    public void setY(float y) {
-        this.y = y;
-    }
-
-    public float getZ() {
-        return z;
-    }
-
-    public void setZ(float z) {
-        this.z = z;
-    }
-
     public float getWidth() {
         return width;
     }
 
-    public void setWidth(float width) {
-        this.width = width;
-    }
-
     public float getHeight() {
         return height;
-    }
-
-    public void setHeight(float height) {
-        this.height = height;
-    }
-
-    public boolean isxAxisInverted() {
-        return xAxisInverted;
-    }
-
-    public void setxAxisInverted(boolean xAxisInverted) {
-        this.xAxisInverted = xAxisInverted;
-    }
-
-    public boolean isyAxisInverted() {
-        return yAxisInverted;
-    }
-
-    public void setyAxisInverted(boolean yAxisInverted) {
-        this.yAxisInverted = yAxisInverted;
     }
 
     @Override

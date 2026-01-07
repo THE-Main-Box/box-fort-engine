@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.AppMain;
-import official.sketchBook.engine.animation_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.camera_related.utils.CameraUtils;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadRenderSystem;
@@ -21,6 +20,7 @@ import official.sketchBook.game.util_related.enumerators.TileType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import static official.sketchBook.game.util_related.constants.DebugC.*;
 import static official.sketchBook.game.util_related.constants.PhysicsC.*;
@@ -42,11 +42,19 @@ public class PlayScreen extends BaseScreen {
     @Override
     protected void initSystems() {
         super.initSystems();
+        this.uiCameraManager = new OrthographicCameraManager(
+            Gdx.graphics.getWidth(),
+            Gdx.graphics.getHeight()
+        );
 
-        this.uiCameraManager = CameraUtils.createScreenCamera();
         this.gameCameraManager = new OrthographicCameraManager(
             VIRTUAL_WIDTH_PX,
             VIRTUAL_HEIGHT_PX
+        );
+
+        gameCameraManager.setCameraOffsetLimit(
+            999999,
+            999999
         );
 
         updateZoom(0.5f);
@@ -57,7 +65,9 @@ public class PlayScreen extends BaseScreen {
 
         this.worldManager = new WorldDataManager(
             new World(
-                new Vector2(),
+                new Vector2(
+                    0,
+                    -80f),
                 true
             ),
             FIXED_TIMESTAMP,
@@ -78,8 +88,8 @@ public class PlayScreen extends BaseScreen {
         );
 
         player = new Player(
-            300,
-            300,
+            250,
+            40,
             0,
             0,
             16,
@@ -88,8 +98,6 @@ public class PlayScreen extends BaseScreen {
             false,
             worldManager
         );
-
-        player.setRenderDimensionEqualsToObject(false);
 
         int[][] tmpMap = initBaseTileMap();
         TileType[][] tmpTileMap = RoomBodyDataGeneratorHelper.convertToTileTypeMap(tmpMap);
@@ -139,7 +147,7 @@ public class PlayScreen extends BaseScreen {
 //            worldManager.destroyManager();
 //        }
 
-        if(change_of_zoom_allowed) {
+        if (change_of_zoom_allowed) {
             if (Gdx.input.isKeyPressed(
                 Input.Keys.U
             )) {
@@ -153,6 +161,7 @@ public class PlayScreen extends BaseScreen {
                 this.gameCameraManager.setZoom(zoom);
             }
         }
+
     }
 
     @Override

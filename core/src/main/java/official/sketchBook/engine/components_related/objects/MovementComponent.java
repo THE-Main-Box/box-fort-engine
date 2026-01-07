@@ -9,28 +9,28 @@ public class MovementComponent implements Component {
     private final MovableObjectII mob;
 
     /// Valores de velocidade em metros
-    private float xSpeed, ySpeed;
+    public float xSpeed, ySpeed;
 
     /// Limite de velocidade em metros
-    private float xMaxSpeed, yMaxSpeed;
+    public float xMaxSpeed, yMaxSpeed;
 
     /// Valores de aceleração em metros
-    private float xAccel, yAccel;
+    public float xAccel, yAccel;
 
     /// Valores de desaceleração em metros
-    private float xDeceleration, yDeceleration;
+    public float xDeceleration, yDeceleration;
 
     /// Flags que determinam se podemos nos mover nos eixos respectivos
-    private boolean canMoveX, canMoveY;
+    public boolean canMoveX, canMoveY;
 
     /// Flags para determinar se podemos manter uma aceleração nos eixos respectivos
-    private boolean canAccelerateX, canAccelerateY;
+    public boolean canAccelerateX, canAccelerateY;
 
-    /// se devemos deixar o sistema aplicar a velocidade no objeto automaticamente
-    private final boolean autoApplySpeed;
+    /// Flags para determinar se podemos realizar uma desaceleração nos eixos respectivos
+    public boolean canDeAccelerateX, canDeAccelerateY;
 
-    /// Valor de suavização de movimentação
-    private float weight;
+    /// Esta variavel determina se a velocidade é aplicada no objeto de forma direta
+    public final boolean autoApplySpeed;
 
     private boolean disposed = false;
 
@@ -44,8 +44,9 @@ public class MovementComponent implements Component {
         boolean canMoveY,
         boolean canAccelerateX,
         boolean canAccelerateY,
-        boolean autoApplySpeed,
-        float weight
+        boolean canDeAccelerateX,
+        boolean canDeAccelerateY,
+        boolean autoApplySpeed
     ) {
         this.mob = mob;
 
@@ -61,17 +62,14 @@ public class MovementComponent implements Component {
         this.canAccelerateX = canAccelerateX;
         this.canAccelerateY = canAccelerateY;
 
-        this.autoApplySpeed = autoApplySpeed;
+        this.canDeAccelerateX = canDeAccelerateX;
+        this.canDeAccelerateY = canDeAccelerateY;
 
-        this.weight = weight;
+        this.autoApplySpeed = autoApplySpeed;
     }
 
     @Override
     public void update(float delta) {
-        if (!canMoveX && !canMoveY) {
-            return;
-        }
-
         updateXAxis(delta);
         updateYAxis(delta);
 
@@ -86,45 +84,49 @@ public class MovementComponent implements Component {
     }
 
     public void applyMovementToMob(float delta) {
-        mob.getTransformC().setX(
-            mob.getTransformC().getX() + this.xSpeed * delta
+        mob.getTransformC().x = (
+            mob.getTransformC().x + this.xSpeed * delta
         );
 
-        mob.getTransformC().setY(
-            mob.getTransformC().getY() + this.ySpeed * delta
+        mob.getTransformC().y = (
+            mob.getTransformC().y + this.ySpeed * delta
         );
 
     }
 
     /// Atualização interna da movimentação do eixo x
     private void updateXAxis(float delta) {
-        // 1. Constraint Mestra (Guard Clause)
+        // Se não pudermos mover no eixo x, resetamos a movimentação do eixo x
         if (!canMoveX) {
             resetXMovement();
             return;
         }
 
-        // 2. Fluxo de Aceleração
+        //Se pudermos acelerar no eixo x
+        // e tivermos uma aceleração acumulada
         if (canAccelerateX && isAcceleratingX()) {
-            xSpeed += xAccel / weight;
-            applyXSpeedClamp(); // Limita imediatamente após alteração
-            return; // Sai da função pois já acelerou, não precisa de fricção
+            //Aplicamos a aceleração na velocidade
+            xSpeed += xAccel;
+        } else { // se não pudermos acelerar, ou não tivermos aceleração sendo passada
+
+            //Resetamos a aceleração para impedir que haja um fluxo de movimentação incoerente
+            xAccel = 0;
+
+            //Se houver velocidade no eixo x lidamos com a desaceleração
+            if (isMovingX() && canDeAccelerateX) {
+                //Aplicamos uma desaceleração no eixo x
+                xSpeed = applyDeceleration(
+                    xSpeed,
+                    (xDeceleration * delta)
+                );
+            }
         }
 
-        // 3. Fluxo de Deceleração (Inércia)
-        // Se chegou aqui, ou canAccelerateX é false ou não há aceleração vindo do input
-        xAccel = 0;
-        if (isMovingX()) {
-            xSpeed = applyFriction(
-                xSpeed,
-                xDeceleration * delta
-            );
-        }
-
-        // 4. Constraint Final
+        //Limitamos a velocidade no eixo x
         applyXSpeedClamp();
     }
 
+    /// Mantém a velocidade do eixo x dentro do limite estabelecido quer seja maior ou menor que 0
     private void applyXSpeedClamp() {
         if (xSpeed > xMaxSpeed) {
             xSpeed = xMaxSpeed;
@@ -134,45 +136,45 @@ public class MovementComponent implements Component {
     }
 
     private void updateYAxis(float delta) {
-        // 1. Constraint Mestra
+        // Se não puder se mover no eixo y, resetamos a velocidade e aceleração do eixo
         if (!canMoveY) {
             resetYMovement();
             return;
         }
 
-        // 2. Fluxo de Aceleração
+        // Se pudermos acelerar e tivermos aceleração armazenada no eixo y, aceleramos
         if (canAccelerateY && isAcceleratingY()) {
-            ySpeed += yAccel / weight;
-            applyYSpeedClamp(); // Limita imediatamente após alteração
-            return; // Sai da função pois já acelerou, não precisa de fricção
+            ySpeed += yAccel;
+        } else { //Caso não possamos acelerar ou não tenhamos aceleração no eixo y, começamos a desacelerar
+            yAccel = 0;
+
+            //Importante lembrar que se não houver velocidade não é preciso limitar nada
+            if (isMovingY() && canDeAccelerateY) {
+
+                ySpeed = applyDeceleration(
+                    ySpeed,
+                    (yDeceleration * delta)
+                );
+            }
+
         }
 
-        // 3. Fluxo de Deceleração (Inércia)
-        // Se chegou aqui, ou canAccelerateX é false ou não há aceleração vindo do input
-        yAccel = 0;
-        if (isMovingY()) {
-            ySpeed = applyFriction(
-                ySpeed,
-                yDeceleration * delta
-            );
-        }
-
-        // 4. Constraint Final
+        //Limita a velocidade do eixo y
         applyYSpeedClamp();
 
     }
 
+    /// Mantém a velocidade do eixo y dentro do limite estabelecido quer seja maior ou menor que 0
     private void applyYSpeedClamp() {
         if (ySpeed > yMaxSpeed) {
             ySpeed = yMaxSpeed;
-        }
-        else if (ySpeed < -yMaxSpeed) {
+        } else if (ySpeed < -yMaxSpeed) {
             ySpeed = -yMaxSpeed;
         }
     }
 
-    /// Aplica a desaceleração
-    private float applyFriction(float speed, float deceleration) {
+    /// Aplica a desaceleração artificial
+    private float applyDeceleration(float speed, float deceleration) {
         if (speed == 0 || deceleration == 0) return 0;
 
         // Se a velocidade é menor que o deceleration, zera
@@ -212,111 +214,6 @@ public class MovementComponent implements Component {
     /// Verifica se existe velocidade armazenada no eixo y
     public boolean isMovingY() {
         return ySpeed != 0;
-    }
-
-
-    public float getxSpeed() {
-        return xSpeed;
-    }
-
-    public void setxSpeed(float xSpeed) {
-        this.xSpeed = xSpeed;
-    }
-
-    public float getySpeed() {
-        return ySpeed;
-    }
-
-    public void setySpeed(float ySpeed) {
-        this.ySpeed = ySpeed;
-    }
-
-    public float getxMaxSpeed() {
-        return xMaxSpeed;
-    }
-
-    public void setxMaxSpeed(float xMaxSpeed) {
-        this.xMaxSpeed = xMaxSpeed;
-    }
-
-    public float getyMaxSpeed() {
-        return yMaxSpeed;
-    }
-
-    public void setyMaxSpeed(float yMaxSpeed) {
-        this.yMaxSpeed = yMaxSpeed;
-    }
-
-    public float getxAccel() {
-        return xAccel;
-    }
-
-    public void setxAccel(float xAccel) {
-        this.xAccel = xAccel;
-    }
-
-    public float getyAccel() {
-        return yAccel;
-    }
-
-    public void setyAccel(float yAccel) {
-        this.yAccel = yAccel;
-    }
-
-    public float getxDeceleration() {
-        return xDeceleration;
-    }
-
-    public void setxDeceleration(float xDeceleration) {
-        this.xDeceleration = xDeceleration;
-    }
-
-    public float getyDeceleration() {
-        return yDeceleration;
-    }
-
-    public void setyDeceleration(float yDeceleration) {
-        this.yDeceleration = yDeceleration;
-    }
-
-    public boolean isCanMoveX() {
-        return canMoveX;
-    }
-
-    public void setCanMoveX(boolean canMoveX) {
-        this.canMoveX = canMoveX;
-    }
-
-    public boolean isCanMoveY() {
-        return canMoveY;
-    }
-
-    public void setCanMoveY(boolean canMoveY) {
-        this.canMoveY = canMoveY;
-    }
-
-    public boolean isCanAccelerateX() {
-        return canAccelerateX;
-    }
-
-    public void setCanAccelerateX(boolean canAccelerateX) {
-        this.canAccelerateX = canAccelerateX;
-    }
-
-    public boolean isCanAccelerateY() {
-        return canAccelerateY;
-    }
-
-    public void setCanAccelerateY(boolean canAccelerateY) {
-        this.canAccelerateY = canAccelerateY;
-    }
-
-    public float getWeight() {
-        return weight;
-    }
-
-    public void setWeight(float weight) {
-        this.weight = weight;
     }
 
     @Override

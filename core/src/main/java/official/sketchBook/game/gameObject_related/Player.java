@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
+import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
 
 public class Player
     extends
@@ -66,6 +67,8 @@ public class Player
             yAxisInverted,
             worldDataManager
         );
+
+        this.isRenderDimensionEqualsToObject = false;
     }
 
     @Override
@@ -73,25 +76,19 @@ public class Player
         this.animationPlayerList = new ArrayList<>();
         this.spriteHandlerList = new ArrayList<>();
 
+        initBodyData();
+        createBody();
+        initPhysicsComponent();
+
         initSpriteSheet();
         initAnimations();
         initController();
         initMovementComponent();
-
-        initBodyData();
-        createBody();
-    }
-
-    private void initPhysicsComponent(){
-        this.physicsC = new MovableObjectPhysicsComponent(this);
-
-        this.toUpdateComponentList.add(physicsC);
-        this.toPostUpdateComponentList.add(physicsC);
     }
 
     protected void initBodyData() {
-        this.maskBit = ALLY_ENTITY.bit();
-        this.categoryBit = (short) (SENSOR.bit() | ENVIRONMENT.bit());
+        this.categoryBit = ALLY_ENTITY.bit();
+        this.maskBit = (short) (SENSOR.bit() | ENVIRONMENT.bit());
 
         this.density = 0.5f;
         this.frict = 1f;
@@ -102,10 +99,10 @@ public class Player
         this.body = BodyCreatorHelper.createBox(
             this.worldDataManager.getPhysicsWorld(),
             new Vector2(
-                this.transformC.getX(),
-                this.transformC.getY()
+                this.transformC.x,
+                this.transformC.y
             ),
-            this.transformC.getRotation(),
+            this.transformC.rotation,
             this.transformC.getWidth(),
             this.transformC.getHeight(),
             BodyDef.BodyType.DynamicBody,
@@ -127,7 +124,6 @@ public class Player
             )
         );
 
-        initPhysicsComponent();
     }
 
     @Override
@@ -152,9 +148,17 @@ public class Player
             true,
             true,
             true,
-            4
+            true,
+            false
         );
         this.toUpdateComponentList.add(moveC);
+    }
+
+    private void initPhysicsComponent(){
+        this.physicsC = new MovableObjectPhysicsComponent(this);
+
+        this.toUpdateComponentList.add(physicsC);
+        this.toPostUpdateComponentList.add(physicsC);
     }
 
     private void initAnimations() {
@@ -179,14 +183,14 @@ public class Player
 
         this.spriteHandlerList.add(
             new SpriteSheetDataHandler(
-                transformC.getX(),
-                transformC.getY(),
+                transformC.x,
+                transformC.y,
                 8,
                 0,
                 5,
                 4,
-                transformC.isxAxisInverted(),
-                transformC.isyAxisInverted(),
+                transformC.xAxisInverted,
+                transformC.yAxisInverted,
                 playerSheet
             )
         );

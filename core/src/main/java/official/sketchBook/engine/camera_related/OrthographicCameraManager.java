@@ -1,10 +1,11 @@
 package official.sketchBook.engine.camera_related;
 
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+
+import static com.badlogic.gdx.math.MathUtils.lerp;
 
 /**
  * Gerencia a câmera principal do jogo, controlando o que o jogador vê.
@@ -14,119 +15,152 @@ public class OrthographicCameraManager {
     private final OrthographicCamera camera;
     private final Viewport viewport;
 
-    // --- CONFIGURAÇÕES DE MOVIMENTO ---
+    /// Offsets máximos nos eixos x e y
+    public int
+        maxOffSetX,
+        maxOffSetY;
 
-    // Distância máxima (em metros) que o alvo pode se afastar do centro antes da câmera segui-lo.
-    // Ex: 2f significa que o player pode andar 2 metros para os lados antes da câmera se mover.
-    private float deadzoneWidth = 2f;
-    private float deadzoneHeight = 2f;
+    /// Bordas para o uso da dead zone, são relativas ao eixo central da camera em pixels
+    public float
+        rightBorder = 0,
+        leftBorder = 0,
+        topBorder = 0,
+        bottomBorder = 0;
 
-    // Velocidade de ajuste da câmera (0.1f é suave, 1.0f é instantâneo).
-    private float lerpFactor = 0.1f;
+    /// dislocamento atual da camera
+    public float
+        xOffset,
+        yOffset;
 
-    // --- LIMITES DO MUNDO (Mundo em Metros) ---
-    // Evita que a câmera mostre o "vazio" fora das bordas do mapa.
-    private float worldLimitLeft = 0;
-    private float worldLimitRight = 100;
-    private float worldLimitBottom = 0;
-    private float worldLimitTop = 100;
+    /// Suavisadores de movimento, 1 é instantaneo e 0 é demorado
+    public float
+        xEase = 0.5f,
+        yEase = 0.5f;
 
     /**
-     * @param viewportWidth Largura da janela visível em metros (Ex: 12.8f para ~1280px)
+     * @param viewportWidth  Largura da janela visível em metros (Ex: 12.8f para ~1280px)
      * @param viewportHeight Altura da janela visível em metros (Ex: 7.2f para ~720px)
      */
     public OrthographicCameraManager(float viewportWidth, float viewportHeight) {
         this.camera = new OrthographicCamera();
-        // O ExtendViewport mantém a proporção e expande a visão em telas maiores sem esticar a imagem.
-        this.viewport = new ExtendViewport(viewportWidth, viewportHeight, camera);
+        this.viewport = new ExtendViewport(
+            viewportWidth,
+            viewportHeight,
+            camera
+        );
+        this.camera.position.set(
+            viewportWidth / 2f,
+            viewportHeight / 2f,
+            0
+        );
+        this.camera.update();
     }
 
-    /**
-     * Atualiza a posição da câmera para seguir um alvo (como o jogador).
-     * @param targetX Posição X atual do alvo no mundo (em metros).
-     * @param targetY Posição Y atual do alvo no mundo (em metros).
-     */
-    public void updateCamera(float targetX, float targetY) {
-        // 1. Determinar o destino teórico (onde a câmera quer chegar)
-        float destinationX = camera.position.x;
-        float destinationY = camera.position.y;
-
-        // Cálculo da Deadzone Horizontal:
-        // Se a distância entre o alvo e o centro da câmera for maior que a zona morta...
-        float deltaX = targetX - camera.position.x;
-        if (Math.abs(deltaX) > deadzoneWidth) {
-            // Empurra o destino para acompanhar o alvo, mantendo a distância da borda da zona morta.
-            destinationX = (deltaX > 0) ? targetX - deadzoneWidth : targetX + deadzoneWidth;
-        }
-
-        // Cálculo da Deadzone Vertical:
-        float deltaY = targetY - camera.position.y;
-        if (Math.abs(deltaY) > deadzoneHeight) {
-            destinationY = (deltaY > 0) ? targetY - deadzoneHeight : targetY + deadzoneHeight;
-        }
-
-        // 2. Movimentação Suave (Linear Interpolation - LERP)
-        // Move a posição atual da câmera em direção ao destino com base no lerpFactor.
-        camera.position.x = MathUtils.lerp(camera.position.x, destinationX, lerpFactor);
-        camera.position.y = MathUtils.lerp(camera.position.y, destinationY, lerpFactor);
-
-        // 3. Restrição de Bordas (Clamp)
-        // Garante que a câmera não saia dos limites do mapa.
-        applyWorldConstraints();
-
-        // 4. Atualização Interna
-        // Recalcula a matriz de projeção da câmera (essencial para o renderizador).
+    public void trackObjectDirectly(float targetX, float targetY) {
+        camera.position.set(targetX, targetY, 0);
         camera.update();
     }
 
+    public void trackObjectByOffset(float targetX, float targetY) {
+        float effectiveViewportWidth = camera.viewportWidth * camera.zoom;
+        float effectiveViewportHeight = camera.viewportHeight * camera.zoom;
+
+        updateXOffset(targetX, rightBorder, leftBorder, effectiveViewportWidth);
+        updateYOffset(targetY, bottomBorder, topBorder, effectiveViewportHeight);
+
+        camera.position.x = effectiveViewportWidth / 2f + xOffset;
+        camera.position.y = effectiveViewportHeight / 2f + yOffset;
+
+        camera.update();
+    }
+
+    public void setCameraOffsetLimit(
+        int maxXOffSet,
+        int maxYOffSet
+    ){
+        this.maxOffSetX = maxXOffSet;
+        this.maxOffSetY = maxYOffSet;
+    }
+
+    /// Define a deadZone a respeitar
+    public void defineDeadZone(
+        float marginLeft,
+        float marginRight,
+        float marginTop,
+        float marginBottom
+    ){
+        this.leftBorder = marginLeft;
+        this.rightBorder= marginRight;
+        this.topBorder = marginTop;
+        this.bottomBorder = marginBottom;
+    }
+
+    private void updateXOffset(
+        float targetX,
+        float rightBorder,
+        float leftBorder,
+        float effectiveViewportWidth
+    ) {
+
+        float centerX = effectiveViewportWidth / 2f + xOffset;
+        float diffX = targetX - centerX;
+
+        if (diffX > rightBorder) {
+            xOffset = roundLerp(xOffset, xOffset + (diffX - rightBorder), xEase);
+        } else if (diffX < leftBorder) {
+            xOffset = roundLerp(xOffset, xOffset + (diffX - leftBorder), xEase);
+        }
+
+        xOffset = clamp(xOffset, 0, maxOffSetX);
+    }
+
+    private void updateYOffset(
+        float targetY,
+        float bottomBorder,
+        float topBorder,
+        float effectiveViewportHeight
+    ) {
+        float centerY = effectiveViewportHeight / 2f + yOffset;
+        float diffY = targetY - centerY;
+
+        if (diffY < bottomBorder) {
+            yOffset = roundLerp(yOffset, yOffset + (diffY - bottomBorder), yEase);
+        } else if (diffY > topBorder) {
+            yOffset = roundLerp(yOffset, yOffset + (diffY - topBorder), yEase);
+        }
+
+        yOffset = clamp(yOffset, 0, maxOffSetY);
+    }
+
+    private float roundLerp(float from, float to, float smoothFactor) {
+        float lerped = lerp(from, to, smoothFactor);
+        return Math.round(lerped * 10) / 10f; // Arredonda para 1 casa decimal
+    }
+
+    private float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(value, max));
+    }
+
     /**
-     * Garante que as bordas da câmera nunca ultrapassem os limites definidos para o nível.
-     */
-    private void applyWorldConstraints() {
-        // Precisamos considerar metade da largura/altura da visão atual para travar a câmera.
-        float halfViewWidth = (camera.viewportWidth * camera.zoom) / 2f;
-        float halfViewHeight = (camera.viewportHeight * camera.zoom) / 2f;
-
-        // MathUtils.clamp(valor, min, max) mantém o valor dentro da faixa desejada.
-        camera.position.x = MathUtils.clamp(camera.position.x, worldLimitLeft + halfViewWidth, worldLimitRight - halfViewWidth);
-        camera.position.y = MathUtils.clamp(camera.position.y, worldLimitBottom + halfViewHeight, worldLimitTop - halfViewHeight);
-    }
-
-    // --- MÉTODOS DE CONFIGURAÇÃO (SETTERS) ---
-
-    public void setDeadzone(float widthMeters, float heightMeters) {
-        this.deadzoneWidth = widthMeters;
-        this.deadzoneHeight = heightMeters;
-    }
-
-    /// Atualiza os limites de mundo
-    public void setWorldLimits(float left, float bottom, float right, float top) {
-        this.worldLimitLeft = left;
-        this.worldLimitBottom = bottom;
-        this.worldLimitRight = right;
-        this.worldLimitTop = top;
-    }
-
-    /// Atualiza o fato de suavização
-    public void setLerpFactor(float factor) {
-        this.lerpFactor = MathUtils.clamp(factor, 0, 1);
-    }
-
-    /**
-     *  Chamado na função resize() da Screen para ajustar a proporção da janela.
+     * Chamado na função resize() da Screen para ajustar a proporção da janela.
      *
-     * @param width largura nova
+     * @param width  largura nova
      * @param height altura nova
      */
     public void updateViewport(int width, int height) {
         viewport.update(width, height, true);
     }
 
-    public void setZoom(float zoom){
+    public void setZoom(float zoom) {
         camera.zoom = zoom;
         camera.update();
     }
 
-    public OrthographicCamera getCamera() { return camera; }
-    public Viewport getViewport() { return viewport; }
+    public OrthographicCamera getCamera() {
+        return camera;
+    }
+
+    public Viewport getViewport() {
+        return viewport;
+    }
 }
