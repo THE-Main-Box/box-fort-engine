@@ -1,5 +1,6 @@
 package official.sketchBook.engine.dataManager_related;
 
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Disposable;
@@ -26,6 +27,7 @@ public abstract class BaseWorldDataManager implements Disposable {
     /// Mundo físico para usar o box2d. Não é obrigatório
     protected World physicsWorld;
     protected Box2DDebugRenderer debugRenderer;
+    protected Matrix4 debugMatrix;
 
     /// Lista de gameObjects base ativos
     protected final List<BaseGameObject> gameObjectList = new ArrayList<>();
@@ -47,8 +49,10 @@ public abstract class BaseWorldDataManager implements Disposable {
         this.physicsWorld = physicsWorld;                   //Inicia um world
         this.physicsWorldExists = physicsWorld != null;     //Se temos um mundo físico podemos usar a física
 
-        if(physicsWorldExists)
+        if(physicsWorldExists) {
             this.debugRenderer = new Box2DDebugRenderer();
+            this.debugMatrix = new Matrix4();
+        }
 
         this.timeStep = timeStep;
         this.velIterations = velIterations;
@@ -290,5 +294,9 @@ public abstract class BaseWorldDataManager implements Disposable {
 
     public Box2DDebugRenderer getDebugRenderer() {
         return debugRenderer;
+    }
+
+    public Matrix4 getDebugMatrix() {
+        return debugMatrix;
     }
 }

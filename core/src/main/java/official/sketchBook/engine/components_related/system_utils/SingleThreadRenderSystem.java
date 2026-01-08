@@ -1,42 +1,59 @@
 package official.sketchBook.engine.components_related.system_utils;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.RenderSystem;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
 import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
 import official.sketchBook.engine.screen_related.BaseScreen;
-import official.sketchBook.game.util_related.constants.DebugC;
-
-import static official.sketchBook.game.util_related.constants.DebugC.show_hit_boxes;
 
 public class SingleThreadRenderSystem implements RenderSystem {
+    /// Referência à tela dona
     private final BaseScreen screen;
+    /// Referência ao gerenciador de objetos de jogo
     private final BaseWorldDataManager worldManager;
 
-    private final SpriteBatch gameBatch;
-    private final SpriteBatch uiBatch;
+    /// Referência à camera a ser usada para renderizar as coisas
+    private final Camera
+        gameCamera,
+        uiCamera;
 
-    private final boolean renderGame;
-    private final boolean renderUi;
-    private final boolean worldManagerExists;
+    /// Batchs de renderização
+    private final SpriteBatch
+        gameBatch,
+        uiBatch;
+
+    /// Flags que determina se podemos renderizar as pipelines correspondentes
+    private final boolean
+        renderGame,
+        renderUi;
+
+    /// Flag para determinar se podemos acessar o gerenciador de objetos
+    private final boolean canAccessWorldManager;
 
     public SingleThreadRenderSystem(
         BaseScreen screen,
         BaseWorldDataManager worldManager,
         SpriteBatch gameBatch,
-        SpriteBatch uiBatch
+        Camera gameCamera,
+        SpriteBatch uiBatch,
+        Camera uiCamera
     ) {
         this.screen = screen;
         this.worldManager = worldManager;
         this.gameBatch = gameBatch;
         this.uiBatch = uiBatch;
 
-        this.renderGame = gameBatch != null;
-        this.renderUi = uiBatch != null;
-        this.worldManagerExists = worldManager != null;
+        this.uiCamera = uiCamera;
+        this.gameCamera = gameCamera;
+
+        this.renderGame = gameBatch != null && gameCamera != null;
+        this.renderUi = uiBatch != null && uiCamera != null;
+        this.canAccessWorldManager = worldManager != null;
     }
 
+    /// Loop de renderização
     @Override
     public void render(float delta) {
 
@@ -63,9 +80,13 @@ public class SingleThreadRenderSystem implements RenderSystem {
     protected void drawGame(SpriteBatch batch) {
         if (!renderGame) return;
 
+        //Precisamos atualizar a camera e a projection matrix antes de inicializar o batch
+        gameCamera.update();
+        batch.setProjectionMatrix(gameCamera.combined);
+
         batch.begin();
 
-        if (worldManagerExists) {
+        if (canAccessWorldManager) {
             worldManager.sortRenderables();
             for (int i = 0; i < worldManager.getRenderAbleObjectList().size(); i++) {
                 RenderAbleObject obj = worldManager.getRenderAbleObjectList().get(i);
@@ -79,8 +100,12 @@ public class SingleThreadRenderSystem implements RenderSystem {
             }
         }
 
-        screen.drawGame(batch);
+        batch.end();
 
+        //Temos que separar o que é renderizado de jogo e o que é renderizado de tela
+
+        batch.begin();
+        screen.drawGame(batch);
         batch.end();
     }
 
@@ -88,16 +113,21 @@ public class SingleThreadRenderSystem implements RenderSystem {
     protected void drawUI(SpriteBatch batch) {
         if (!renderUi) return;
 
+        uiCamera.update();
+        batch.setProjectionMatrix(uiCamera.combined);
+
         batch.begin();
         screen.drawUI(batch);
         batch.end();
     }
 
+    /// Atualiza dados visuais antes da renderização de fato
     @Override
     public void updateVisuals(float delta) {
+        //Atualiza os visuais
         screen.updateVisuals(delta);
 
-        if (!worldManagerExists) return;
+        if (!canAccessWorldManager) return;
         for (RenderAbleObject object : worldManager.getRenderAbleObjectList()) {
             object.updateVisuals(delta);
         }

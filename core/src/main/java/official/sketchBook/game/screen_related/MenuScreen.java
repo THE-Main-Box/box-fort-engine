@@ -31,6 +31,8 @@ public class MenuScreen extends BaseScreen {
             this,
             null,
             null,
+            null,
+            null,
             null
         );
 

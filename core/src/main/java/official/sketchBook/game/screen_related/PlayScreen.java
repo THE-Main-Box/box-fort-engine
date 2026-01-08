@@ -79,7 +79,9 @@ public class PlayScreen extends BaseScreen {
             this,
             worldManager,
             this.app.gameBatch,
-            this.app.uiBatch
+            this.gameCameraManager.getCamera(),
+            this.app.uiBatch,
+            this.uiCameraManager.getCamera()
         );
 
         this.updateSystem = new SingleThreadUpdateSystem(
@@ -162,25 +164,34 @@ public class PlayScreen extends BaseScreen {
             }
         }
 
+        if (player != null) {
+            gameCameraManager.trackObjectByOffset(
+                player.getTransformC().getCenterX(),
+                player.getTransformC().getCenterY()
+            );
+        }
+
     }
 
     @Override
     public void updateVisuals(float delta) {
-        uiCameraManager.getCamera().update();
-        gameCameraManager.getCamera().update();
+
     }
 
 
     @Override
     public void drawGame(SpriteBatch batch) {
-        // Aplica a câmera do JOGO
-        batch.setProjectionMatrix(gameCameraManager.getCamera().combined);
-
         if (show_hit_boxes && worldManager.isPhysicsWorldExists()) {
+
+            worldManager.getDebugMatrix().set(
+                gameCameraManager.getCamera().combined
+            ).scl(PPM);
+
             worldManager.getDebugRenderer().render(
                 worldManager.getPhysicsWorld(),
-                gameCameraManager.getCamera().combined.scl(PPM)
+                worldManager.getDebugMatrix()
             );
+
         }
     }
 

@@ -15,25 +15,30 @@ public abstract class BaseScreen implements Screen {
     /// Dimensões atuais da tela em pixels
     protected float screenWidthInPx, screenHeightInPx;
 
-    //Métrica de desempenho
+    ///Métrica de desempenho
     private float metricsTimer = 0;
-    private int fps, ups;
+    private int
+        fps,
+        ups;
 
     /// Referência ao Inicializador do app
     protected final AppMain app;
 
+    /// Sistema de gestão de atualização
     protected UpdateSystem updateSystem;
+    /// Sistema de gestão de renderização
     protected RenderSystem renderSystem;
 
     public BaseScreen(AppMain app) {
         this.app = app;
 
-        Gdx.graphics.setForegroundFPS((int) FPS_TARGET);
         this.initSystems();
     }
 
+    /// Inicializa os sistemas locais
     protected void initSystems() {
-
+        //Determina o fps
+        Gdx.graphics.setForegroundFPS((int) FPS_TARGET);
     }
 
 
@@ -57,7 +62,7 @@ public abstract class BaseScreen implements Screen {
      */
     public abstract void drawGame(SpriteBatch batch);
 
-    /// Organiza o gameLoop de um modo funcional e granular
+    /// Organização do gameLoop para usarmos os sistemas corretos e isolados corretamente
     @Override
     public void render(float delta) {
         updateSystem.update(delta);         //Atualização
@@ -70,22 +75,19 @@ public abstract class BaseScreen implements Screen {
 
     /// Atualiza a contagem de fps e ups a cada segundo
     private void updateMetrics(float delta) {
+        //Atualiza o temporizador global para verificar se está no tempo de lidar com uma nova medição
         metricsTimer += delta;
 
         if (metricsTimer >= 1.0f) {
+            //Medida de fps vinda do gdx
             fps = Gdx.graphics.getFramesPerSecond();
+            //Média de ups vinda do sistema de updates
             ups = updateSystem.getUpdatesMetric();
+            // zeramos o timer
             metricsTimer = 0;
+            //resetamos as metricas do sistema de update, para marcar o final do ciclo
             updateSystem.resetUpdateMetric();
         }
-    }
-
-    public void setUpdateSystem(UpdateSystem updateSystem) {
-        this.updateSystem = updateSystem;
-    }
-
-    public void setRenderSystem(RenderSystem renderSystem) {
-        this.renderSystem = renderSystem;
     }
 
     public int getFps() {
@@ -105,7 +107,9 @@ public abstract class BaseScreen implements Screen {
      */
     protected void resizeUiCamera(OrthographicCameraManager uiCamera, int width, int height) {
         if (uiCamera == null) return;
+        //Atualiza a viewPort da camera
         uiCamera.updateViewport(width, height);
+        //Atualiza as dimensões da camera
         this.screenWidthInPx = uiCamera.getCamera().viewportWidth;
         this.screenHeightInPx = uiCamera.getCamera().viewportHeight;
     }

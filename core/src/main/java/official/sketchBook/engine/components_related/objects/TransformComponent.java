@@ -60,6 +60,14 @@ public class TransformComponent implements Component {
         return height;
     }
 
+    public float getCenterX(){
+        return x + width / 2;
+    }
+
+    public float getCenterY(){
+        return y + height / 2;
+    }
+
     @Override
     public boolean isDisposed() {
         return disposed;
