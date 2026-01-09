@@ -20,7 +20,9 @@ public class TransformComponent implements Component {
         scaleY;
 
     /// Inversão de percepção do objeto em relação ao eixo
-    public boolean xAxisInverted, yAxisInverted;
+    public boolean
+        mirrorX,
+        mirrorY;
 
     /// Rotação atual do sprite em graus
     public float rotation;
@@ -36,8 +38,8 @@ public class TransformComponent implements Component {
         float height,
         float scaleX,
         float scaleY,
-        boolean xAxisInverted,
-        boolean yAxisInverted
+        boolean mirrorX,
+        boolean mirrorY
     ) {
         this.x = x;
         this.y = y;
@@ -45,8 +47,8 @@ public class TransformComponent implements Component {
         this.rotation = rotation;
         this.width = width;
         this.height = height;
-        this.xAxisInverted = xAxisInverted;
-        this.yAxisInverted = yAxisInverted;
+        this.mirrorX = mirrorX;
+        this.mirrorY = mirrorY;
 
         setScale(
             scaleX,

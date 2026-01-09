@@ -1,10 +1,12 @@
 package official.sketchBook.engine.dataManager_related;
 
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Disposable;
+import official.sketchBook.engine.animation_related.Sprite;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.gameObject_related.BaseGameObject;
@@ -151,6 +153,26 @@ public abstract class BaseWorldDataManager implements Disposable {
         }
     }
 
+    public void updateVisuals(float delta){
+        updateRenderableObjectVisuals(delta);
+    }
+
+    protected void updateRenderableObjectVisuals(float delta){
+        renderTreeManager.forEachForUpdate(
+            obj -> obj.updateVisuals(delta)
+        );
+    }
+
+    public void render(SpriteBatch batch){
+        drawRenderableObjects(batch);
+    }
+
+    protected void drawRenderableObjects(SpriteBatch batch){
+        renderTreeManager.forEachForRender(
+            obj -> obj.render(batch)
+        );
+    }
+
     /// Destrói o manager e todos os seus dados, não executa sequencia de destruição para os objetos presentes
     public final void destroyManager() {
         if (disposed) return;
@@ -165,6 +187,7 @@ public abstract class BaseWorldDataManager implements Disposable {
     public final void dispose() {
         if (disposed) return;
 
+        disposeGeneralData();
         disposeGameObjectInstances();
         disposeGameObjectsStaticResourcesOnce();
         disposeLists();
@@ -172,6 +195,8 @@ public abstract class BaseWorldDataManager implements Disposable {
 
         disposed = true;
     }
+
+    protected abstract void disposeGeneralData();
 
     /// Realiza um dispose dos dados pro instancia dos GameObjects existentes dentro do manager
     protected void disposeGameObjectInstances() {

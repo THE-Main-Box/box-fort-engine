@@ -76,9 +76,7 @@ public class SingleThreadRenderSystem implements RenderSystem {
     @Override
     public void updateVisuals(float delta) {
         if (canAccessWorldManager) {
-            worldManager.getRenderTreeManager().forEachForUpdate(
-                obj -> obj.updateVisuals(delta)
-            );
+            worldManager.updateVisuals(delta);
         }
 
         //Atualiza os visuais
@@ -102,9 +100,7 @@ public class SingleThreadRenderSystem implements RenderSystem {
         batch.begin();
 
         if (canAccessWorldManager) {
-            worldManager.getRenderTreeManager().forEachForRender(
-                obj -> obj.render(batch)
-            );
+            worldManager.render(batch);
         }
 
         batch.end();

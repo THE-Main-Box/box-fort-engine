@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import static official.sketchBook.engine.util_related.texture.TextureUtils.obtainCurrentSpriteImage;
-import static official.sketchBook.engine.util_related.texture.TextureUtils.scale;
 
 /**
  * Gerencia dados e operações relacionados a uma sprite sheet,
@@ -57,8 +56,8 @@ public class SpriteSheetDataHandler {
 
     /// Define se a sprite estará espelhada, no eixo passado
     public boolean
-        xAxisInvert,
-        yAxisInvert;
+        mirrorX,
+        mirrorY;
 
     public boolean
         autoUpdateDrawOffsetScale,
@@ -79,8 +78,8 @@ public class SpriteSheetDataHandler {
         int spriteQuantityY,
         float scaleX,
         float scaleY,
-        boolean xAxisInvert,
-        boolean yAxisInvert,
+        boolean mirrorX,
+        boolean mirrorY,
         boolean autoUpdateDrawOffsetScale,
         boolean autoUpdateRotationOffsetScale,
         Texture spriteSheet
@@ -97,8 +96,8 @@ public class SpriteSheetDataHandler {
         this.drawOffSetX = drawOffSetX;
         this.drawOffSetY = drawOffSetY;
 
-        this.xAxisInvert = xAxisInvert;
-        this.yAxisInvert = yAxisInvert;
+        this.mirrorX = mirrorX;
+        this.mirrorY = mirrorY;
 
         this.spriteSheet = spriteSheet;
         this.canvasWidth = spriteSheet.getWidth() / spriteQuantityX;
@@ -198,8 +197,8 @@ public class SpriteSheetDataHandler {
                 canvasWidth,
                 canvasHeight,
                 spriteSheet,
-                xAxisInvert,
-                yAxisInvert
+                mirrorX,
+                mirrorY
             ),
             xPos,
             yPos,

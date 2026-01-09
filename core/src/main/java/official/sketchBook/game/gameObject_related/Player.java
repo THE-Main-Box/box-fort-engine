@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
-import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
 
 public class Player
     extends
@@ -195,8 +194,8 @@ public class Player
                 4,
                 transformC.getScaleX(),
                 transformC.getScaleY(),
-                transformC.xAxisInverted,
-                transformC.yAxisInverted,
+                transformC.mirrorX,
+                transformC.mirrorY,
                 true,
                 true,
                 playerSheet

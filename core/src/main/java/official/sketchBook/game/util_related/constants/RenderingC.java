@@ -7,10 +7,10 @@ public class RenderingC {
     public static float FPS_TARGET;
 
     /// Quantidade de tiles que podemos visualizar na largura
-    public static final int TILES_VIEW_WIDTH = 39;
+    public static final int TILES_VIEW_WIDTH = 78;
 
     /// Quantidade de tiles que podemos visualizar na altura
-    public static final int TILES_VIEW_HEIGHT = 21;
+    public static final int TILES_VIEW_HEIGHT = 42;
 
     /// Tamanho da largura da janela em metros
     public static final float VIRTUAL_WIDTH_PX = TILE_SIZE_PX * TILES_VIEW_WIDTH;

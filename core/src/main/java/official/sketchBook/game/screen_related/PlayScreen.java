@@ -14,10 +14,6 @@ import official.sketchBook.engine.components_related.system_utils.SingleThreadUp
 import official.sketchBook.engine.screen_related.BaseScreen;
 import official.sketchBook.game.dataManager_related.WorldDataManager;
 import official.sketchBook.game.gameObject_related.Player;
-import official.sketchBook.game.util_related.body.world_gen.RoomBodyDataFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static official.sketchBook.game.util_related.constants.DebugC.*;
 import static official.sketchBook.game.util_related.constants.PhysicsC.*;
@@ -102,44 +98,9 @@ public class PlayScreen extends BaseScreen {
             worldManager
         );
 
-        int[][] tmpMap = initBaseTileMap();
-        RoomBodyDataFactory.createRoomBodies(
-            tmpMap,
-            worldManager.getPhysicsWorld()
-        );
-
     }
 
-    private int[][] initBaseTileMap() {
-//        TILES_IN_WIDTH = 39;
-//        TILES_IN_HEIGHT = 21;
 
-        int[][] toReturn = new int[TILES_VIEW_HEIGHT][TILES_VIEW_WIDTH];
-
-        for (int y = 0; y < TILES_VIEW_HEIGHT; y++) {
-            for (int x = 0; x < TILES_VIEW_WIDTH; x++) {
-                toReturn[y][x] = 0;
-
-                List<Boolean> canCreate = new ArrayList<>();
-                canCreate.add(y >= TILES_VIEW_HEIGHT - 2); // chão
-                canCreate.add(y == 0); //teto
-                canCreate.add(x == 0);//parede esquerda
-                canCreate.add(x == TILES_VIEW_WIDTH - 1); // parede direita
-                canCreate.add(x == TILES_VIEW_WIDTH - 10 && y >= TILES_VIEW_HEIGHT - 4);//parede de testes
-
-
-                for (boolean value : canCreate) {
-                    if (value) {
-                        toReturn[y][x] = 1;
-                        break;
-                    }
-                }
-
-            }
-        }
-
-        return toReturn;
-    }
 
     @Override
     public void updateScreen(float delta) {
@@ -176,8 +137,8 @@ public class PlayScreen extends BaseScreen {
                 player.getTransformC().height,
                 player.getTransformC().getScaleX(),
                 player.getTransformC().getScaleY(),
-                player.getTransformC().xAxisInverted,
-                player.getTransformC().yAxisInverted,
+                player.getTransformC().mirrorX,
+                player.getTransformC().mirrorY,
                 worldManager
 
             );
@@ -195,8 +156,8 @@ public class PlayScreen extends BaseScreen {
                 player.getTransformC().height,
                 player.getTransformC().getScaleX(),
                 player.getTransformC().getScaleY(),
-                player.getTransformC().xAxisInverted,
-                player.getTransformC().yAxisInverted,
+                player.getTransformC().mirrorX,
+                player.getTransformC().mirrorY,
                 worldManager
 
             );

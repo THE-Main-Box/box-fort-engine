@@ -102,8 +102,8 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
                 transformC.rotation
             );
 
-            currentHandler.xAxisInvert = transformC.xAxisInverted;
-            currentHandler.yAxisInvert = transformC.yAxisInverted;
+            currentHandler.mirrorX = transformC.mirrorX;
+            currentHandler.mirrorY = transformC.mirrorY;
 
             if (isRenderDimensionEqualsToObject) {
                 currentHandler.renderWidth = transformC.width;

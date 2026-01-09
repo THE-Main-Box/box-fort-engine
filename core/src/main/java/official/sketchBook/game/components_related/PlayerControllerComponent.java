@@ -87,11 +87,11 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     private void applyDirectionChange(Direction direction) {
         switch (direction) {
             case LEFT:
-                player.getTransformC().xAxisInverted = true;
+                player.getTransformC().mirrorX = true;
                 setXMovement(true, -accelToApply);
                 break;
             case RIGHT:
-                player.getTransformC().xAxisInverted = false;
+                player.getTransformC().mirrorX = false;
                 setXMovement(true, accelToApply);
                 break;
             case STILL:
