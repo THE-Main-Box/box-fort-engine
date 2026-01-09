@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import static official.sketchBook.engine.util_related.texture.TextureUtils.obtainCurrentSpriteImage;
+import static official.sketchBook.engine.util_related.texture.TextureUtils.scale;
 
 /**
  * Gerencia dados e operações relacionados a uma sprite sheet,
@@ -19,61 +20,69 @@ import static official.sketchBook.engine.util_related.texture.TextureUtils.obtai
  */
 public class SpriteSheetDataHandler {
     /// Posição de renderização da imagem na tela
-    private float x, y;
+    public float
+        xPos,
+        yPos;
 
     /// Offset de ajuste para o ponto de renderização (em pixels, nunca escala)
-    private float drawOffSetX, drawOffSetY;
+    private float
+        drawOffSetX,
+        drawOffSetY;
 
-    private float originOffSetX, originOffSetY;
+    /// Offset de posição de origem de rotação de imagem
+    public float
+        originOffSetX,
+        originOffSetY;
 
-    /// Origem da rotação (ponto em torno do qual o sprite será rotacionado)
+    /// Buffer neutro de posição onde a sprite será rotacionada
     /// Atualizado automaticamente para o centro quando a escala muda
-    private float originX = 0f, originY = 0f;
-
-    /// Rotação atual do sprite em graus
-    private float rotation = 0f;
+    private float
+        originX = 0f,
+        originY = 0f;
 
     /// Dimensões de cada quadro da sprite sheet (em pixels)
-    private final int canvasHeight, canvasWidth;
+    private final int
+        canvasHeight,
+        canvasWidth;
 
     /// Dimensões reais de renderização após aplicação da escala
-    private float renderWidth, renderHeight;
+    public float
+        renderWidth,
+        renderHeight;
 
     /// Escala da imagem (multiplicativa: 1.0 = normal, 2.0 = 2x maior, 0.5 = metade)
-    private float scaleX = 1f, scaleY = 1f;
+    public float
+        scaleX = 1f,
+        scaleY = 1f;
 
-    /// Define se o sprite está espelhado horizontalmente
-    private boolean xAxisInvert;
+    /// Define se a sprite estará espelhada, no eixo passado
+    public boolean
+        xAxisInvert,
+        yAxisInvert;
 
-    /// Define se o sprite está espelhado verticalmente
-    private boolean yAxisInvert;
+    public boolean
+        autoUpdateDrawOffsetScale,
+        autoUpdateRotationOffsetScale;
 
     /// Textura contendo a sprite sheet (não owned, gerenciada pelo AssetManager)
     private final Texture spriteSheet;
 
-    /**
-     * Construtor da classe responsável por inicializar os dados da sprite sheet.
-     *
-     * @param x               Posição X inicial da imagem.
-     * @param y               Posição Y inicial da imagem.
-     * @param drawOffSetX     Offset de renderização no eixo X (em pixels, não escalado).
-     * @param drawOffSetY     Offset de renderização no eixo Y (em pixels, não escalado).
-     * @param spriteQuantityX Quantidade de sprites na horizontal.
-     * @param spriteQuantityY Quantidade de sprites na vertical.
-     * @param xAxisInvert     Define se o sprite começa espelhado horizontalmente.
-     * @param yAxisInvert     Define se o sprite começa espelhado verticalmente.
-     * @param spriteSheet     Textura contendo a sprite sheet (não será disposed aqui).
-     * @throws IllegalArgumentException Se spriteSheet for null ou quantidades forem <= 0.
-     */
+    /// Rotação atual do sprite em graus
+    public float rotation = 0f;
+
     public SpriteSheetDataHandler(
-        float x,
-        float y,
+        float xPos,
+        float yPos,
         float drawOffSetX,
         float drawOffSetY,
         int spriteQuantityX,
         int spriteQuantityY,
+        float scaleX,
+        float scaleY,
         boolean xAxisInvert,
         boolean yAxisInvert,
+        boolean autoUpdateDrawOffsetScale,
+        boolean autoUpdateRotationOffsetScale,
         Texture spriteSheet
     ) {
         if (spriteSheet == null) {
@@ -83,8 +92,8 @@ public class SpriteSheetDataHandler {
             throw new IllegalArgumentException("Quantidades de sprites devem ser maiores que 0");
         }
 
-        this.x = x;
-        this.y = y;
+        this.xPos = xPos;
+        this.yPos = yPos;
         this.drawOffSetX = drawOffSetX;
         this.drawOffSetY = drawOffSetY;
 
@@ -95,8 +104,26 @@ public class SpriteSheetDataHandler {
         this.canvasWidth = spriteSheet.getWidth() / spriteQuantityX;
         this.canvasHeight = spriteSheet.getHeight() / spriteQuantityY;
 
-        updateRenderDimensions();
-        updateRotationOriginToCenter();
+        this.autoUpdateDrawOffsetScale = autoUpdateDrawOffsetScale;
+        this.autoUpdateRotationOffsetScale = autoUpdateRotationOffsetScale;
+
+        //Atualizamos a escala, que atualiza os dados de renderização internos
+        this.setScale(
+            scaleX,
+            scaleY
+        );
+    }
+
+    /// Atualiza a offset da origem de rotação caso alteremos a escala,
+    private void updateRotationOriginAccordingToScale() {
+        this.originOffSetX *= scaleX;
+        this.originOffSetY *= scaleY;
+    }
+
+    /// Atualiza o offset de desenho caso alteremos a escala
+    private void updateDrawOffsetAccordingToScale() {
+        this.drawOffSetX *= scaleX;
+        this.drawOffSetY *= scaleY;
     }
 
     /// Calcula as dimensões reais de renderização com base na escala atual
@@ -107,17 +134,18 @@ public class SpriteSheetDataHandler {
     }
 
     /// Atualiza a origem de rotação para o centro do sprite renderizado
-    /// Chamado automaticamente quando a escala muda (ALWAYS_CENTER mode)
     private void updateRotationOriginToCenter() {
         originX = renderWidth / 2;
         originY = renderHeight / 2;
     }
 
     /// Atualiza a posição da imagem
-    /// Offset é em pixels e NUNCA escala, permanece constante
-    public void updatePosition(float x, float y) {
-        this.x = x - drawOffSetX;
-        this.y = y - drawOffSetY;
+    public void updatePosition(
+        float x,
+        float y
+    ) {
+        this.xPos = x - drawOffSetX;
+        this.yPos = y - drawOffSetY;
     }
 
     /**
@@ -141,22 +169,14 @@ public class SpriteSheetDataHandler {
         }
         this.scaleX = scaleX;
         this.scaleY = scaleY;
+
         updateRenderDimensions();
         updateRotationOriginToCenter();
-    }
 
-    /**
-     * Define manualmente o ponto de origem para rotação do sprite.
-     * <p>
-     * Use esta função se quiser controle explícito sobre a origem após uma mudança de escala,
-     * ou para casos especiais onde a rotação não deve ser no centro.
-     *
-     * @param originX Coordenada X do ponto de rotação.
-     * @param originY Coordenada Y do ponto de rotação.
-     */
-    public void setRotationOrigin(float originX, float originY) {
-        this.originX = originX;
-        this.originY = originY;
+        if (autoUpdateRotationOffsetScale)
+            updateRotationOriginAccordingToScale();
+        if (autoUpdateDrawOffsetScale)
+            updateDrawOffsetAccordingToScale();
     }
 
     /// Define a rotação atual da imagem em graus
@@ -181,8 +201,8 @@ public class SpriteSheetDataHandler {
                 xAxisInvert,
                 yAxisInvert
             ),
-            x,
-            y,
+            xPos,
+            yPos,
             originX - originOffSetX,
             originY - originOffSetY,
             renderWidth,
@@ -193,115 +213,4 @@ public class SpriteSheetDataHandler {
         );
     }
 
-    /// Define o offset X da renderização (em pixels, não escala com a imagem)
-    public void setDrawOffSetX(float drawOffSetX) {
-        this.drawOffSetX = drawOffSetX;
-    }
-
-    /// Define o offset Y da renderização (em pixels, não escala com a imagem)
-    public void setDrawOffSetY(float drawOffSetY) {
-        this.drawOffSetY = drawOffSetY;
-    }
-
-    /// Retorna a origem da rotação no eixo X
-    public float getOriginX() {
-        return originX;
-    }
-
-    /// Retorna a origem da rotação no eixo Y
-    public float getOriginY() {
-        return originY;
-    }
-
-    /// Define se o sprite está espelhado horizontalmente
-    public void setxAxisInvert(boolean xAxisInvert) {
-        this.xAxisInvert = xAxisInvert;
-    }
-
-    /// Define se o sprite está espelhado verticalmente
-    public void setyAxisInvert(boolean yAxisInvert) {
-        this.yAxisInvert = yAxisInvert;
-    }
-
-    /// Retorna a textura da sprite sheet (não owned, gerenciada externamente)
-    public Texture getSpriteSheet() {
-        return spriteSheet;
-    }
-
-    /// Retorna a altura de cada quadro da sprite sheet em pixels
-    public int getCanvasHeight() {
-        return canvasHeight;
-    }
-
-    /// Retorna a largura de cada quadro da sprite sheet em pixels
-    public int getCanvasWidth() {
-        return canvasWidth;
-    }
-
-    /// Retorna a escala X atual
-    public float getScaleX() {
-        return scaleX;
-    }
-
-    /// Retorna a escala Y atual
-    public float getScaleY() {
-        return scaleY;
-    }
-
-    /// Retorna a largura renderizada (canvasWidth * scaleX)
-    public float getRenderWidth() {
-        return renderWidth;
-    }
-
-    /// Retorna a altura renderizada (canvasHeight * scaleY)
-    public float getRenderHeight() {
-        return renderHeight;
-    }
-
-    /// Retorna a posição X da imagem
-    public float getX() {
-        return x;
-    }
-
-    /// Retorna a posição Y da imagem
-    public float getY() {
-        return y;
-    }
-
-    /// Retorna a rotação atual em graus
-    public float getRotation() {
-        return rotation;
-    }
-
-    public void setRenderHeight(float renderHeight) {
-        this.renderHeight = renderHeight;
-    }
-
-    public void setRenderWidth(float renderWidth) {
-        this.renderWidth = renderWidth;
-    }
-
-    public float getDrawOffSetY() {
-        return drawOffSetY;
-    }
-
-    public float getDrawOffSetX() {
-        return drawOffSetX;
-    }
-
-    public float getOriginOffSetX() {
-        return originOffSetX;
-    }
-
-    public void setOriginOffSetX(float originOffSetX) {
-        this.originOffSetX = originOffSetX;
-    }
-
-    public float getOriginOffSetY() {
-        return originOffSetY;
-    }
-
-    public void setOriginOffSetY(float originOffSetY) {
-        this.originOffSetY = originOffSetY;
-    }
 }

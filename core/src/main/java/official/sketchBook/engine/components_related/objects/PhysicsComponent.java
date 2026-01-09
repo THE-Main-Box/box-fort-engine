@@ -41,8 +41,8 @@ public class PhysicsComponent implements Component {
         this.tmpPos = new Vector2();
 
 
-        this.halfWidth = transformC.getWidth() / 2f;
-        this.halfHeight = transformC.getHeight() / 2f;
+        this.halfWidth = transformC.getHalfWidth();
+        this.halfHeight = transformC.getHalfHeight();
     }
 
     /**

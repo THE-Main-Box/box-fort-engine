@@ -1,5 +1,6 @@
 package official.sketchBook.engine.dataManager_related;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
@@ -10,6 +11,8 @@ import official.sketchBook.engine.gameObject_related.BaseGameObject;
 
 import java.lang.reflect.Method;
 import java.util.*;
+
+import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
 
 public abstract class BaseWorldDataManager implements Disposable {
 
@@ -27,7 +30,7 @@ public abstract class BaseWorldDataManager implements Disposable {
     /// Mundo físico para usar o box2d. Não é obrigatório
     protected World physicsWorld;
     protected Box2DDebugRenderer debugRenderer;
-    protected Matrix4 debugMatrix;
+    protected Matrix4 renderDebugMatrix;
 
     /// Lista de gameObjects base ativos
     protected final List<BaseGameObject> gameObjectList = new ArrayList<>();
@@ -51,7 +54,7 @@ public abstract class BaseWorldDataManager implements Disposable {
 
         if(physicsWorldExists) {
             this.debugRenderer = new Box2DDebugRenderer();
-            this.debugMatrix = new Matrix4();
+            this.renderDebugMatrix = new Matrix4();
         }
 
         this.timeStep = timeStep;
@@ -249,6 +252,17 @@ public abstract class BaseWorldDataManager implements Disposable {
         }
     }
 
+    public void renderWorldHitboxes(Camera gameCamera){
+        renderDebugMatrix.set(
+            gameCamera.combined
+        ).scl(PPM);
+
+        debugRenderer.render(
+            physicsWorld,
+            renderDebugMatrix
+        );
+    }
+
     /// Usa a pipeline interna para marcar um objeto para ser destruido internamente
     public void removeGameObject(BaseGameObject go) {
         if (gameObjectList.contains(go)) {
@@ -290,13 +304,5 @@ public abstract class BaseWorldDataManager implements Disposable {
 
     public boolean isDisposed() {
         return disposed;
-    }
-
-    public Box2DDebugRenderer getDebugRenderer() {
-        return debugRenderer;
-    }
-
-    public Matrix4 getDebugMatrix() {
-        return debugMatrix;
     }
 }

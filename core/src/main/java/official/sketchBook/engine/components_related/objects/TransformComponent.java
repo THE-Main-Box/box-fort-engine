@@ -5,10 +5,19 @@ import official.sketchBook.engine.components_related.intefaces.base_interfaces.C
 public class TransformComponent implements Component {
 
     /// Valores da posição em seus eixos relativos em pixel
-    public float x, y, z;
+    public float
+        x,
+        y,
+        z;
 
     /// Valores de dimensão em pixels
-    private final float width, height;
+    public float
+        width,
+        height;
+
+    private float
+        scaleX,
+        scaleY;
 
     /// Inversão de percepção do objeto em relação ao eixo
     public boolean xAxisInverted, yAxisInverted;
@@ -25,6 +34,8 @@ public class TransformComponent implements Component {
         float rotation,
         float width,
         float height,
+        float scaleX,
+        float scaleY,
         boolean xAxisInverted,
         boolean yAxisInverted
     ) {
@@ -36,6 +47,11 @@ public class TransformComponent implements Component {
         this.height = height;
         this.xAxisInverted = xAxisInverted;
         this.yAxisInverted = yAxisInverted;
+
+        setScale(
+            scaleX,
+            scaleY
+        );
     }
 
     @Override
@@ -47,25 +63,48 @@ public class TransformComponent implements Component {
 
     }
 
+    public void setScale(
+        float scaleX,
+        float scaleY
+    ) {
+        if (scaleX <= 0 || scaleY <= 0) {
+            throw new IllegalArgumentException("Escala deve ser maior que 0");
+        }
+
+        this.scaleX = scaleX;
+        this.scaleY = scaleY;
+
+        this.width *= scaleX;
+        this.height *= scaleY;
+    }
+
+    public float getScaleY() {
+        return scaleY;
+    }
+
+    public float getScaleX() {
+        return scaleX;
+    }
+
+    public float getHalfWidth() {
+        return width / 2;
+    }
+
+    public float getHalfHeight() {
+        return height / 2;
+    }
+
+    public float getCenterX() {
+        return x + getHalfWidth();
+    }
+
+    public float getCenterY() {
+        return y + getHalfHeight();
+    }
+
     @Override
     public void dispose() {
         disposed = true;
-    }
-
-    public float getWidth() {
-        return width;
-    }
-
-    public float getHeight() {
-        return height;
-    }
-
-    public float getCenterX(){
-        return x + width / 2;
-    }
-
-    public float getCenterY(){
-        return y + height / 2;
     }
 
     @Override

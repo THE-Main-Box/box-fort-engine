@@ -25,6 +25,8 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
         float rotation,
         float width,
         float height,
+        float scaleX,
+        float scaleY,
         boolean xAxisInverted,
         boolean yAxisInverted,
         BaseWorldDataManager worldDataManager
@@ -37,6 +39,8 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
             rotation,
             width,
             height,
+            scaleX,
+            scaleY,
             xAxisInverted,
             yAxisInverted
         );
@@ -52,6 +56,8 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
         float rotation,
         float width,
         float height,
+        float scaleX,
+        float scaleY,
         boolean xAxisInverted,
         boolean yAxisInverted
     ) {
@@ -62,6 +68,8 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
             rotation,
             width,
             height,
+            scaleX,
+            scaleY,
             xAxisInverted,
             yAxisInverted
         );
@@ -94,21 +102,12 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
                 transformC.rotation
             );
 
-            currentHandler.setxAxisInvert(
-                transformC.xAxisInverted
-            );
-            currentHandler.setyAxisInvert(
-                transformC.yAxisInverted
-            );
+            currentHandler.xAxisInvert = transformC.xAxisInverted;
+            currentHandler.yAxisInvert = transformC.yAxisInverted;
 
             if (isRenderDimensionEqualsToObject) {
-                currentHandler.setRenderWidth(
-                    transformC.getWidth()
-                );
-
-                currentHandler.setRenderHeight(
-                    transformC.getHeight()
-                );
+                currentHandler.renderWidth = transformC.width;
+                currentHandler.renderHeight = transformC.height;
             }
 
             if (currentAnimationPlayer != null) {

@@ -96,6 +96,8 @@ public class PlayScreen extends BaseScreen {
             0,
             16,
             16,
+            1f,
+            1,
             false,
             false,
             worldManager
@@ -182,16 +184,9 @@ public class PlayScreen extends BaseScreen {
     @Override
     public void drawGame(SpriteBatch batch) {
         if (show_hit_boxes && worldManager.isPhysicsWorldExists()) {
-
-            worldManager.getDebugMatrix().set(
-                gameCameraManager.getCamera().combined
-            ).scl(PPM);
-
-            worldManager.getDebugRenderer().render(
-                worldManager.getPhysicsWorld(),
-                worldManager.getDebugMatrix()
+            worldManager.renderWorldHitboxes(
+                gameCameraManager.getCamera()
             );
-
         }
     }
 

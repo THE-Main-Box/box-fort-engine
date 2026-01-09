@@ -52,6 +52,8 @@ public class Player
         float rotation,
         float width,
         float height,
+        float scaleX,
+        float scaleY,
         boolean xAxisInverted,
         boolean yAxisInverted,
         BaseWorldDataManager worldDataManager
@@ -63,6 +65,8 @@ public class Player
             rotation,
             width,
             height,
+            scaleX,
+            scaleY,
             xAxisInverted,
             yAxisInverted,
             worldDataManager
@@ -103,8 +107,8 @@ public class Player
                 this.transformC.y
             ),
             this.transformC.rotation,
-            this.transformC.getWidth(),
-            this.transformC.getHeight(),
+            this.transformC.width,
+            this.transformC.height,
             BodyDef.BodyType.DynamicBody,
             density,
             frict,
@@ -154,7 +158,7 @@ public class Player
         this.toUpdateComponentList.add(moveC);
     }
 
-    private void initPhysicsComponent(){
+    private void initPhysicsComponent() {
         this.physicsC = new MovableObjectPhysicsComponent(this);
 
         this.toUpdateComponentList.add(physicsC);
@@ -189,8 +193,12 @@ public class Player
                 0,
                 5,
                 4,
+                transformC.getScaleX(),
+                transformC.getScaleY(),
                 transformC.xAxisInverted,
                 transformC.yAxisInverted,
+                true,
+                true,
                 playerSheet
             )
         );
