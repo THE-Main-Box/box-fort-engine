@@ -1,28 +1,15 @@
 package official.sketchBook.engine.util_related.helper.world_gen;
 
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.World;
-import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
-import official.sketchBook.game.util_related.enumerators.TileType;
+import official.sketchBook.game.util_related.enumerators.TileBodyType;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static official.sketchBook.game.util_related.constants.WorldC.TILE_SIZE_PX;
+import static official.sketchBook.game.util_related.body.world_gen.RoomBodyDataFactory.getFactory;
 
 public class RoomBodyDataGeneratorHelper {
-
-    /// Registro de factories por tipo de tile
-    private static final Map<TileType, TileBodyFactory> tileFactories = new HashMap<>();
-
-    /// Inicializa as factories padrão
-    static {
-        register(TileType.BLOCK, TileFactory::createBlockBody);
-    }
 
     /**
      * Valida se existem tiles ao redor do mesmo tipo, se sim nós não criamos.
@@ -33,8 +20,8 @@ public class RoomBodyDataGeneratorHelper {
      * @param x     coordenada X do mapa onde a tile se encontra
      * @param y     coordenada Y do mapa onde a tile se encontra
      */
-    private static boolean shouldCreateBody(int x, int y, TileType[][] tiles) {
-        TileType current = tiles[y][x];
+    private static boolean shouldCreateBody(int x, int y, TileBodyType[][] tiles) {
+        TileBodyType current = tiles[y][x];
 
         //  Verifica se existe uma tile em cima e se é do mesmo tipo
         boolean up = y + 1 < tiles.length
@@ -54,80 +41,48 @@ public class RoomBodyDataGeneratorHelper {
         return !(up && down && left && right);
     }
 
-    /// Cria uma body padrão para as tiles
-    public static Body createBoxBodyForTiles(
-        World world,
-        TileType type,
-        BodyDef.BodyType bodyType,
-        int x,
-        int y,
-        int rotation,
-        int width,
-        int height,
-        int totalRows,
-        short categoryBit,
-        short maskBit
-    ) {
-        //Dimensão padrão para as tiles
-        float tileSize = TILE_SIZE_PX;
-        //Encontra a posição y invertida em relação ao mundo
-        //A coordenada y é invertida no world, portanto precisamos inverter ela para manter coerente
-        int inverseYCord = (totalRows - 1) - y;
-
-        /*
-         * Tentamos encontrar a coordenada nos dois eixos, x e y.
-         * Porém precisamos que essa coordenada seja o centro do objeto
-         * e não leve em conta algum offset como no sistema padrão desta engine
-         *
-         * TODO: Vale considerar o pequeno offset do eixo y,
-         *   esse offset para suavização
-         *   talvez acabe causando inconsistências,
-         *   importante analisar
-         */
-
-        //Obtém a posição do mundo no eixo x
-        float worldX = (x + width / 2f) * tileSize;
-        //Obtém a posição do mundo no eixo y
-        float worldY = (inverseYCord - (height / 2f - 0.5f)) * tileSize;
-
-        //  Criamos uma body quadrada padrão para tiles,
-        //  se quisermos criar em formatos diferentes,
-        //  vale a pena considerar manipular o formato da box
-
-        return BodyCreatorHelper.createBox(
-            world,                              //Mundo físico
-            new Vector2(                        //Coordenadas
-                worldX,
-                worldY
-            ),
-            rotation,                           //  Rotação
-            (width * tileSize),                 //  Largura por index e tamanho de tile
-            (height * tileSize),                //  Altura por index e tamanho de tile
-            bodyType,                           //  Tipo de corpo estático padrão
-            type.getDensity(),                  //  Densidade do corpo
-            type.getFriction(),                 //  Fricção pro box2d
-            type.getRestt(),                    //  Restituição de força de colisão
-            categoryBit,                        //  Quem a tile é na colisão
-            maskBit                             //  Com quem a tile pode colidir na colisão
-        );
-    }
-
-    public static List<Body> buildTileMergedBodies(TileType[][] tiles, World world) {
+    /**
+     * Cria as bodies de uma sala num world, recebendo uma lista bidimensional contendo os dados das Body da tile
+     *
+     * @param tiles dados das bodys das tiles
+     * @param world mundo onde iremos instanciar as body
+     * @return Retornamos uma lista contendo uma referência das bodies que criamos
+     */
+    public static List<Body> buildWorldTileBodies(TileBodyType[][] tiles, World world) {
+        //Obtém a quantidade das linhas, também conhecida como a altura
         int rows = tiles.length;
+        //Obtém a quantidade das colunas, também conhecida como largura do mundo
         int cols = tiles[0].length;
+
+        //Matriz contendo uma validação para saber se já visitamos aquela tile
         boolean[][] visited = new boolean[rows][cols];
+
+        //Lista das bodies que criamos
         List<Body> bodies = new ArrayList<>();
 
+        /*
+         *   Vale lembrar que temos uma body para cada tipo de body de tile,
+         *  ou seja uma slope corresponderá a uma body diferente de um bloco quadrado comum
+         */
+
         // Percorre o mapa de cima para baixo
-        for (int y = 0; y < rows; y++) {
+        for (int y = 0; y < rows; y++) {    //Da esquerda para direita
             for (int x = 0; x < cols; x++) {
 
                 // Verifica se ainda não visitou e se é sólida e se devemos criar ela
-                if (!visited[y][x] && tiles[y][x].isSolid() && shouldCreateBody(x, y, tiles)) {
-                    TileType currentType = tiles[y][x];
+                if (!visited[y][x]
+                    && tiles[y][x].isSolid()
+                    && shouldCreateBody(
+                    x,
+                    y,
+                    tiles)
+                ) {
+                    //Obtemos uma referencia do tipo atual
+                    TileBodyType currentType = tiles[y][x];
 
-                    int width = 1;
-                    int height = 1;
+                    //Dimensões padrão
+                    int width = 1,
+                        height = 1;
 
                     // Se a tile pode ser merged, tenta encontrar o maior retângulo
                     if (currentType.isMergeable()) {
@@ -171,14 +126,18 @@ public class RoomBodyDataGeneratorHelper {
                     List<Body> createdBodies = factory.createBodies(
                         world,
                         currentType,
-                        x, y,
-                        width, height,
+                        x,
+                        y,
+                        width,
+                        height,
                         rows
                     );
 
                     bodies.addAll(createdBodies);
                 }
+
             }
+
         }
 
         return bodies;
@@ -186,20 +145,20 @@ public class RoomBodyDataGeneratorHelper {
 
     /**
      * Converte um mapa de inteiros para um mapa de tipos de tiles
-     * Cada ID é convertido para seu TileType correspondente
+     * Cada ID é convertido para seu tipo de corpo de tile correspondente
      *
      * @param tileIds matriz bidimensional com IDs de tiles
-     * @return matriz bidimensional de TileType
+     * @return matriz bidimensional contendo os dados da body de cada tile
      */
-    public static TileType[][] convertToTileTypeMap(int[][] tileIds) {
+    public static TileBodyType[][] convertToBodyTypeMap(int[][] tileIds) {
         int rows = tileIds.length;
         int cols = tileIds[0].length;
-        TileType[][] tiles = new TileType[rows][cols];
+        TileBodyType[][] tiles = new TileBodyType[rows][cols];
 
         /// Percorre cada ID e obtém seu TileType correspondente
         for (int y = 0; y < rows; y++) {
             for (int x = 0; x < cols; x++) {
-                tiles[y][x] = TileType.fromId(tileIds[y][x]);
+                tiles[y][x] = TileBodyType.fromId(tileIds[y][x]);
             }
         }
 
@@ -213,7 +172,7 @@ public class RoomBodyDataGeneratorHelper {
      * @param tiles matriz bidimensional de TileType
      * @return matriz bidimensional com IDs de tiles
      */
-    public static int[][] convertToIntMap(TileType[][] tiles) {
+    public static int[][] convertToIntMap(TileBodyType[][] tiles) {
         int rows = tiles.length;
         int cols = tiles[0].length;
         int[][] tileIds = new int[rows][cols];
@@ -226,15 +185,5 @@ public class RoomBodyDataGeneratorHelper {
         }
 
         return tileIds;
-    }
-
-    /// Registra uma factory customizada para um tipo de tile
-    public static void register(TileType tileType, TileBodyFactory factory) {
-        tileFactories.put(tileType, factory);
-    }
-
-    /// Obtém a factory para um tipo de tile
-    private static TileBodyFactory getFactory(TileType type) {
-        return tileFactories.getOrDefault(type, TileFactory::createBlockBody);
     }
 }

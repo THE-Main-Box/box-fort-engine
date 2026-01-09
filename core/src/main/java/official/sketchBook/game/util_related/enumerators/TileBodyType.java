@@ -5,7 +5,7 @@ import static official.sketchBook.engine.util_related.enumerators.CollisionLayer
 /**
  * Essa classe contém as propriedades dos corpos das tiles que iremos criar
  */
-public enum TileType {
+public enum TileBodyType {
     /*
      *   Bloco inexistente.
      *   Suas propriedades estão por padrão zeradas ou false
@@ -70,7 +70,7 @@ public enum TileType {
 
     private final boolean isMergeable;
 
-    TileType(
+    TileBodyType(
         int id,
         boolean solid,
         float friction,
@@ -124,8 +124,8 @@ public enum TileType {
         return solid;
     }
 
-    public static TileType fromId(int id) {
-        for (TileType type : values()) {
+    public static TileBodyType fromId(int id) {
+        for (TileBodyType type : values()) {
             if (type.id == id) return type;
         }
         return EMPTY;

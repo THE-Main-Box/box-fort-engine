@@ -2,7 +2,7 @@ package official.sketchBook.engine.util_related.helper.world_gen;
 
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
-import official.sketchBook.game.util_related.enumerators.TileType;
+import official.sketchBook.game.util_related.enumerators.TileBodyType;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ public interface TileBodyFactory {
      */
     List<Body> createBodies(
         World world,
-        TileType type,
+        TileBodyType type,
         int mapX,
         int mapY,
         int width,

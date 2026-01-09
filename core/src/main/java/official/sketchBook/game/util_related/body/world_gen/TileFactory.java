@@ -1,28 +1,26 @@
-package official.sketchBook.engine.util_related.helper.world_gen;
+package official.sketchBook.game.util_related.body.world_gen;
 
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
-import official.sketchBook.game.util_related.enumerators.TileType;
+import official.sketchBook.game.util_related.enumerators.TileBodyType;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static official.sketchBook.engine.util_related.helper.world_gen.RoomBodyDataGeneratorHelper.createBoxBodyForTiles;
-
 public class TileFactory {
     public static List<Body> createBlockBody(
         World world,
-        TileType type,
+        TileBodyType type,
         int mapX,
         int mapY,
         int width,
         int height,
         int totalRows
     ) {
-        Body body = createBoxBodyForTiles(
+        Body body = TileBodyCreator.createBoxBodyForTiles(
             world,
             type,
             BodyDef.BodyType.StaticBody,

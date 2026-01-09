@@ -9,18 +9,15 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.AppMain;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
-import official.sketchBook.engine.camera_related.utils.CameraUtils;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadRenderSystem;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadUpdateSystem;
 import official.sketchBook.engine.screen_related.BaseScreen;
-import official.sketchBook.engine.util_related.helper.world_gen.RoomBodyDataGeneratorHelper;
 import official.sketchBook.game.dataManager_related.WorldDataManager;
 import official.sketchBook.game.gameObject_related.Player;
-import official.sketchBook.game.util_related.enumerators.TileType;
+import official.sketchBook.game.util_related.body.world_gen.RoomBodyDataFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import static official.sketchBook.game.util_related.constants.DebugC.*;
 import static official.sketchBook.game.util_related.constants.PhysicsC.*;
@@ -104,9 +101,8 @@ public class PlayScreen extends BaseScreen {
         );
 
         int[][] tmpMap = initBaseTileMap();
-        TileType[][] tmpTileMap = RoomBodyDataGeneratorHelper.convertToTileTypeMap(tmpMap);
-        RoomBodyDataGeneratorHelper.buildTileMergedBodies(
-            tmpTileMap,
+        RoomBodyDataFactory.createRoomBodies(
+            tmpMap,
             worldManager.getPhysicsWorld()
         );
 
