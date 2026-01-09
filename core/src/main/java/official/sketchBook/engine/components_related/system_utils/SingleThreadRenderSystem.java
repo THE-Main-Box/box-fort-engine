@@ -71,6 +71,21 @@ public class SingleThreadRenderSystem implements RenderSystem {
 
     }
 
+
+    /// Atualiza dados visuais antes da renderização de fato
+    @Override
+    public void updateVisuals(float delta) {
+        if (canAccessWorldManager) {
+            worldManager.getRenderTreeManager().forEachForUpdate(
+                obj -> obj.updateVisuals(delta)
+            );
+        }
+
+        //Atualiza os visuais
+        screen.updateVisuals(delta);
+
+    }
+
     /// Limpa a tela com uma cor em específico
     protected void cleanScreen() {
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
@@ -87,17 +102,9 @@ public class SingleThreadRenderSystem implements RenderSystem {
         batch.begin();
 
         if (canAccessWorldManager) {
-            worldManager.sortRenderables();
-            for (int i = 0; i < worldManager.getRenderAbleObjectList().size(); i++) {
-                RenderAbleObject obj = worldManager.getRenderAbleObjectList().get(i);
-
-                if (obj.isPendingRemoval()) {
-                    // Opcional: remover da lista de render aqui ou deixar o Manager limpar
-                    continue;
-                }
-
-                obj.render(batch);
-            }
+            worldManager.getRenderTreeManager().forEachForRender(
+                obj -> obj.render(batch)
+            );
         }
 
         batch.end();
@@ -119,18 +126,5 @@ public class SingleThreadRenderSystem implements RenderSystem {
         batch.begin();
         screen.drawUI(batch);
         batch.end();
-    }
-
-    /// Atualiza dados visuais antes da renderização de fato
-    @Override
-    public void updateVisuals(float delta) {
-        //Atualiza os visuais
-        screen.updateVisuals(delta);
-
-        if (!canAccessWorldManager) return;
-        for (RenderAbleObject object : worldManager.getRenderAbleObjectList()) {
-            object.updateVisuals(delta);
-        }
-
     }
 }

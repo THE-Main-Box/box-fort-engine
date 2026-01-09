@@ -164,6 +164,44 @@ public class PlayScreen extends BaseScreen {
             }
         }
 
+        if (Gdx.input.isKeyPressed(
+            Input.Keys.F
+        )) {
+            new Player(
+                player.getTransformC().x + 50,
+                player.getTransformC().y,
+                player.getTransformC().z +1,
+                0,
+                player.getTransformC().width,
+                player.getTransformC().height,
+                player.getTransformC().getScaleX(),
+                player.getTransformC().getScaleY(),
+                player.getTransformC().xAxisInverted,
+                player.getTransformC().yAxisInverted,
+                worldManager
+
+            );
+        }
+
+        if (Gdx.input.isKeyPressed(
+            Input.Keys.D
+        )) {
+            new Player(
+                player.getTransformC().x + 50,
+                player.getTransformC().y,
+                player.getTransformC().z -1,
+                0,
+                player.getTransformC().width,
+                player.getTransformC().height,
+                player.getTransformC().getScaleX(),
+                player.getTransformC().getScaleY(),
+                player.getTransformC().xAxisInverted,
+                player.getTransformC().yAxisInverted,
+                worldManager
+
+            );
+        }
+
         if (player != null) {
             gameCameraManager.trackObjectByOffset(
                 player.getTransformC().getCenterX(),
@@ -196,6 +234,7 @@ public class PlayScreen extends BaseScreen {
         if (show_fps_ups_metrics) {
             font.draw(batch, "FPS: " + getFps(), 10, this.screenHeightInPx - 10);
             font.draw(batch, "UPS: " + getUps(), 10, this.screenHeightInPx - 30);
+            font.draw(batch, "Objects: " + worldManager.getGameObjectList().size(), 10, this.screenHeightInPx - 50);
         }
     }
 

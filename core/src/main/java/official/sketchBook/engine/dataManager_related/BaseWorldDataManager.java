@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Disposable;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.gameObject_related.BaseGameObject;
+import official.sketchBook.engine.util_related.helper.RenderableTreeManager;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -37,8 +38,9 @@ public abstract class BaseWorldDataManager implements Disposable {
     /// Lista de gameObjects a serem adicionados
     protected final List<BaseGameObject> gameObjectToAddList = new ArrayList<>();
 
-    /// Lista de objects que precisam de rendering
-    protected final List<RenderAbleObject> renderAbleObjectList = new ArrayList<>();
+    /// Lista de objects que precisam de rendering - DEPOIS
+    protected final RenderableTreeManager renderTreeManager = new RenderableTreeManager();
+
 
     /// Rastreamento de todas as classes que passaram pelo manager
     protected final Set<Class<? extends BaseGameObject>> registeredClasses = new HashSet<>();
@@ -52,7 +54,7 @@ public abstract class BaseWorldDataManager implements Disposable {
         this.physicsWorld = physicsWorld;                   //Inicia um world
         this.physicsWorldExists = physicsWorld != null;     //Se temos um mundo físico podemos usar a física
 
-        if(physicsWorldExists) {
+        if (physicsWorldExists) {
             this.debugRenderer = new Box2DDebugRenderer();
             this.renderDebugMatrix = new Matrix4();
         }
@@ -77,7 +79,7 @@ public abstract class BaseWorldDataManager implements Disposable {
     }
 
     /// Executa a sequencia de atualização
-    protected void updateGameObjectsOnOriginalPipeLine(float delta){
+    protected void updateGameObjectsOnOriginalPipeLine(float delta) {
         //Itera de cima pra baixo
         for (int i = gameObjectList.size() - 1; i >= 0; i--) {
             //Obtém uma referencia
@@ -96,7 +98,7 @@ public abstract class BaseWorldDataManager implements Disposable {
     /**
      * Executa a remoção do objeto pendente para remoção
      *
-     * @param i Index presente na lista
+     * @param i      Index presente na lista
      * @param object referência do objeto, para impedir ter que obter a referencia diretamente
      */
     protected void removePendingObject(int i, BaseGameObject object) {
@@ -104,7 +106,7 @@ public abstract class BaseWorldDataManager implements Disposable {
 
         //remove da pipeline de render caso seja renderizável e esteja marcado para remoção
         if (object instanceof RenderAbleObject) {
-            renderAbleObjectList.remove(
+            renderTreeManager.remove(
                 (RenderAbleObject) object
             );
         }
@@ -117,6 +119,14 @@ public abstract class BaseWorldDataManager implements Disposable {
         //Tenta adicionar os objetos novos
         if (!gameObjectToAddList.isEmpty()) {
             gameObjectList.addAll(gameObjectToAddList);
+
+            //AGORA adiciona à árvore de renderização (depois de estar na gameObjectList)
+            for (BaseGameObject go : gameObjectToAddList) {
+                if (go instanceof RenderAbleObject) {
+                    renderTreeManager.add((RenderAbleObject) go);
+                }
+            }
+
             gameObjectToAddList.clear();
         }
     }
@@ -175,7 +185,7 @@ public abstract class BaseWorldDataManager implements Disposable {
         gameObjectList.clear();
         gameObjectToAddList.clear();
         registeredClasses.clear();
-        renderAbleObjectList.clear();
+        renderTreeManager.clear();
     }
 
     /// Limpa o mundo físico
@@ -233,26 +243,9 @@ public abstract class BaseWorldDataManager implements Disposable {
         gameObjectToAddList.add(go);
         //Registra a classe para permitir a limpeza de dados estaticos futuramente
         registeredClasses.add(go.getClass());
-
-        //Verificamos se o objeto pode ser renderizado e inserimos ele na pipeline de render
-        if (go instanceof RenderAbleObject) {
-            renderAbleObjectList.add((RenderAbleObject) go);    //Adicionamos à pipeline
-            notifyRenderIndexUpdate();                          //Notificamos a necessidade de ordenar a lista
-        }
     }
 
-    /// Realiza a ordenação dos objetos que serão mostrados na tela
-    public void sortRenderables() {
-        if (renderingNeedsSorting) {
-            // Ordenação estável para não tremer objetos no mesmo Z
-            renderAbleObjectList.sort(
-                Comparator.comparingInt(RenderAbleObject::getRenderIndex)
-            );
-            renderingNeedsSorting = false;
-        }
-    }
-
-    public void renderWorldHitboxes(Camera gameCamera){
+    public void renderWorldHitboxes(Camera gameCamera) {
         renderDebugMatrix.set(
             gameCamera.combined
         ).scl(PPM);
@@ -272,10 +265,6 @@ public abstract class BaseWorldDataManager implements Disposable {
 
     public void notifyRenderIndexUpdate() {
         this.renderingNeedsSorting = true;
-    }
-
-    public List<RenderAbleObject> getRenderAbleObjectList() {
-        return renderAbleObjectList;
     }
 
     public boolean isPhysicsWorldExists() {
@@ -300,6 +289,10 @@ public abstract class BaseWorldDataManager implements Disposable {
 
     public int getPosIterations() {
         return posIterations;
+    }
+
+    public RenderableTreeManager getRenderTreeManager() {
+        return renderTreeManager;
     }
 
     public boolean isDisposed() {
