@@ -50,8 +50,10 @@ public class PlayScreen extends BaseScreen {
         );
 
         gameCameraManager.setCameraOffsetLimit(
-            999999,
-            999999
+            -999,
+            999,
+            -999,
+            999
         );
 
         updateZoom(0.5f);
