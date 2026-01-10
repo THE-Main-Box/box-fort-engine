@@ -24,7 +24,7 @@ public class WorldDataManager extends BaseWorldDataManager {
     private OrthographicCameraManager gameCamera;
 
     /// Referência ao jogador principal (pode expandir para múltiplos)
-    private Player mainPlayer;
+    public Player mainPlayer;
 
     public WorldDataManager(
         World physicsWorld,
@@ -60,16 +60,6 @@ public class WorldDataManager extends BaseWorldDataManager {
             currentRoom,
             initBaseTileMap()
         );
-    }
-
-    /// Define a câmera do jogo (chamado por PlayScreen após criar o manager)
-    public void setGameCamera(OrthographicCameraManager camera) {
-        this.gameCamera = camera;
-    }
-
-    /// Define o jogador principal (chamado quando o player é criado)
-    public void setMainPlayer(Player player) {
-        this.mainPlayer = player;
     }
 
     /// Atualiza o tracking da câmera baseado no jogador
@@ -136,7 +126,8 @@ public class WorldDataManager extends BaseWorldDataManager {
         return currentRoom;
     }
 
-    public Player getMainPlayer() {
-        return mainPlayer;
+    /// Define a câmera do jogo (chamado por PlayScreen após criar o manager)
+    public void setGameCamera(OrthographicCameraManager camera) {
+        this.gameCamera = camera;
     }
 }

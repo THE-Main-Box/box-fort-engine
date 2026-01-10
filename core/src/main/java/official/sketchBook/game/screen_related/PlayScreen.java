@@ -27,8 +27,6 @@ public class PlayScreen extends BaseScreen {
 
     private WorldDataManager worldManager;
 
-    private Player player;
-
     public PlayScreen(AppMain app) {
         super(app);
     }
@@ -88,32 +86,30 @@ public class PlayScreen extends BaseScreen {
         );
 
         //Cria o jogador principal e Informa ao manager qual é o jogador principal
-        worldManager.setMainPlayer(
-            new Player(
-                250,
-                40,
-                0,
-                0,
-                16,
-                16,
-                1f,
-                1,
-                false,
-                false,
-                worldManager
-            )
+        worldManager.mainPlayer = new Player(
+            250,
+            40,
+            0,
+            0,
+            16,
+            16,
+            1f,
+            1,
+            false,
+            false,
+            worldManager
+
         );
     }
 
 
-
     @Override
     public void updateScreen(float delta) {
-//        if (Gdx.input.isKeyPressed(
-//            Input.Keys.ESCAPE
-//        )) {
-//            worldManager.destroyManager();
-//        }
+        if (Gdx.input.isKeyPressed(
+            Input.Keys.ESCAPE
+        )) {
+            worldManager.destroyManager();
+        }
 
         if (change_of_zoom_allowed) {
             if (Gdx.input.isKeyPressed(
@@ -130,13 +126,15 @@ public class PlayScreen extends BaseScreen {
             }
         }
 
+        Player player = worldManager.mainPlayer;
+
         if (Gdx.input.isKeyPressed(
             Input.Keys.F
         )) {
             new Player(
                 player.getTransformC().x + 50,
                 player.getTransformC().y,
-                player.getTransformC().z +1,
+                player.getTransformC().z + 1,
                 0,
                 player.getTransformC().width,
                 player.getTransformC().height,
@@ -155,7 +153,7 @@ public class PlayScreen extends BaseScreen {
             new Player(
                 player.getTransformC().x + 50,
                 player.getTransformC().y,
-                player.getTransformC().z -1,
+                player.getTransformC().z - 1,
                 0,
                 player.getTransformC().width,
                 player.getTransformC().height,
