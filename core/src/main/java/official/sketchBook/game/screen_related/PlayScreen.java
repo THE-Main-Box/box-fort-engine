@@ -18,6 +18,7 @@ import official.sketchBook.game.gameObject_related.Player;
 import static official.sketchBook.game.util_related.constants.DebugC.*;
 import static official.sketchBook.game.util_related.constants.PhysicsC.*;
 import static official.sketchBook.game.util_related.constants.RenderingC.*;
+import static official.sketchBook.game.util_related.constants.WorldC.TILE_SIZE_PX;
 
 public class PlayScreen extends BaseScreen {
     private OrthographicCameraManager uiCameraManager;
@@ -35,6 +36,8 @@ public class PlayScreen extends BaseScreen {
     @Override
     protected void initSystems() {
         super.initSystems();
+
+        //Cria as câmeras
         this.uiCameraManager = new OrthographicCameraManager(
             Gdx.graphics.getWidth(),
             Gdx.graphics.getHeight()
@@ -45,31 +48,31 @@ public class PlayScreen extends BaseScreen {
             VIRTUAL_HEIGHT_PX
         );
 
-        gameCameraManager.setCameraOffsetLimit(
-            -999,
-            999,
-            -999,
-            999
-        );
-
-        updateZoom(0.5f);
-        this.gameCameraManager.setZoom(zoom);
-
         this.font = new BitmapFont();
         this.font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
+        //Cria o manager do mundo
         this.worldManager = new WorldDataManager(
-            new World(
-                new Vector2(
-                    0,
-                    -80f),
-                true
-            ),
+            new World(new Vector2(0, -80f), true),
             FIXED_TIMESTAMP,
             VELOCITY_ITERATIONS,
             POSITION_ITERATIONS
         );
 
+        //AGORA passa a câmera ao manager (que já tem seus limites configurados)
+        worldManager.setGameCamera(gameCameraManager);
+
+        gameCameraManager.setCameraOffsetLimit(
+            0,
+            worldManager.getCurrentRoom().roomWidthPx / 2,
+            0,
+            worldManager.getCurrentRoom().roomHeightPx / 2
+        );
+
+        updateZoom(0.5f);
+        this.gameCameraManager.setZoom(zoom);
+
+        //Cria os sistemas de render e update
         this.renderSystem = new SingleThreadRenderSystem(
             this,
             worldManager,
@@ -84,20 +87,22 @@ public class PlayScreen extends BaseScreen {
             this
         );
 
-        player = new Player(
-            250,
-            40,
-            0,
-            0,
-            16,
-            16,
-            1f,
-            1,
-            false,
-            false,
-            worldManager
+        //Cria o jogador principal e Informa ao manager qual é o jogador principal
+        worldManager.setMainPlayer(
+            new Player(
+                250,
+                40,
+                0,
+                0,
+                16,
+                16,
+                1f,
+                1,
+                false,
+                false,
+                worldManager
+            )
         );
-
     }
 
 
@@ -160,13 +165,6 @@ public class PlayScreen extends BaseScreen {
                 player.getTransformC().mirrorY,
                 worldManager
 
-            );
-        }
-
-        if (player != null) {
-            gameCameraManager.trackObjectByOffset(
-                player.getTransformC().getCenterX(),
-                player.getTransformC().getCenterY()
             );
         }
 

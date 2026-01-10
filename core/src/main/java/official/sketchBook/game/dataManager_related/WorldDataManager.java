@@ -2,8 +2,11 @@ package official.sketchBook.game.dataManager_related;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.World;
+import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
 import official.sketchBook.engine.world_gen.PlayableRoom;
+import official.sketchBook.engine.world_gen.PlayableRoomManager;
+import official.sketchBook.game.gameObject_related.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +16,15 @@ import static official.sketchBook.game.util_related.constants.RenderingC.TILES_V
 
 public class WorldDataManager extends BaseWorldDataManager {
 
+    /// Gerenciador de salas do mundo
     private PlayableRoom currentRoom;
+    private PlayableRoomManager roomManager;
+
+    /// Câmera do jogo (referência, não é owned)
+    private OrthographicCameraManager gameCamera;
+
+    /// Referência ao jogador principal (pode expandir para múltiplos)
+    private Player mainPlayer;
 
     public WorldDataManager(
         World physicsWorld,
@@ -26,30 +37,62 @@ public class WorldDataManager extends BaseWorldDataManager {
 
     @Override
     protected void setupSystems() {
+        //Inicializa o manager de salas
+        roomManager = new PlayableRoomManager();
+
+        //Cria a sala inicial
         currentRoom = new PlayableRoom(
+            1,
+            0,
+            0,
             physicsWorld
         );
 
-        currentRoom.initRoomGrid(
-            initBaseTileMap()
-        );
-
-        currentRoom.insertNewTile(
+        //Adiciona os modelos de tile
+        roomManager.addNewTileModel(
+            currentRoom,
             1,
             1
         );
 
-        currentRoom.createTileBodies();
+        //Inicializa a grid da sala
+        roomManager.initRoomGrid(
+            currentRoom,
+            initBaseTileMap()
+        );
+    }
 
+    /// Define a câmera do jogo (chamado por PlayScreen após criar o manager)
+    public void setGameCamera(OrthographicCameraManager camera) {
+        this.gameCamera = camera;
+    }
 
-//        currentRoom.printMatrixContent(
-//            currentRoom.getGrid()
-//        );
-//
-//        currentRoom.printMatrixContent(
-//            currentRoom.getBodyIdGrid()
-//        );
+    /// Define o jogador principal (chamado quando o player é criado)
+    public void setMainPlayer(Player player) {
+        this.mainPlayer = player;
+    }
 
+    /// Atualiza o tracking da câmera baseado no jogador
+    /// Chamado durante o update do mundo
+    protected void updateCameraTracking() {
+        //Se não temos câmera ou jogador, não fazemos nada
+        if (gameCamera == null || mainPlayer == null) return;
+
+        //Rastreia a câmera para a posição do jogador
+        gameCamera.trackObjectByOffset(
+            mainPlayer.getTransformC().getCenterX(),
+            mainPlayer.getTransformC().getCenterY()
+        );
+    }
+
+    /// Override do update para adicionar lógica de câmera
+    @Override
+    public void update(float delta) {
+        //Chama o update padrão
+        super.update(delta);
+
+        //Depois de tudo atualizado, move a câmera
+        updateCameraTracking();
     }
 
     @Override
@@ -58,9 +101,6 @@ public class WorldDataManager extends BaseWorldDataManager {
     }
 
     private int[][] initBaseTileMap() {
-//        TILES_IN_WIDTH = 39;
-//        TILES_IN_HEIGHT = 21;
-
         int[][] toReturn = new int[TILES_VIEW_HEIGHT][TILES_VIEW_WIDTH];
 
         for (int y = 0; y < TILES_VIEW_HEIGHT; y++) {
@@ -68,12 +108,7 @@ public class WorldDataManager extends BaseWorldDataManager {
                 toReturn[y][x] = 0;
 
                 List<Boolean> canCreate = new ArrayList<>();
-                canCreate.add(y >= TILES_VIEW_HEIGHT - 4); // chão
-                canCreate.add(y == 0); //teto
-                canCreate.add(x == 0);//parede esquerda
-                canCreate.add(x == TILES_VIEW_WIDTH - 1); // parede direita
-                canCreate.add(x == TILES_VIEW_WIDTH - 20 && y >= TILES_VIEW_HEIGHT - 8);//parede de testes
-
+                canCreate.add(y >= TILES_VIEW_HEIGHT - 1);
 
                 for (boolean value : canCreate) {
                     if (value) {
@@ -81,7 +116,6 @@ public class WorldDataManager extends BaseWorldDataManager {
                         break;
                     }
                 }
-
             }
         }
 
@@ -96,5 +130,13 @@ public class WorldDataManager extends BaseWorldDataManager {
     @Override
     protected void disposeGeneralData() {
         currentRoom.dispose();
+    }
+
+    public PlayableRoom getCurrentRoom() {
+        return currentRoom;
+    }
+
+    public Player getMainPlayer() {
+        return mainPlayer;
     }
 }
