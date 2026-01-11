@@ -3,6 +3,7 @@ package official.sketchBook.engine.components_related.intefaces.integration_inte
 import com.badlogic.gdx.physics.box2d.Body;
 import official.sketchBook.engine.components_related.objects.PhysicsComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
+import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
 
 public interface PhysicalObjectII {
 
@@ -15,6 +16,8 @@ public interface PhysicalObjectII {
     TransformComponent getTransformC();
 
     PhysicsComponent getPhysicsC();
+
+    PhysicalGameObjectDataManager getPhysicalManager();
 
     /// Garante que tenhamos uma body
     Body getBody();

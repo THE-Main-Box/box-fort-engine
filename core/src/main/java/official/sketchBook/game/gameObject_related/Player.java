@@ -14,6 +14,7 @@ import official.sketchBook.engine.components_related.objects.MovableObjectPhysic
 import official.sketchBook.engine.components_related.objects.MovementComponent;
 import official.sketchBook.engine.components_related.objects.PhysicsComponent;
 import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
+import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.gameObject_related.AnimatedRenderableGameObject;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
@@ -55,7 +56,7 @@ public class Player
         float scaleY,
         boolean xAxisInverted,
         boolean yAxisInverted,
-        BaseGameObjectDataManager worldDataManager
+        PhysicalGameObjectDataManager worldDataManager
     ) {
         super(
             x,
@@ -100,7 +101,7 @@ public class Player
 
     public void createBody() {
         this.body = BodyCreatorHelper.createBox(
-            this.worldDataManager.getPhysicsWorld(),
+            this.getPhysicalManager().getPhysicsWorld(),
             new Vector2(
                 this.transformC.x,
                 this.transformC.y
@@ -269,5 +270,10 @@ public class Player
     @Override
     public PhysicsComponent getPhysicsC() {
         return physicsC;
+    }
+
+    @Override
+    public PhysicalGameObjectDataManager getPhysicalManager() {
+        return (PhysicalGameObjectDataManager) this.worldDataManager;
     }
 }

@@ -66,6 +66,7 @@ public class RenderableTreeManager {
     }
 
     /// Atualiza o índice de renderização de um objeto
+    /// Chamamos quando queremos aplicar a nova render index de um objeto renderizável nele
     public void updateRenderIndex(RenderAbleObject obj) {
         //Obtém o índice antigo
         Integer oldIndex = objectIndexMap.get(obj);

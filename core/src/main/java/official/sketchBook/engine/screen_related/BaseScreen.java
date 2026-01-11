@@ -17,6 +17,7 @@ public abstract class BaseScreen implements Screen {
 
     ///Métrica de desempenho
     private float metricsTimer = 0;
+
     private int
         fps,
         ups;

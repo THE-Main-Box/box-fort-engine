@@ -18,22 +18,6 @@ import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
 
 public abstract class BaseGameObjectDataManager implements Disposable {
 
-    /// Constante de atualização do box2d
-    protected final float timeStep;
-    /// Constante de iterações por velocidade do box2d
-    protected final int velIterations;
-    /// Constante de iterações por posição do box2d
-    protected final int posIterations;
-
-    /// Mundo físico para usar o box2d. Não é obrigatório
-    protected World physicsWorld;
-    /// Renderizador de debug
-    protected Box2DDebugRenderer debugRenderer;
-    /// Matriz de renderização para depuração
-    protected Matrix4 renderDebugMatrix;
-    /// Se existe um mundo foi gerado
-    protected boolean physicsWorldExists;
-
     /// Lista de objects que precisam de rendering - DEPOIS
     protected final RenderableTreeManager renderTreeManager = new RenderableTreeManager();
 
@@ -46,30 +30,6 @@ public abstract class BaseGameObjectDataManager implements Disposable {
 
     protected boolean disposed = false;
 
-    public BaseGameObjectDataManager(
-        World physicsWorld,
-        float timeStep,
-        int velIterations,
-        int posIterations
-    ) {
-        this.physicsWorld = physicsWorld;                   //Inicia um world
-        this.physicsWorldExists = physicsWorld != null;     //Se temos um mundo físico podemos usar a física
-
-        //Se o mundo físico existir
-        if (physicsWorldExists) {
-            //Iniciamos os objetos que irão nos auxiliar na depuração
-            this.debugRenderer = new Box2DDebugRenderer();
-            this.renderDebugMatrix = new Matrix4();
-        }
-
-        this.timeStep = timeStep;
-        this.velIterations = velIterations;
-        this.posIterations = posIterations;
-
-        //Inicia os sistemas nativos de cada instancia
-        this.setupSystems();
-    }
-
     /// Inicia todos os sistemas nativos dos managers filho
     protected abstract void setupSystems();
 
@@ -77,9 +37,10 @@ public abstract class BaseGameObjectDataManager implements Disposable {
     public void update(float delta) {
         this.insertGameObjectsInSys();                          //Tenta adicionar os novos objetos
         this.updateGameObjects(delta);                          //Realiza a atualização interna dos objetos
-        this.worldStep();                                       //Tenta realizar um step do mundo caso exista
-        this.postUpdateGameObjects();                           //pós atualização dos objetos
+    }
 
+    public void postUpdate(){
+        this.postUpdateGameObjects();                           //pós atualização dos objetos
     }
 
     /// Executa a sequencia de atualização
@@ -135,18 +96,6 @@ public abstract class BaseGameObjectDataManager implements Disposable {
         }
     }
 
-    /// Tenta realizar um step do world caso ele exista
-    protected void worldStep() {
-        if (!physicsWorldExists) return;
-
-        physicsWorld.step(
-            timeStep,
-            velIterations,
-            posIterations
-        );
-
-    }
-
     /// Atualização tardia dos objetos, geralmente aqueles que precisam ter dados atualizados após o step do mundo
     protected void postUpdateGameObjects() {
         //Percorremos a lista e atualizamos os objetos na nova pipeline
@@ -193,7 +142,7 @@ public abstract class BaseGameObjectDataManager implements Disposable {
     protected abstract void onManagerDestruction();
 
     /// Dispose completo do manager
-    public final void dispose() {
+    public void dispose() {
         if (disposed) return;
 
         //Dispose dos dados de cada instancia do manager, para evitar ter que manipular o dispose o tempo
@@ -204,13 +153,17 @@ public abstract class BaseGameObjectDataManager implements Disposable {
         disposeGameObjectsStaticResourcesOnce();
         //Dispose das listas usadas
         disposeLists();
-        //Dispose do mundo físico caso estejamos usando ele
-        disposePhysicsWorld();
+        //Dispose de dados finais
+        disposeCriticalData();
 
         disposed = true;
     }
 
+    /// Limpa os dados gerais que podem ser limpos no começo da limpeza
     protected abstract void disposeGeneralData();
+
+    /// Limpa os dados críticos que podem ser limpos apenas no final de tudo
+    protected abstract void disposeCriticalData();
 
     /// Realiza um dispose dos dados pro instancia dos GameObjects existentes dentro do manager
     protected void disposeGameObjectInstances() {
@@ -225,17 +178,6 @@ public abstract class BaseGameObjectDataManager implements Disposable {
         gameObjectToAddList.clear();
         registeredClasses.clear();
         renderTreeManager.clear();
-    }
-
-    /// Limpa o mundo físico
-    protected void disposePhysicsWorld() {
-        // Limpamos a física se ela existir
-        if (physicsWorldExists) {
-            physicsWorld.dispose();
-            physicsWorld = null;
-            physicsWorldExists = false;
-        }
-
     }
 
     /**
@@ -284,18 +226,6 @@ public abstract class BaseGameObjectDataManager implements Disposable {
         registeredClasses.add(go.getClass());
     }
 
-    /// Usa o debugRenderer para visualizar as hitboxes
-    public void renderWorldHitboxes(Camera gameCamera) {
-        renderDebugMatrix.set(
-            gameCamera.combined
-        ).scl(PPM);
-
-        debugRenderer.render(
-            physicsWorld,
-            renderDebugMatrix
-        );
-    }
-
     /// Usa a pipeline interna para marcar um objeto para ser destruido internamente
     public void removeGameObject(BaseGameObject go) {
         if (gameObjectList.contains(go)) {
@@ -303,28 +233,8 @@ public abstract class BaseGameObjectDataManager implements Disposable {
         }
     }
 
-    public boolean isPhysicsWorldExists() {
-        return physicsWorldExists;
-    }
-
-    public World getPhysicsWorld() {
-        return physicsWorld;
-    }
-
     public List<BaseGameObject> getGameObjectList() {
         return gameObjectList;
-    }
-
-    public float getTimeStep() {
-        return timeStep;
-    }
-
-    public int getVelIterations() {
-        return velIterations;
-    }
-
-    public int getPosIterations() {
-        return posIterations;
     }
 
     public RenderableTreeManager getRenderTreeManager() {

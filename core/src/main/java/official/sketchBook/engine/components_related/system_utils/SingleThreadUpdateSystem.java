@@ -28,6 +28,7 @@ public class SingleThreadUpdateSystem implements UpdateSystem {
             // Atualiza o mundo se existir
             if (gameObjectManager != null) {
                 gameObjectManager.update(FIXED_TIMESTAMP);
+                gameObjectManager.postUpdate();
             }
 
             //Atualiza a screen

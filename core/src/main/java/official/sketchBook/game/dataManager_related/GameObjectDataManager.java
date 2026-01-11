@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
+import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.world_gen.PlayableRoom;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
 import official.sketchBook.game.gameObject_related.Player;
@@ -14,7 +15,7 @@ import java.util.List;
 import static official.sketchBook.game.util_related.constants.RenderingC.TILES_VIEW_HEIGHT;
 import static official.sketchBook.game.util_related.constants.RenderingC.TILES_VIEW_WIDTH;
 
-public class GameObjectDataManager extends BaseGameObjectDataManager {
+public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
     /// Gerenciador de salas do mundo
     private PlayableRoom currentRoom;
@@ -114,6 +115,7 @@ public class GameObjectDataManager extends BaseGameObjectDataManager {
 
     @Override
     protected void disposeGeneralData() {
+        super.disposeGeneralData();
         currentRoom.dispose();
     }
 
