@@ -65,23 +65,21 @@ public class PlayableRoomManager {
 
     /// Cria as bodies das tiles
     public void createTileBodies(PlayableRoom room) {
-        //Prepara a grid contendo os ids dos corpos
-        prepareBodyIdGrid(room);
 
         //Criamos as bodies das tiles da sala e armazenamos como bodies nativas da sala
         room.nativeBodies = RoomBodyDataFactory.createRoomBodies(
-            room.bodyIdGrid,
+            prepareBodyIdGrid(room),
             room.getPhysicsWorld()
         );
 
     }
 
     /// Percorre a grid e insere dentro da grid de body a id correspondente
-    private void prepareBodyIdGrid(
+    private int[][] prepareBodyIdGrid(
         PlayableRoom room
     ) {
         //Inicializa a grid das body
-        room.bodyIdGrid = new int[room.gridHeight][room.gridWidth];
+        int[][] bodyIdGrid = new int[room.gridHeight][room.gridWidth];
 
         for (int h = 0; h < room.grid.length; h++) {
             for (int w = 0; w < room.grid[0].length; w++) {
@@ -93,11 +91,13 @@ public class PlayableRoomManager {
 
                 //Se houver uma tile e sua id de body tiver sido passada
                 if (currentTile != null && currentTile.getBodyId() != null) {
-                    room.bodyIdGrid[h][w] = currentTile.getBodyId();
+                    bodyIdGrid[h][w] = currentTile.getBodyId();
                 }
 
             }
         }
+
+        return bodyIdGrid;
     }
 
     /**

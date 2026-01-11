@@ -23,8 +23,6 @@ public class PlayableRoom {
 
     /// Grade contendo os id das tile
     public int[][] grid;
-    /// Grade contendo o id dos tipos de body
-    public int[][] bodyIdGrid;
 
     /// Dimensões da grid
     public int
