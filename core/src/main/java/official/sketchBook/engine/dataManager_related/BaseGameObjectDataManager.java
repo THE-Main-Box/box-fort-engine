@@ -6,7 +6,6 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Disposable;
-import official.sketchBook.engine.animation_related.Sprite;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.gameObject_related.BaseGameObject;
@@ -17,37 +16,37 @@ import java.util.*;
 
 import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
 
-public abstract class BaseWorldDataManager implements Disposable {
+public abstract class BaseGameObjectDataManager implements Disposable {
 
+    /// Constante de atualização do box2d
     protected final float timeStep;
+    /// Constante de iterações por velocidade do box2d
     protected final int velIterations;
+    /// Constante de iterações por posição do box2d
     protected final int posIterations;
-
-    /// Se existe um mundo foi gerado
-    protected boolean physicsWorldExists;
-    /// Se o manager foi limpo
-    protected boolean disposed = false;
-    /// Se as camadas de rendering precisam ter suas ordens atualizadas
-    protected boolean renderingNeedsSorting = false;
 
     /// Mundo físico para usar o box2d. Não é obrigatório
     protected World physicsWorld;
+    /// Renderizador de debug
     protected Box2DDebugRenderer debugRenderer;
+    /// Matriz de renderização para depuração
     protected Matrix4 renderDebugMatrix;
+    /// Se existe um mundo foi gerado
+    protected boolean physicsWorldExists;
+
+    /// Lista de objects que precisam de rendering - DEPOIS
+    protected final RenderableTreeManager renderTreeManager = new RenderableTreeManager();
 
     /// Lista de gameObjects base ativos
     protected final List<BaseGameObject> gameObjectList = new ArrayList<>();
     /// Lista de gameObjects a serem adicionados
     protected final List<BaseGameObject> gameObjectToAddList = new ArrayList<>();
-
-    /// Lista de objects que precisam de rendering - DEPOIS
-    protected final RenderableTreeManager renderTreeManager = new RenderableTreeManager();
-
-
     /// Rastreamento de todas as classes que passaram pelo manager
     protected final Set<Class<? extends BaseGameObject>> registeredClasses = new HashSet<>();
 
-    public BaseWorldDataManager(
+    protected boolean disposed = false;
+
+    public BaseGameObjectDataManager(
         World physicsWorld,
         float timeStep,
         int velIterations,
@@ -56,7 +55,9 @@ public abstract class BaseWorldDataManager implements Disposable {
         this.physicsWorld = physicsWorld;                   //Inicia um world
         this.physicsWorldExists = physicsWorld != null;     //Se temos um mundo físico podemos usar a física
 
+        //Se o mundo físico existir
         if (physicsWorldExists) {
+            //Iniciamos os objetos que irão nos auxiliar na depuração
             this.debugRenderer = new Box2DDebugRenderer();
             this.renderDebugMatrix = new Matrix4();
         }
@@ -65,23 +66,24 @@ public abstract class BaseWorldDataManager implements Disposable {
         this.velIterations = velIterations;
         this.posIterations = posIterations;
 
-        this.setupSystems();                                //Inicia os sistemas nativos
+        //Inicia os sistemas nativos de cada instancia
+        this.setupSystems();
     }
 
     /// Inicia todos os sistemas nativos dos managers filho
     protected abstract void setupSystems();
 
-    /// Atualização do manager
+    /// Atualização dos game objects
     public void update(float delta) {
-        this.addNewObjectsToPipeLine();                         //Tenta adicionar os novos objetos
-        this.updateGameObjectsOnOriginalPipeLine(delta);        //Realiza a atualização interna dos objetos
-        this.worldStep();                                       //Tenta realizar um step
-        this.postUpdateGameObjects();                           //Pós-atualização manual
+        this.insertGameObjectsInSys();                          //Tenta adicionar os novos objetos
+        this.updateGameObjects(delta);                          //Realiza a atualização interna dos objetos
+        this.worldStep();                                       //Tenta realizar um step do mundo caso exista
+        this.postUpdateGameObjects();                           //pós atualização dos objetos
 
     }
 
     /// Executa a sequencia de atualização
-    protected void updateGameObjectsOnOriginalPipeLine(float delta) {
+    protected void updateGameObjects(float delta) {
         //Itera de cima pra baixo
         for (int i = gameObjectList.size() - 1; i >= 0; i--) {
             //Obtém uma referencia
@@ -117,7 +119,7 @@ public abstract class BaseWorldDataManager implements Disposable {
     }
 
     /// Tenta inserir os objetos pendentes na lista para atualização antes de começar a atualização geral
-    protected void addNewObjectsToPipeLine() {
+    protected void insertGameObjectsInSys() {
         //Tenta adicionar os objetos novos
         if (!gameObjectToAddList.isEmpty()) {
             gameObjectList.addAll(gameObjectToAddList);
@@ -147,50 +149,62 @@ public abstract class BaseWorldDataManager implements Disposable {
 
     /// Atualização tardia dos objetos, geralmente aqueles que precisam ter dados atualizados após o step do mundo
     protected void postUpdateGameObjects() {
+        //Percorremos a lista e atualizamos os objetos na nova pipeline
         for (BaseGameObject gameObject : gameObjectList) {
+            //Se o objeto ficou pendente para remoção desde o ultimo loop ignoramos ele
             if (gameObject.isPendingRemoval()) continue;
+            //chamamos a pós-atualização
             gameObject.postUpdate();
         }
     }
 
+    /// Atualiza os visuais dos objetos renderizáveis
     public void updateVisuals(float delta){
         updateRenderableObjectVisuals(delta);
     }
 
-    protected void updateRenderableObjectVisuals(float delta){
+    /// Percorre o renderManager para atualizar os visuais de cada objeto renderizável
+    private void updateRenderableObjectVisuals(float delta){
         renderTreeManager.forEachForUpdate(
             obj -> obj.updateVisuals(delta)
         );
     }
 
+    /// Executa a renderização dos objetos
     public void render(SpriteBatch batch){
         drawRenderableObjects(batch);
     }
 
-    protected void drawRenderableObjects(SpriteBatch batch){
+    ///Percorre o renderManager e renderiza todos os objetos que podem ser renderizados
+    private void drawRenderableObjects(SpriteBatch batch){
         renderTreeManager.forEachForRender(
             obj -> obj.render(batch)
         );
     }
 
-    /// Destrói o manager e todos os seus dados, não executa sequencia de destruição para os objetos presentes
+    ///Executa a sequencia de destruição do manager
     public final void destroyManager() {
         if (disposed) return;
         this.onManagerDestruction();
         this.dispose();
     }
 
-    /// Sequencia por instancia de destruição de manager
+    /// Sequencia de destruição customizável por instancia
     protected abstract void onManagerDestruction();
 
     /// Dispose completo do manager
     public final void dispose() {
         if (disposed) return;
 
+        //Dispose dos dados de cada instancia do manager, para evitar ter que manipular o dispose o tempo
         disposeGeneralData();
+        //Dispose dos gameObjects
         disposeGameObjectInstances();
+        //Dispose dos dados estáticos de todos os gameObjects que percorreram o manager
         disposeGameObjectsStaticResourcesOnce();
+        //Dispose das listas usadas
         disposeLists();
+        //Dispose do mundo físico caso estejamos usando ele
         disposePhysicsWorld();
 
         disposed = true;
@@ -270,6 +284,7 @@ public abstract class BaseWorldDataManager implements Disposable {
         registeredClasses.add(go.getClass());
     }
 
+    /// Usa o debugRenderer para visualizar as hitboxes
     public void renderWorldHitboxes(Camera gameCamera) {
         renderDebugMatrix.set(
             gameCamera.combined
@@ -286,10 +301,6 @@ public abstract class BaseWorldDataManager implements Disposable {
         if (gameObjectList.contains(go)) {
             go.markToDestroy();
         }
-    }
-
-    public void notifyRenderIndexUpdate() {
-        this.renderingNeedsSorting = true;
     }
 
     public boolean isPhysicsWorldExists() {

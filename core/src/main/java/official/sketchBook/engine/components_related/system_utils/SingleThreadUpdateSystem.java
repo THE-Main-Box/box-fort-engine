@@ -1,7 +1,7 @@
 package official.sketchBook.engine.components_related.system_utils;
 
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.UpdateSystem;
-import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
+import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
 import official.sketchBook.engine.screen_related.BaseScreen;
 
 import static official.sketchBook.game.util_related.constants.PhysicsC.FIXED_TIMESTAMP;
@@ -10,14 +10,14 @@ import static official.sketchBook.game.util_related.constants.PhysicsC.MAX_ACCUM
 public class SingleThreadUpdateSystem implements UpdateSystem {
     private float accumulator = 0;
     private int updates = 0;
-    private final BaseWorldDataManager worldManager;
+    private final BaseGameObjectDataManager gameObjectManager;
     private final BaseScreen screen;
 
     public SingleThreadUpdateSystem(
-        BaseWorldDataManager worldManager,
+        BaseGameObjectDataManager gameObjectManager,
         BaseScreen screen
     ) {
-        this.worldManager = worldManager;
+        this.gameObjectManager = gameObjectManager;
         this.screen = screen;
     }
     @Override
@@ -26,8 +26,8 @@ public class SingleThreadUpdateSystem implements UpdateSystem {
 
         while (accumulator >= FIXED_TIMESTAMP) {
             // Atualiza o mundo se existir
-            if (worldManager != null) {
-                worldManager.update(FIXED_TIMESTAMP);
+            if (gameObjectManager != null) {
+                gameObjectManager.update(FIXED_TIMESTAMP);
             }
 
             //Atualiza a screen
@@ -40,8 +40,8 @@ public class SingleThreadUpdateSystem implements UpdateSystem {
 
     }
 
-    public BaseWorldDataManager getWorldManager() {
-        return worldManager;
+    public BaseGameObjectDataManager getGameObjectManager() {
+        return gameObjectManager;
     }
 
     public int getUpdatesMetric() {
@@ -55,12 +55,12 @@ public class SingleThreadUpdateSystem implements UpdateSystem {
 
     @Override
     public void dispose() {
-        if(worldManager != null){
-            worldManager.dispose();
+        if(gameObjectManager != null){
+            gameObjectManager.dispose();
         }
     }
 
     public boolean hasWorldManager() {
-        return worldManager != null;
+        return gameObjectManager != null;
     }
 }

@@ -2,7 +2,7 @@ package official.sketchBook.engine.gameObject_related;
 
 import com.badlogic.gdx.utils.Disposable;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
-import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
+import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,14 +14,14 @@ public abstract class BaseGameObject implements Disposable {
     protected boolean disposed = false;
 
     /// Manager dono do objeto, onde ele será gerenciado
-    protected final BaseWorldDataManager worldDataManager;
+    protected final BaseGameObjectDataManager worldDataManager;
 
     /// Lista de componentes que precisam ser atualizados normalmente
     protected List<Component> toUpdateComponentList;
     /// Lista de componentes que precisam ser atualizados após o update
     protected List<Component> toPostUpdateComponentList;
 
-    public BaseGameObject(BaseWorldDataManager worldDataManager) {
+    public BaseGameObject(BaseGameObjectDataManager worldDataManager) {
         this.worldDataManager = worldDataManager;
         this.worldDataManager.addGameObject(this);
 

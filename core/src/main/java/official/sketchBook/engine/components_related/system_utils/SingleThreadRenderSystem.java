@@ -4,15 +4,14 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.RenderSystem;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
-import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
+import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
 import official.sketchBook.engine.screen_related.BaseScreen;
 
 public class SingleThreadRenderSystem implements RenderSystem {
     /// Referência à tela dona
     private final BaseScreen screen;
     /// Referência ao gerenciador de objetos de jogo
-    private final BaseWorldDataManager worldManager;
+    private final BaseGameObjectDataManager gameObjectManager;
 
     /// Referência à camera a ser usada para renderizar as coisas
     private final Camera
@@ -34,14 +33,14 @@ public class SingleThreadRenderSystem implements RenderSystem {
 
     public SingleThreadRenderSystem(
         BaseScreen screen,
-        BaseWorldDataManager worldManager,
+        BaseGameObjectDataManager gameObjectManager,
         SpriteBatch gameBatch,
         Camera gameCamera,
         SpriteBatch uiBatch,
         Camera uiCamera
     ) {
         this.screen = screen;
-        this.worldManager = worldManager;
+        this.gameObjectManager = gameObjectManager;
         this.gameBatch = gameBatch;
         this.uiBatch = uiBatch;
 
@@ -50,7 +49,7 @@ public class SingleThreadRenderSystem implements RenderSystem {
 
         this.renderGame = gameBatch != null && gameCamera != null;
         this.renderUi = uiBatch != null && uiCamera != null;
-        this.canAccessWorldManager = worldManager != null;
+        this.canAccessWorldManager = gameObjectManager != null;
     }
 
     /// Loop de renderização
@@ -76,7 +75,7 @@ public class SingleThreadRenderSystem implements RenderSystem {
     @Override
     public void updateVisuals(float delta) {
         if (canAccessWorldManager) {
-            worldManager.updateVisuals(delta);
+            gameObjectManager.updateVisuals(delta);
         }
 
         //Atualiza os visuais
@@ -100,7 +99,7 @@ public class SingleThreadRenderSystem implements RenderSystem {
         batch.begin();
 
         if (canAccessWorldManager) {
-            worldManager.render(batch);
+            gameObjectManager.render(batch);
         }
 
         batch.end();

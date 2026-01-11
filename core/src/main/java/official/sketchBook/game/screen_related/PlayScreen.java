@@ -12,20 +12,19 @@ import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadRenderSystem;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadUpdateSystem;
 import official.sketchBook.engine.screen_related.BaseScreen;
-import official.sketchBook.game.dataManager_related.WorldDataManager;
+import official.sketchBook.game.dataManager_related.GameObjectDataManager;
 import official.sketchBook.game.gameObject_related.Player;
 
 import static official.sketchBook.game.util_related.constants.DebugC.*;
 import static official.sketchBook.game.util_related.constants.PhysicsC.*;
 import static official.sketchBook.game.util_related.constants.RenderingC.*;
-import static official.sketchBook.game.util_related.constants.WorldC.TILE_SIZE_PX;
 
 public class PlayScreen extends BaseScreen {
     private OrthographicCameraManager uiCameraManager;
     private OrthographicCameraManager gameCameraManager;
     private BitmapFont font;
 
-    private WorldDataManager worldManager;
+    private GameObjectDataManager worldManager;
 
     public PlayScreen(AppMain app) {
         super(app);
@@ -50,7 +49,7 @@ public class PlayScreen extends BaseScreen {
         this.font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
         //Cria o manager do mundo
-        this.worldManager = new WorldDataManager(
+        this.worldManager = new GameObjectDataManager(
             new World(new Vector2(0, -80f), true),
             FIXED_TIMESTAMP,
             VELOCITY_ITERATIONS,

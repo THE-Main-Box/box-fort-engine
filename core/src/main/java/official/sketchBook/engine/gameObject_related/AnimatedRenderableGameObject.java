@@ -5,7 +5,7 @@ import official.sketchBook.engine.animation_related.ObjectAnimationPlayer;
 import official.sketchBook.engine.animation_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
-import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
+import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
         float scaleY,
         boolean xAxisInverted,
         boolean yAxisInverted,
-        BaseWorldDataManager worldDataManager
+        BaseGameObjectDataManager worldDataManager
     ) {
         super(worldDataManager);
         this.initTransformComponent(

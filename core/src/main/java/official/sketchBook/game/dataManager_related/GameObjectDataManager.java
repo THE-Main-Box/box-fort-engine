@@ -3,7 +3,7 @@ package official.sketchBook.game.dataManager_related;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
-import official.sketchBook.engine.dataManager_related.BaseWorldDataManager;
+import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
 import official.sketchBook.engine.world_gen.PlayableRoom;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
 import official.sketchBook.game.gameObject_related.Player;
@@ -14,7 +14,7 @@ import java.util.List;
 import static official.sketchBook.game.util_related.constants.RenderingC.TILES_VIEW_HEIGHT;
 import static official.sketchBook.game.util_related.constants.RenderingC.TILES_VIEW_WIDTH;
 
-public class WorldDataManager extends BaseWorldDataManager {
+public class GameObjectDataManager extends BaseGameObjectDataManager {
 
     /// Gerenciador de salas do mundo
     private PlayableRoom currentRoom;
@@ -26,7 +26,7 @@ public class WorldDataManager extends BaseWorldDataManager {
     /// Referência ao jogador principal (pode expandir para múltiplos)
     public Player mainPlayer;
 
-    public WorldDataManager(
+    public GameObjectDataManager(
         World physicsWorld,
         float timeStep,
         int velIterations,
@@ -83,11 +83,6 @@ public class WorldDataManager extends BaseWorldDataManager {
 
         //Depois de tudo atualizado, move a câmera
         updateCameraTracking();
-    }
-
-    @Override
-    public void render(SpriteBatch batch) {
-        super.render(batch);
     }
 
     private int[][] initBaseTileMap() {
