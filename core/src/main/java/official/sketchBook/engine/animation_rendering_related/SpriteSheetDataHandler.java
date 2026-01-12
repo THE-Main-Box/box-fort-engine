@@ -1,4 +1,4 @@
-package official.sketchBook.engine.animation_related;
+package official.sketchBook.engine.animation_rendering_related;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;

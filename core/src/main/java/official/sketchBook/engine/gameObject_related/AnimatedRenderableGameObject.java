@@ -1,8 +1,8 @@
 package official.sketchBook.engine.gameObject_related;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import official.sketchBook.engine.animation_related.ObjectAnimationPlayer;
-import official.sketchBook.engine.animation_related.SpriteSheetDataHandler;
+import official.sketchBook.engine.animation_rendering_related.ObjectAnimationPlayer;
+import official.sketchBook.engine.animation_rendering_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;

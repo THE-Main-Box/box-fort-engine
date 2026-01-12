@@ -7,9 +7,9 @@ import official.sketchBook.game.util_related.enumerators.TileBodyType;
 import java.util.ArrayList;
 import java.util.List;
 
-import static official.sketchBook.game.util_related.body.world_gen.RoomBodyDataFactory.getFactory;
+import static official.sketchBook.game.util_related.body.world_gen.RoomBodyFactory.getFactory;
 
-public class RoomBodyDataGeneratorHelper {
+public class RoomBodyFactoryHelper {
 
     /**
      * Valida se existem tiles ao redor do mesmo tipo, se sim nós não criamos.

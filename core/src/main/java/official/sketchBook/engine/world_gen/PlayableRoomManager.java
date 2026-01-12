@@ -1,6 +1,6 @@
 package official.sketchBook.engine.world_gen;
 
-import official.sketchBook.game.util_related.body.world_gen.RoomBodyDataFactory;
+import official.sketchBook.game.util_related.body.world_gen.RoomBodyFactory;
 
 import static official.sketchBook.game.util_related.constants.WorldC.TILE_SIZE_PX;
 
@@ -24,7 +24,6 @@ public class PlayableRoomManager {
             throw new IllegalArgumentException("já possuimos uma tile marcada com esse id");
         }
 
-        //TODO: ADICIONAR UMA CRIAÇÃO MAIS COMPLEXA PARA O MODELO
         TileModel modelToAdd = new TileModel(
             id,
             bodyId
@@ -65,13 +64,11 @@ public class PlayableRoomManager {
 
     /// Cria as bodies das tiles
     public void createTileBodies(PlayableRoom room) {
-
         //Criamos as bodies das tiles da sala e armazenamos como bodies nativas da sala
-        room.nativeBodies = RoomBodyDataFactory.createRoomBodies(
+        room.nativeBodies = RoomBodyFactory.createRoomBodies(
             prepareBodyIdGrid(room),
             room.getPhysicsWorld()
         );
-
     }
 
     /// Percorre a grid e insere dentro da grid de body a id correspondente

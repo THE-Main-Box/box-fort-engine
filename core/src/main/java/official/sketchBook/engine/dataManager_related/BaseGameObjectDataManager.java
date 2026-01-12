@@ -1,25 +1,19 @@
 package official.sketchBook.engine.dataManager_related;
 
-import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
-import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Disposable;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
+import official.sketchBook.engine.dataManager_related.util.RenderableObjectManager;
 import official.sketchBook.engine.gameObject_related.BaseGameObject;
-import official.sketchBook.engine.util_related.helper.RenderableTreeManager;
 
 import java.lang.reflect.Method;
 import java.util.*;
 
-import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
-
 public abstract class BaseGameObjectDataManager implements Disposable {
 
     /// Lista de objects que precisam de rendering - DEPOIS
-    protected final RenderableTreeManager renderTreeManager = new RenderableTreeManager();
+    protected final RenderableObjectManager renderTreeManager = new RenderableObjectManager();
 
     /// Lista de gameObjects base ativos
     protected final List<BaseGameObject> gameObjectList = new ArrayList<>();
@@ -237,7 +231,7 @@ public abstract class BaseGameObjectDataManager implements Disposable {
         return gameObjectList;
     }
 
-    public RenderableTreeManager getRenderTreeManager() {
+    public RenderableObjectManager getRenderTreeManager() {
         return renderTreeManager;
     }
 

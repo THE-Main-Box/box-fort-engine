@@ -2,7 +2,7 @@ package official.sketchBook.engine.util_related.texture;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import official.sketchBook.engine.animation_related.Sprite;
+import official.sketchBook.engine.animation_rendering_related.Sprite;
 
 public class TextureUtils {
     public static TextureRegion obtainCurrentSpriteImage(

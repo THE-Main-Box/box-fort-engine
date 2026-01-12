@@ -9,7 +9,7 @@ import official.sketchBook.game.util_related.enumerators.TileBodyType;
 
 import static official.sketchBook.game.util_related.constants.WorldC.TILE_SIZE_PX;
 
-public class TileBodyCreator {
+public class TileBodyFactory {
 
     /// Cria uma body padrão para as tiles
     public static Body createBoxBodyForTiles(

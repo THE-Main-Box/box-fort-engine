@@ -1,4 +1,4 @@
-package official.sketchBook.engine.util_related.helper;
+package official.sketchBook.engine.dataManager_related.util;
 
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
 
@@ -13,7 +13,7 @@ import java.util.function.Consumer;
  * Iteração: O(n)
  * Mudança de índice: O(log n) + O(log n)
  */
-public class RenderableTreeManager {
+public class RenderableObjectManager {
 
     /// Árvore que mantém objetos ordenados por renderIndex
     /// Chave = renderIndex, Valor = lista de objetos com mesmo índice
@@ -25,7 +25,7 @@ public class RenderableTreeManager {
     /// Buffer reutilizável para atualização visual (evita alocação nova toda frame)
     private final List<RenderAbleObject> updateBuffer;
 
-    public RenderableTreeManager() {
+    public RenderableObjectManager() {
         this.renderTree = new TreeMap<>();
         this.objectIndexMap = new HashMap<>();
         this.updateBuffer = new ArrayList<>();

@@ -1,4 +1,4 @@
-package official.sketchBook.engine.animation_related;
+package official.sketchBook.engine.animation_rendering_related;
 
 public class Sprite {
 
