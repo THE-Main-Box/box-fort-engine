@@ -1,5 +1,7 @@
 package official.sketchBook.engine.world_gen;
 
+import official.sketchBook.engine.world_gen.model.PlayableRoom;
+import official.sketchBook.engine.world_gen.model.TileModel;
 import official.sketchBook.game.util_related.body.world_gen.RoomBodyFactory;
 
 import static official.sketchBook.game.util_related.constants.WorldC.TILE_SIZE_PX;
@@ -24,11 +26,13 @@ public class PlayableRoomManager {
             throw new IllegalArgumentException("já possuimos uma tile marcada com esse id");
         }
 
+        //Iniciamos um novo modelo de tile contendo os dados a serem referênciados internamente pela grid
         TileModel modelToAdd = new TileModel(
             id,
             bodyId
         );
 
+        //Adicionamos no map
         room.tileModelIdMap.put(
             id,
             modelToAdd

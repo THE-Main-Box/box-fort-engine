@@ -20,15 +20,13 @@ import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.game.components_related.PlayerControllerComponent;
 import official.sketchBook.game.util_related.path.GameAssetsPaths;
+import official.sketchBook.game.util_related.values.AnimationKeys;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
 
-public class Player
-    extends
-    AnimatedRenderableGameObject
+public class Player extends AnimatedRenderableGameObject
     implements
     StaticResourceDisposable,
     MovableObjectII,
@@ -71,22 +69,90 @@ public class Player
             worldDataManager
         );
 
-        this.isRenderDimensionEqualsToObject = false;
+        this.animationRenderC.isRenderDimensionEqualsToObject = false;
     }
 
     @Override
     protected void initObject() {
-        this.animationPlayerList = new ArrayList<>();
-        this.spriteHandlerList = new ArrayList<>();
 
         initBodyData();
         createBody();
         initPhysicsComponent();
 
-        initSpriteSheet();
-        initAnimations();
-        initController();
+        initRenderingComponent();
+        initControllerComponent();
         initMovementComponent();
+    }
+
+    private void initControllerComponent() {
+        this.controllerC = new PlayerControllerComponent(this);
+        this.toUpdateComponentList.add(controllerC);
+    }
+
+    private void initMovementComponent() {
+        this.moveC = new MovementComponent(
+            this,
+            350,
+            900,
+            800f,
+            1,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false
+        );
+        this.toUpdateComponentList.add(moveC);
+    }
+
+    private void initPhysicsComponent() {
+        this.physicsC = new MovableObjectPhysicsComponent(this);
+
+        this.toUpdateComponentList.add(physicsC);
+        this.toPostUpdateComponentList.add(physicsC);
+    }
+
+    private void initRenderingComponent() {
+        if (playerSheet == null) {
+            playerSheet = new Texture(GameAssetsPaths.EntitiesAssetsPaths.PLAYER_SHEET_PATH);
+        }
+
+        ObjectAnimationPlayer aniPlayer = new ObjectAnimationPlayer();
+        SpriteSheetDataHandler sheetHandler = new SpriteSheetDataHandler(
+            transformC.x,
+            transformC.y,
+            8,
+            0,
+            5,
+            4,
+            transformC.getScaleX(),
+            transformC.getScaleY(),
+            transformC.mirrorX,
+            transformC.mirrorY,
+            true,
+            true,
+            playerSheet
+        );
+
+        initAnimations(aniPlayer);
+
+        this.animationRenderC.addNewLayer(
+            sheetHandler,
+            aniPlayer
+        );
+    }
+
+    private void initAnimations(ObjectAnimationPlayer aniPlayer) {
+        aniPlayer.addAnimation(AnimationKeys.Entities.idle, Arrays.asList(
+            new Sprite(0, 0, 0.15f),
+            new Sprite(1, 0, 0.15f),
+            new Sprite(2, 0, 0.15f),
+            new Sprite(3, 0, 0.15f)
+        ));
+
+        aniPlayer.playAnimation(AnimationKeys.Entities.idle);
     }
 
     protected void initBodyData() {
@@ -134,75 +200,6 @@ public class Player
 
     }
 
-    private void initController() {
-        this.controllerC = new PlayerControllerComponent(this);
-        this.toUpdateComponentList.add(controllerC);
-    }
-
-    private void initMovementComponent() {
-        this.moveC = new MovementComponent(
-            this,
-            350,
-            900,
-            800f,
-            1,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            false
-        );
-        this.toUpdateComponentList.add(moveC);
-    }
-
-    private void initPhysicsComponent() {
-        this.physicsC = new MovableObjectPhysicsComponent(this);
-
-        this.toUpdateComponentList.add(physicsC);
-        this.toPostUpdateComponentList.add(physicsC);
-    }
-
-    private void initAnimations() {
-        this.animationPlayerList.add(
-            new ObjectAnimationPlayer()
-        );
-
-        this.animationPlayerList.get(0).addAnimation("player_idle", Arrays.asList(
-            new Sprite(0, 0, 0.15f),
-            new Sprite(1, 0, 0.15f),
-            new Sprite(2, 0, 0.15f),
-            new Sprite(3, 0, 0.15f)
-        ));
-
-        this.animationPlayerList.get(0).playAnimation("player_idle");
-    }
-
-    private void initSpriteSheet() {
-        if (playerSheet == null) {
-            playerSheet = new Texture(GameAssetsPaths.EntitiesAssetsPaths.PLAYER_SHEET_PATH);
-        }
-
-        this.spriteHandlerList.add(
-            new SpriteSheetDataHandler(
-                transformC.x,
-                transformC.y,
-                8,
-                0,
-                5,
-                4,
-                transformC.getScaleX(),
-                transformC.getScaleY(),
-                transformC.mirrorX,
-                transformC.mirrorY,
-                true,
-                true,
-                playerSheet
-            )
-        );
-    }
-
     @Override
     public void update(float delta) {
         super.update(delta);
@@ -216,16 +213,6 @@ public class Player
     @Override
     protected void onObjectDestruction() {
         System.out.println("Player iniciando destruição");
-    }
-
-    @Override
-    protected void disposeData() {
-        System.out.println("Player limpando dados de instancia");
-    }
-
-    public static void disposeStaticResources() {
-        System.out.println("Player limpando dados estaticos");
-        playerSheet.dispose();
     }
 
     public PlayerControllerComponent getControllerC() {
@@ -274,5 +261,15 @@ public class Player
     @Override
     public PhysicalGameObjectDataManager getPhysicalManager() {
         return (PhysicalGameObjectDataManager) this.worldDataManager;
+    }
+
+    @Override
+    protected void disposeData() {
+        System.out.println("Player limpando dados de instancia");
+    }
+
+    public static void disposeStaticResources() {
+        System.out.println("Player limpando dados estaticos");
+        playerSheet.dispose();
     }
 }

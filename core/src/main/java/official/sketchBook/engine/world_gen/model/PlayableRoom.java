@@ -1,4 +1,4 @@
-package official.sketchBook.engine.world_gen;
+package official.sketchBook.engine.world_gen.model;
 
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;

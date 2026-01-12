@@ -1,4 +1,4 @@
-package official.sketchBook.engine.world_gen;
+package official.sketchBook.engine.world_gen.model;
 
 public class TileModel {
 

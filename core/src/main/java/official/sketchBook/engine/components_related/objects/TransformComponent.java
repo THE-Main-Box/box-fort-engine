@@ -1,8 +1,6 @@
 package official.sketchBook.engine.components_related.objects;
 
-import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
-
-public class TransformComponent implements Component {
+public class TransformComponent {
 
     /// Valores da posição em seus eixos relativos em pixel
     public float
@@ -26,8 +24,6 @@ public class TransformComponent implements Component {
 
     /// Rotação atual do sprite em graus
     public float rotation;
-
-    private boolean disposed = false;
 
     public TransformComponent(
         float x,
@@ -54,15 +50,6 @@ public class TransformComponent implements Component {
             scaleX,
             scaleY
         );
-    }
-
-    @Override
-    public void update(float delta) {
-    }
-
-    @Override
-    public void postUpdate() {
-
     }
 
     public void setScale(
@@ -102,15 +89,5 @@ public class TransformComponent implements Component {
 
     public float getCenterY() {
         return y + getHalfHeight();
-    }
-
-    @Override
-    public void dispose() {
-        disposed = true;
-    }
-
-    @Override
-    public boolean isDisposed() {
-        return disposed;
     }
 }
