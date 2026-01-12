@@ -1,8 +1,13 @@
 package official.sketchBook.engine.world_gen;
 
+import official.sketchBook.engine.gameObject_related.BaseGameObject;
+import official.sketchBook.engine.gameObject_related.BaseRoomGameObject;
+import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.engine.world_gen.model.TileModel;
 import official.sketchBook.game.util_related.body.world_gen.RoomBodyFactory;
+
+import java.util.List;
 
 import static official.sketchBook.game.util_related.constants.WorldC.TILE_SIZE_PX;
 
@@ -99,6 +104,50 @@ public class PlayableRoomManager {
         }
 
         return bodyIdGrid;
+    }
+
+    /**
+     * Realiza a transição lógica dos objetos de uma sala para outra.
+     * Filtra quem deve ser destruído e quem deve ser notificado da mudança.
+     */
+    public void transitionRoomObjects(
+        List<BaseGameObject> currentActiveObjects,
+        PlayableRoom oldRoom,
+        PlayableRoom nextRoom
+    ) {
+        for (int i = currentActiveObjects.size() - 1; i >= 0; i--) {
+            BaseGameObject obj = currentActiveObjects.get(i);
+
+            if (obj instanceof BaseRoomGameObject) {
+                handleObjectScope(
+                    (BaseRoomGameObject) obj,
+                    oldRoom,
+                    nextRoom
+                );
+            }
+        }
+    }
+
+    /**
+     * Define o destino do objeto com base no seu escopo
+     */
+    private void handleObjectScope(BaseRoomGameObject obj, PlayableRoom oldRoom, PlayableRoom nextRoom) {
+        if (obj.roomScope == RoomObjectScope.LOCAL) {
+            // Se é local, ele deve sair da pipeline do manager de objetos
+            obj.markToDestroy();
+        } else if (obj.roomScope == RoomObjectScope.GLOBAL) {
+            // Se é global, notificamos a troca e atualizamos a referência
+            obj.onRoomSwitch(oldRoom, nextRoom);
+        }
+    }
+
+    /**
+     * Limpa completamente os dados de uma sala que está saindo de cena
+     */
+    public void cleanUpRoom(PlayableRoom roomToClean) {
+        if (roomToClean != null) {
+            roomToClean.dispose();
+        }
     }
 
     /**

@@ -90,4 +90,30 @@ public class TransformComponent {
     public float getCenterY() {
         return y + getHalfHeight();
     }
+
+    public static TransformComponent initNewTransformComponent(
+        float x,
+        float y,
+        float z,
+        float rotation,
+        float width,
+        float height,
+        float scaleX,
+        float scaleY,
+        boolean xAxisInverted,
+        boolean yAxisInverted
+    ){
+        return new TransformComponent(
+            x,
+            y,
+            z,
+            rotation,
+            width,
+            height,
+            scaleX,
+            scaleY,
+            xAxisInverted,
+            yAxisInverted
+        );
+    }
 }

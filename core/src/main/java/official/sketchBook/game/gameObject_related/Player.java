@@ -15,9 +15,12 @@ import official.sketchBook.engine.components_related.objects.MovementComponent;
 import official.sketchBook.engine.components_related.objects.PhysicsComponent;
 import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.gameObject_related.AnimatedRenderableGameObject;
+import official.sketchBook.engine.gameObject_related.AnimatedRenderableRoomGameObject;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
+import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
+import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.components_related.PlayerControllerComponent;
 import official.sketchBook.game.util_related.path.GameAssetsPaths;
 import official.sketchBook.game.util_related.values.AnimationKeys;
@@ -26,7 +29,7 @@ import java.util.Arrays;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
 
-public class Player extends AnimatedRenderableGameObject
+public class Player extends AnimatedRenderableRoomGameObject
     implements
     StaticResourceDisposable,
     MovableObjectII,
@@ -43,6 +46,8 @@ public class Player extends AnimatedRenderableGameObject
     private float density, frict, rest;
 
     public Player(
+        PhysicalGameObjectDataManager worldDataManager,
+        PlayableRoom ownerRoom,
         float x,
         float y,
         float z,
@@ -52,10 +57,12 @@ public class Player extends AnimatedRenderableGameObject
         float scaleX,
         float scaleY,
         boolean xAxisInverted,
-        boolean yAxisInverted,
-        PhysicalGameObjectDataManager worldDataManager
+        boolean yAxisInverted
     ) {
         super(
+            worldDataManager,
+            ownerRoom,
+            RoomObjectScope.GLOBAL,
             x,
             y,
             z,
@@ -65,8 +72,7 @@ public class Player extends AnimatedRenderableGameObject
             scaleX,
             scaleY,
             xAxisInverted,
-            yAxisInverted,
-            worldDataManager
+            yAxisInverted
         );
 
         this.animationRenderC.isRenderDimensionEqualsToObject = false;
@@ -74,6 +80,7 @@ public class Player extends AnimatedRenderableGameObject
 
     @Override
     protected void initObject() {
+        super.initObject();
 
         initBodyData();
         createBody();
@@ -201,6 +208,11 @@ public class Player extends AnimatedRenderableGameObject
     }
 
     @Override
+    public void onRoomSwitch(PlayableRoom oldRoom, PlayableRoom newRoom) {
+        super.onRoomSwitch(oldRoom, newRoom);
+    }
+
+    @Override
     public void update(float delta) {
         super.update(delta);
     }
@@ -212,7 +224,7 @@ public class Player extends AnimatedRenderableGameObject
 
     @Override
     protected void onObjectDestruction() {
-        System.out.println("Player iniciando destruição");
+        super.onObjectDestruction();
     }
 
     public PlayerControllerComponent getControllerC() {

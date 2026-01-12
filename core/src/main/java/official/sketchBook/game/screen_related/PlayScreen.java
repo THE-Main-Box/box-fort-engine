@@ -12,6 +12,7 @@ import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadRenderSystem;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadUpdateSystem;
 import official.sketchBook.engine.screen_related.BaseScreen;
+import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;
 import official.sketchBook.game.gameObject_related.Player;
 
@@ -86,6 +87,8 @@ public class PlayScreen extends BaseScreen {
 
         //Cria o jogador principal e Informa ao manager qual é o jogador principal
         worldManager.mainPlayer = new Player(
+            worldManager,
+            worldManager.getCurrentRoom(),
             250,
             40,
             0,
@@ -95,9 +98,7 @@ public class PlayScreen extends BaseScreen {
             1f,
             1,
             false,
-            false,
-            worldManager
-
+            false
         );
     }
 
@@ -107,7 +108,20 @@ public class PlayScreen extends BaseScreen {
         if (Gdx.input.isKeyPressed(
             Input.Keys.ESCAPE
         )) {
-            worldManager.destroyManager();
+            PlayableRoom room = new PlayableRoom(
+                0,
+                0,
+                0,
+                worldManager.getPhysicsWorld()
+            );
+
+            worldManager.setCurrentRoom(
+                room
+            );
+
+//            worldManager.destroyManager();
+//            worldManager.removeGameObject(worldManager.mainPlayer);
+//            System.out.println(worldManager.getCurrentRoom().roomGameObjectList.size());
         }
 
         if (change_of_zoom_allowed) {
@@ -131,6 +145,8 @@ public class PlayScreen extends BaseScreen {
             Input.Keys.F
         )) {
             new Player(
+                worldManager,
+                worldManager.getCurrentRoom(),
                 player.getTransformC().x + 50,
                 player.getTransformC().y,
                 player.getTransformC().z + 1,
@@ -140,8 +156,7 @@ public class PlayScreen extends BaseScreen {
                 player.getTransformC().getScaleX(),
                 player.getTransformC().getScaleY(),
                 player.getTransformC().mirrorX,
-                player.getTransformC().mirrorY,
-                worldManager
+                player.getTransformC().mirrorY
 
             );
         }
@@ -150,6 +165,8 @@ public class PlayScreen extends BaseScreen {
             Input.Keys.D
         )) {
             new Player(
+                worldManager,
+                worldManager.getCurrentRoom(),
                 player.getTransformC().x + 50,
                 player.getTransformC().y,
                 player.getTransformC().z - 1,
@@ -159,8 +176,7 @@ public class PlayScreen extends BaseScreen {
                 player.getTransformC().getScaleX(),
                 player.getTransformC().getScaleY(),
                 player.getTransformC().mirrorX,
-                player.getTransformC().mirrorY,
-                worldManager
+                player.getTransformC().mirrorY
 
             );
         }

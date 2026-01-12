@@ -3,6 +3,9 @@ package official.sketchBook.game.dataManager_related;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
+import official.sketchBook.engine.gameObject_related.BaseGameObject;
+import official.sketchBook.engine.gameObject_related.BaseRoomGameObject;
+import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
 import official.sketchBook.game.gameObject_related.Player;
@@ -119,6 +122,33 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
     public PlayableRoom getCurrentRoom() {
         return currentRoom;
+    }
+
+    public void setCurrentRoom(PlayableRoom newRoom) {
+        if (newRoom == null || newRoom == currentRoom) return;
+
+        //Atualizamos as referencias
+        PlayableRoom oldRoom = this.currentRoom;
+        this.currentRoom = newRoom;
+
+        //passamos todos os objetos ainda ativos que são de sala para uma validação,
+        // assim decidindo e agindo,
+        // se eles vão para a próxima sala ou se serão marcados para serem destruídos
+        roomManager.transitionRoomObjects(
+            gameObjectList,
+            oldRoom,
+            newRoom
+        );
+
+        /*
+        * Como os objetos em si, que eram da sala que deveriam ser disposed,
+        * foram lidados préviamente com a função de usada para a transição,
+        * aqui iremos apenas realizar uma limpeza final de dados que são gerenciados únicamente pela sala
+        */
+
+        //Realizamos um dispose dos dados da antiga sala
+        roomManager.cleanUpRoom(oldRoom);
+
     }
 
     /// Define a câmera do jogo (chamado por PlayScreen após criar o manager)
