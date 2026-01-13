@@ -66,11 +66,11 @@ public abstract class BaseScreen implements Screen {
     /// Organização do gameLoop para usarmos os sistemas corretos e isolados corretamente
     @Override
     public void render(float delta) {
-        updateSystem.update(delta);         //Atualização
+        updateSystem.update(delta);         //Seguimos a pipeline de atualização
 
-        updateMetrics(delta);               //Atualiza as métricas para visualização
+        updateMetrics(delta);               //Atualiza as métricas para debugging
 
-        renderSystem.render(delta);         //Renderiza tudo
+        renderSystem.draw(delta);           //Seguimos a pipeline de renderização
 
     }
 
@@ -89,14 +89,6 @@ public abstract class BaseScreen implements Screen {
             //resetamos as metricas do sistema de update, para marcar o final do ciclo
             updateSystem.resetUpdateMetric();
         }
-    }
-
-    public int getFps() {
-        return fps;
-    }
-
-    public int getUps() {
-        return ups;
     }
 
     /**
@@ -135,5 +127,13 @@ public abstract class BaseScreen implements Screen {
     @Override
     public void dispose() {
         updateSystem.dispose();
+    }
+
+    public int getFps() {
+        return fps;
+    }
+
+    public int getUps() {
+        return ups;
     }
 }

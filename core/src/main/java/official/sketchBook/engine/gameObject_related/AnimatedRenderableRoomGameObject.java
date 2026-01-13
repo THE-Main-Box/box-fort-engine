@@ -51,11 +51,6 @@ public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObjec
     }
 
     @Override
-    public int getRenderIndex() {
-        return (int) transformC.z;
-    }
-
-    @Override
     public void updateVisuals(float delta) {
         animationRenderC.updateVisuals(delta);
     }
@@ -67,5 +62,10 @@ public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObjec
 
     public AnimationRenderingComponent getAnimationRenderC() {
         return animationRenderC;
+    }
+
+    @Override
+    public int getRenderIndex() {
+        return (int) transformC.z;
     }
 }

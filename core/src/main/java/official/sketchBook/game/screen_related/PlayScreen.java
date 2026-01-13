@@ -108,20 +108,19 @@ public class PlayScreen extends BaseScreen {
         if (Gdx.input.isKeyPressed(
             Input.Keys.ESCAPE
         )) {
-            PlayableRoom room = new PlayableRoom(
-                0,
-                0,
-                0,
-                worldManager.getPhysicsWorld()
-            );
+//            PlayableRoom room = new PlayableRoom(
+//                0,
+//                0,
+//                0,
+//                worldManager.getPhysicsWorld()
+//            );
+//
+//            worldManager.setCurrentRoom(
+//                room
+//            );
 
-            worldManager.setCurrentRoom(
-                room
-            );
-
-//            worldManager.destroyManager();
-//            worldManager.removeGameObject(worldManager.mainPlayer);
-//            System.out.println(worldManager.getCurrentRoom().roomGameObjectList.size());
+            worldManager.destroyManager();
+            worldManager.removeGameObject(worldManager.mainPlayer);
         }
 
         if (change_of_zoom_allowed) {
@@ -161,26 +160,6 @@ public class PlayScreen extends BaseScreen {
             );
         }
 
-        if (Gdx.input.isKeyPressed(
-            Input.Keys.D
-        )) {
-            new Player(
-                worldManager,
-                worldManager.getCurrentRoom(),
-                player.getTransformC().x + 50,
-                player.getTransformC().y,
-                player.getTransformC().z - 1,
-                0,
-                player.getTransformC().width,
-                player.getTransformC().height,
-                player.getTransformC().getScaleX(),
-                player.getTransformC().getScaleY(),
-                player.getTransformC().mirrorX,
-                player.getTransformC().mirrorY
-
-            );
-        }
-
     }
 
     @Override
@@ -191,6 +170,7 @@ public class PlayScreen extends BaseScreen {
 
     @Override
     public void drawGame(SpriteBatch batch) {
+        //Tentamos desenhar as hitboxes
         if (show_hit_boxes && worldManager.isPhysicsWorldExists()) {
             worldManager.renderWorldHitboxes(
                 gameCameraManager.getCamera()
@@ -200,19 +180,35 @@ public class PlayScreen extends BaseScreen {
 
     @Override
     public void drawUI(SpriteBatch batch) {
-        // Aplica a câmera da UI (Coordenadas de tela fixas)
-        batch.setProjectionMatrix(uiCameraManager.getCamera().combined);
 
         if (show_fps_ups_metrics) {
-            font.draw(batch, "FPS: " + getFps(), 10, this.screenHeightInPx - 10);
-            font.draw(batch, "UPS: " + getUps(), 10, this.screenHeightInPx - 30);
-            font.draw(batch, "Objects: " + worldManager.getGameObjectList().size(), 10, this.screenHeightInPx - 50);
+            font.draw(                              //Mostra o fps
+                batch,
+                "FPS: " + getFps(),
+                10,
+                this.screenHeightInPx - 10
+            );
+            font.draw(                              //Mostra o ups
+                batch,
+                "UPS: " + getUps(),
+                10,
+                this.screenHeightInPx - 30
+            );
+        }
+
+        if (show_active_game_objects) {
+            font.draw(                              //Mostra a quantidade de objetos ativos
+                batch,
+                "Objects: " + worldManager.getGameObjectList().size(),
+                10,
+                this.screenHeightInPx - 50
+            );
         }
     }
 
     @Override
     public void show() {
-        // Agora a PlayScreen é mostrada após o MenuScreen dar o comando
+
     }
 
     @Override

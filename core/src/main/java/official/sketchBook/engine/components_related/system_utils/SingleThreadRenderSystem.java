@@ -10,8 +10,6 @@ import official.sketchBook.engine.screen_related.BaseScreen;
 public class SingleThreadRenderSystem implements RenderSystem {
     /// Referência à tela dona
     private final BaseScreen screen;
-    /// Referência ao gerenciador de objetos de jogo
-    private final BaseGameObjectDataManager gameObjectManager;
 
     /// Referência à camera a ser usada para renderizar as coisas
     private final Camera
@@ -28,6 +26,8 @@ public class SingleThreadRenderSystem implements RenderSystem {
         renderGame,
         renderUi;
 
+    /// Referência ao gerenciador de objetos de jogo
+    private final BaseGameObjectDataManager gameObjectManager;
     /// Flag para determinar se podemos acessar o gerenciador de objetos
     private final boolean canAccessWorldManager;
 
@@ -47,19 +47,26 @@ public class SingleThreadRenderSystem implements RenderSystem {
         this.uiCamera = uiCamera;
         this.gameCamera = gameCamera;
 
+        /*
+         *Podemos apenas renderizar a pipeline correspondente de game ou ui
+         *  caso tenhamos um batch sendo passado,
+         *  e uma camera para podermos visualizar o que está no batch
+         */
         this.renderGame = gameBatch != null && gameCamera != null;
         this.renderUi = uiBatch != null && uiCamera != null;
+
+        //Podemos apenas iterar pelo manager, caso ele exista
         this.canAccessWorldManager = gameObjectManager != null;
     }
 
-    /// Loop de renderização
+    /// Loop de desenho, onde realizamos a renderização do que foi marcado para ser renderizado
     @Override
-    public void render(float delta) {
+    public void draw(float delta) {
 
-        //Limpa a tela
+        //Limpa a tela, em preparo para a próxima renderização
         cleanScreen();
 
-        //Atualiza os visuais
+        //Atualiza os visuais para preparar pra renderização
         updateVisuals(delta);
 
         //Tenta renderizar o jogo
@@ -71,14 +78,16 @@ public class SingleThreadRenderSystem implements RenderSystem {
     }
 
 
-    /// Atualiza dados visuais antes da renderização de fato
+    /// Atualiza dados visuais antes da renderização
     @Override
     public void updateVisuals(float delta) {
+        //Se pudermos acessar o manager de gameObjects
+        // iremos tentar atualizar os visuais dos objetos que podem ser renderizados
         if (canAccessWorldManager) {
             gameObjectManager.updateVisuals(delta);
         }
 
-        //Atualiza os visuais
+        //Atualiza os visuais da tela
         screen.updateVisuals(delta);
 
     }
@@ -90,22 +99,21 @@ public class SingleThreadRenderSystem implements RenderSystem {
 
     /// Prepara o batch e renderiza o jogo
     protected void drawGame(SpriteBatch batch) {
+        //Só prosseguimos se queremos renderizar o jogo e temos os sistemas necessários
         if (!renderGame) return;
 
         //Precisamos atualizar a camera e a projection matrix antes de inicializar o batch
         gameCamera.update();
         batch.setProjectionMatrix(gameCamera.combined);
 
-        batch.begin();
-
+        //Caso possamos acessar o manager de objetos fazemos a preparação para renderizar tal
         if (canAccessWorldManager) {
+            batch.begin();
             gameObjectManager.render(batch);
+            batch.end();
         }
 
-        batch.end();
-
         //Temos que separar o que é renderizado de jogo e o que é renderizado de tela
-
         batch.begin();
         screen.drawGame(batch);
         batch.end();
