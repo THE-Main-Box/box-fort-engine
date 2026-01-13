@@ -60,6 +60,13 @@ public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObjec
         animationRenderC.render(batch);
     }
 
+    @Override
+    protected void disposeData() {
+        super.disposeData();
+        this.animationRenderC.dispose();
+        this.animationRenderC = null;
+    }
+
     public AnimationRenderingComponent getAnimationRenderC() {
         return animationRenderC;
     }

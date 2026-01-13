@@ -120,7 +120,7 @@ public class PlayScreen extends BaseScreen {
 //            );
 
             worldManager.destroyManager();
-            worldManager.removeGameObject(worldManager.mainPlayer);
+//            worldManager.removeGameObject(worldManager.mainPlayer);
         }
 
         if (change_of_zoom_allowed) {

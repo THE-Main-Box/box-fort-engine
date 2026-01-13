@@ -6,7 +6,7 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 public class MovementComponent implements Component {
 
     /// Referencia ao objeto capaz de se mover
-    private final MovableObjectII mob;
+    private MovableObjectII mob;
 
     /// Valores de velocidade em metros
     public float xSpeed, ySpeed;
@@ -218,7 +218,13 @@ public class MovementComponent implements Component {
 
     @Override
     public void dispose() {
+        if(disposed) return;
+        nullifyReferences();
         disposed = true;
+    }
+
+    public void nullifyReferences(){
+        this.mob = null;
     }
 
     @Override

@@ -81,5 +81,9 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
     @Override
     protected void disposeData() {
         animationRenderC.dispose();
+
+        animationRenderC = null;
+        transformC = null;
     }
+
 }

@@ -1,6 +1,7 @@
 package official.sketchBook.engine.gameObject_related;
 
 import com.badlogic.gdx.utils.Disposable;
+import jdk.jfr.internal.Utils;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
 
@@ -38,14 +39,14 @@ public abstract class BaseGameObject implements Disposable {
     /// Pós-atualização manual
     public abstract void postUpdate();
 
-    protected void updateComponents(float delta){
-        for(Component component : toUpdateComponentList){
+    protected void updateComponents(float delta) {
+        for (Component component : toUpdateComponentList) {
             component.update(delta);
         }
     }
 
-    protected void postUpdateComponents(){
-        for(Component component : toPostUpdateComponentList){
+    protected void postUpdateComponents() {
+        for (Component component : toPostUpdateComponentList) {
             component.postUpdate();
         }
     }
@@ -69,13 +70,13 @@ public abstract class BaseGameObject implements Disposable {
     }
 
     /// Realiza um dispose de todos os componentes
-    protected void disposeAllComponents(){
-        for(Component component : toUpdateComponentList){
-            if(component.isDisposed()) continue;
+    protected void disposeAllComponents() {
+        for (Component component : toUpdateComponentList) {
+            if (component.isDisposed()) continue;
             component.dispose();
         }
-        for(Component component : toPostUpdateComponentList){
-            if(component.isDisposed()) continue;
+        for (Component component : toPostUpdateComponentList) {
+            if (component.isDisposed()) continue;
             component.dispose();
         }
 
@@ -97,4 +98,37 @@ public abstract class BaseGameObject implements Disposable {
     public boolean isDisposed() {
         return disposed;
     }
+
+    public static <T extends Component> void removeComponentByType(
+        BaseGameObject object,
+        Class<T> type,
+        boolean removeFromUpdateList,
+        boolean removeFromPostUpdateList,
+        boolean autoDispose
+    ) {
+        if (object == null || type == null) return;
+
+        if (removeFromUpdateList) {
+            List<Component> list = object.toUpdateComponentList;
+            for (int i = list.size() - 1; i >= 0; i--) {
+                Component c = list.get(i);
+                if (type.isInstance(c)) {
+                    if (!c.isDisposed() && autoDispose) c.dispose();
+                    list.remove(i);
+                }
+            }
+        }
+
+        if (removeFromPostUpdateList) {
+            List<Component> list = object.toPostUpdateComponentList;
+            for (int i = list.size() - 1; i >= 0; i--) {
+                Component c = list.get(i);
+                if (type.isInstance(c)) {
+                    if (!c.isDisposed() && autoDispose) c.dispose();
+                    list.remove(i);
+                }
+            }
+        }
+    }
+
 }

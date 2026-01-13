@@ -15,7 +15,7 @@ public class AnimationRenderingComponent {
     private final List<AnimationLayer> layers;
 
     /// Referência ao componente conteiner de dados móveis
-    private final TransformComponent transformC;
+    private TransformComponent transformC;
 
     public boolean isRenderDimensionEqualsToObject = true;
 
@@ -137,12 +137,12 @@ public class AnimationRenderingComponent {
         if (disposed) return;
 
         layers.clear();
+        transformC = null;
+
+        currentRenderingAniPlayer = null;
+        currentRenderingSheetHandler = null;
 
         disposed = true;
-    }
-
-    public boolean isDisposed() {
-        return disposed;
     }
 
     private static class AnimationLayer {

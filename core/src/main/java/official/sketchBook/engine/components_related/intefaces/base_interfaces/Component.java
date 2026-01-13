@@ -5,5 +5,7 @@ public interface Component {
     void postUpdate();
 
     void dispose();
+
+    void nullifyReferences();
     boolean isDisposed();
 }

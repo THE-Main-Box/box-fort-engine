@@ -7,7 +7,7 @@ import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
 
 public class MovableObjectPhysicsComponent extends PhysicsComponent {
 
-    private final MovableObjectII mob;
+    private MovableObjectII mob;
 
     public MovableObjectPhysicsComponent(PhysicalObjectII object) {
         super(object);
@@ -24,4 +24,9 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
 
     }
 
+    @Override
+    public void nullifyReferences() {
+        super.nullifyReferences();
+        this.mob = null;
+    }
 }

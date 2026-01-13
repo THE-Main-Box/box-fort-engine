@@ -14,12 +14,11 @@ import official.sketchBook.engine.components_related.objects.MovableObjectPhysic
 import official.sketchBook.engine.components_related.objects.MovementComponent;
 import official.sketchBook.engine.components_related.objects.PhysicsComponent;
 import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
-import official.sketchBook.engine.gameObject_related.AnimatedRenderableGameObject;
 import official.sketchBook.engine.gameObject_related.AnimatedRenderableRoomGameObject;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
-import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
+import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.components_related.PlayerControllerComponent;
 import official.sketchBook.game.util_related.path.GameAssetsPaths;
@@ -37,10 +36,14 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     public static Texture playerSheet;
 
-    private PlayerControllerComponent controllerC;
+    /// Controlador estatico do player
+    private static PlayerControllerComponent controllerC;
+    /// Componente de movimento
     private MovementComponent moveC;
+    /// Componente de aplicação de movimento ao corpo físico
     private MovableObjectPhysicsComponent physicsC;
 
+    /// Corpo físico
     private Body body;
     private short maskBit, categoryBit;
     private float density, frict, rest;
@@ -92,7 +95,22 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     private void initControllerComponent() {
-        this.controllerC = new PlayerControllerComponent(this);
+        if (controllerC == null) {
+            controllerC = new PlayerControllerComponent(this);
+        } else {
+            //Fazemos com que o antigo player perca o acesso ao controller
+            removeComponentByType(
+                controllerC.player,
+                PlayerControllerComponent.class,
+                true,
+                false,
+                false
+            );
+
+            //Atualizamos quem é o dono do controller
+            controllerC.player = this;
+        }
+
         this.toUpdateComponentList.add(controllerC);
     }
 
@@ -278,10 +296,16 @@ public class Player extends AnimatedRenderableRoomGameObject
     @Override
     protected void disposeData() {
         System.out.println("Player limpando dados de instancia");
+        body = null;
+        moveC = null;
     }
 
     public static void disposeStaticResources() {
         System.out.println("Player limpando dados estaticos");
         playerSheet.dispose();
+        controllerC.dispose();
+
+        playerSheet = null;
+        controllerC = null;
     }
 }

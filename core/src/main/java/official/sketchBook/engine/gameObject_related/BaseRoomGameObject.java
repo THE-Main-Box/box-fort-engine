@@ -8,6 +8,7 @@ import official.sketchBook.engine.world_gen.model.PlayableRoom;
 public abstract class BaseRoomGameObject extends BaseGameObject {
 
     protected TransformComponent transformC;
+
     protected PlayableRoom ownerRoom;
     public final RoomObjectScope roomScope;
 
@@ -63,6 +64,11 @@ public abstract class BaseRoomGameObject extends BaseGameObject {
         if(ownerRoom != null){
             ownerRoom.removeRoomObject(this);
         }
+    }
+
+    @Override
+    protected void disposeData() {
+        transformC = null;
     }
 
     public void onRoomSwitch(PlayableRoom oldRoom, PlayableRoom newRoom){

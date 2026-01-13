@@ -48,16 +48,6 @@ public abstract class KeyBoundControllerComponent implements Component {
 
     }
 
-    @Override
-    public void dispose() {
-        disposed = true;
-    }
-
-    @Override
-    public boolean isDisposed() {
-        return disposed;
-    }
-
     private void checkKeyStates() {
         for (int key : keyBindings.keySet()) {
             boolean isPressed = Gdx.input.isKeyPressed(key);
@@ -69,5 +59,24 @@ public abstract class KeyBoundControllerComponent implements Component {
                 handleKeyUp(key);
             }
         }
+    }
+
+    @Override
+    public void dispose() {
+        if (disposed) return;
+        cleanList();
+        nullifyReferences();
+
+        disposed = true;
+    }
+
+    private void cleanList() {
+        this.keyBindings.clear();
+        this.keyStates.clear();
+    }
+
+    @Override
+    public boolean isDisposed() {
+        return disposed;
     }
 }

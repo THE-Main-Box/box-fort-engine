@@ -7,7 +7,7 @@ import official.sketchBook.game.util_related.values.ControlKeys;
 
 public class PlayerControllerComponent extends KeyBoundControllerComponent {
 
-    private final Player player;
+    public Player player;
 
     private float accelToApply = 100;
 
@@ -59,7 +59,7 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     @Override
     public void update(float delta) {
         super.update(delta);
-
+        if (player == null) return;
         updateMovement();
     }
 
@@ -114,4 +114,8 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
         }
     }
 
+    @Override
+    public void nullifyReferences() {
+        player = null;
+    }
 }

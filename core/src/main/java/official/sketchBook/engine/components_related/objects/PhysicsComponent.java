@@ -14,7 +14,7 @@ public class PhysicsComponent implements Component {
     protected PhysicalObjectII object;
     /// Corpo do objeto
     protected Body body;
-    /// Componente de transformação
+    /// Componente de transformação do dono, referenciado
     protected TransformComponent transformC;
 
     /// Buffer da posição do corpo
@@ -237,9 +237,16 @@ public class PhysicsComponent implements Component {
     public void dispose() {
         if (body == null) return;
 
-        body.getWorld().destroyBody(body);
-        body = null;
+        this.body.getWorld().destroyBody(body);
+        this.nullifyReferences();
+
         disposed = true;
+    }
+
+    public void nullifyReferences(){
+        this.body = null;
+        this.object = null;
+        this.transformC = null;
     }
 
     @Override
