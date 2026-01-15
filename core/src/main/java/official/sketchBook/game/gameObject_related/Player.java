@@ -9,7 +9,9 @@ import official.sketchBook.engine.animation_rendering_related.Sprite;
 import official.sketchBook.engine.animation_rendering_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.RoomGroundInteractableObject;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
+import official.sketchBook.engine.components_related.objects.GroundDetectionComponent;
 import official.sketchBook.engine.components_related.objects.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.objects.MovementComponent;
 import official.sketchBook.engine.components_related.objects.PhysicsComponent;
@@ -21,6 +23,7 @@ import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.components_related.PlayerControllerComponent;
+import official.sketchBook.game.util_related.enumerators.TileBodyType;
 import official.sketchBook.game.util_related.path.GameAssetsPaths;
 import official.sketchBook.game.util_related.values.AnimationKeys;
 
@@ -32,7 +35,8 @@ public class Player extends AnimatedRenderableRoomGameObject
     implements
     StaticResourceDisposable,
     MovableObjectII,
-    PhysicalObjectII {
+    PhysicalObjectII,
+    RoomGroundInteractableObject {
 
     public static Texture playerSheet;
 
@@ -42,6 +46,8 @@ public class Player extends AnimatedRenderableRoomGameObject
     private MovementComponent moveC;
     /// Componente de aplicação de movimento ao corpo físico
     private MovableObjectPhysicsComponent physicsC;
+
+    private GroundDetectionComponent groundDetectC;
 
     /// Corpo físico
     private Body body;
@@ -92,6 +98,16 @@ public class Player extends AnimatedRenderableRoomGameObject
         initRenderingComponent();
         initControllerComponent();
         initMovementComponent();
+        initGroundDetectionComponent();
+    }
+
+    private void initGroundDetectionComponent() {
+        this.groundDetectC = new GroundDetectionComponent(
+            this,
+            new Vector2(0, -1)
+        );
+
+        this.toPostUpdateComponentList.add(groundDetectC);
     }
 
     private void initControllerComponent() {
@@ -294,10 +310,21 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     @Override
+    public boolean isOnGround() {
+        return groundDetectC.isOnGround();
+    }
+
+    @Override
+    public GroundDetectionComponent getGroundDetectC() {
+        return groundDetectC;
+    }
+
+    @Override
     protected void disposeData() {
         System.out.println("Player limpando dados de instancia");
         body = null;
         moveC = null;
+        groundDetectC = null;
     }
 
     public static void disposeStaticResources() {
