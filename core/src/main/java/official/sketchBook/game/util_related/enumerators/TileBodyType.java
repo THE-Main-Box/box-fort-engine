@@ -3,7 +3,10 @@ package official.sketchBook.game.util_related.enumerators;
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
 
 /**
- * Essa classe contém as propriedades dos corpos das tiles que iremos criar
+ * Essa classe contém as propriedades físicas das tiles que iremos criar
+ * usaremos no box2d para determinar as questões físicas da body,
+ * porém podemos usar para determinar a lógica interna em outros sistemas, pois aqui é um conjunto de informações
+ * imutáveis independentemente de instância de objeto
  */
 public enum TileBodyType {
     /*

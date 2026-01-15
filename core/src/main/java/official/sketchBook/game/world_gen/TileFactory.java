@@ -35,7 +35,12 @@ public class TileFactory {
             type.getMaskBit()
         );
 
-        body.setUserData(new GameObjectTag(ObjectType.ENVIRONMENT, type));
+        body.setUserData(
+            new GameObjectTag(
+                ObjectType.ENVIRONMENT,
+                type
+            )
+        );
 
         List<Body> bodies = new ArrayList<>();
         bodies.add(body);

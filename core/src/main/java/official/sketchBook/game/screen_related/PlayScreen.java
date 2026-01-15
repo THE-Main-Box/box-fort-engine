@@ -51,7 +51,13 @@ public class PlayScreen extends BaseScreen {
 
         //Cria o manager do mundo
         this.worldManager = new GameObjectDataManager(
-            new World(new Vector2(0, -80f), true),
+            new World(
+                new Vector2(
+                    0,
+                    -80f
+                ),
+                true
+            ),
             FIXED_TIMESTAMP,
             VELOCITY_ITERATIONS,
             POSITION_ITERATIONS
