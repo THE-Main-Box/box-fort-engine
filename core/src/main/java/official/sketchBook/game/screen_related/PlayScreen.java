@@ -67,9 +67,9 @@ public class PlayScreen extends BaseScreen {
         worldManager.setGameCamera(gameCameraManager);
 
         gameCameraManager.setCameraOffsetLimit(
-            0,
+            -30,
             worldManager.getCurrentRoom().roomWidthPx / 2,
-            0,
+            -30,
             worldManager.getCurrentRoom().roomHeightPx / 2
         );
 

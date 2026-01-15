@@ -4,10 +4,11 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
+import official.sketchBook.engine.util_related.contact_listener.MultiContactListener;
 
 import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
 
-public class PhysicalGameObjectDataManager extends BaseGameObjectDataManager{
+public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataManager{
 
     /// Constante de atualização do box2d
     protected final float timeStep;
@@ -18,6 +19,10 @@ public class PhysicalGameObjectDataManager extends BaseGameObjectDataManager{
 
     /// Mundo físico para usar o box2d. Não é obrigatório
     protected World physicsWorld;
+
+    /// Listeners existentes no manager
+    protected MultiContactListener contactListeners;
+
     /// Renderizador de debug
     protected Box2DDebugRenderer debugRenderer;
     /// Matriz de renderização para depuração
@@ -31,6 +36,11 @@ public class PhysicalGameObjectDataManager extends BaseGameObjectDataManager{
 
         //Se o mundo físico existir
         if (physicsWorldExists) {
+
+            //Iniciamos o contactListener
+            this.contactListeners = new MultiContactListener();
+            this.physicsWorld.setContactListener(contactListeners);
+
             //Iniciamos os objetos que irão nos auxiliar na depuração
             this.debugRenderer = new Box2DDebugRenderer();
             this.renderDebugMatrix = new Matrix4();
@@ -45,8 +55,10 @@ public class PhysicalGameObjectDataManager extends BaseGameObjectDataManager{
 
     @Override
     protected void setupSystems() {
-
+        setupContactListeners();
     }
+
+    protected abstract void setupContactListeners();
 
     @Override
     public void update(float delta) {
@@ -114,6 +126,10 @@ public class PhysicalGameObjectDataManager extends BaseGameObjectDataManager{
 
     public World getPhysicsWorld() {
         return physicsWorld;
+    }
+
+    public MultiContactListener getContactListeners() {
+        return contactListeners;
     }
 
     public float getTimeStep() {

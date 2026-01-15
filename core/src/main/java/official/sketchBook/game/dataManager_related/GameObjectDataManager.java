@@ -3,9 +3,8 @@ package official.sketchBook.game.dataManager_related;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
-import official.sketchBook.engine.gameObject_related.BaseGameObject;
-import official.sketchBook.engine.gameObject_related.BaseRoomGameObject;
-import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
+import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
+import official.sketchBook.engine.util_related.contact_listener.MovableObjectContactListener;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
 import official.sketchBook.game.gameObject_related.Player;
@@ -39,6 +38,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
     @Override
     protected void setupSystems() {
+        super.setupSystems();
+
         //Inicializa o manager de salas
         roomManager = new PlayableRoomManager();
 
@@ -61,6 +62,16 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         roomManager.initRoomGrid(
             currentRoom,
             initBaseTileMap()
+        );
+    }
+
+    @Override
+    protected void setupContactListeners() {
+        ContactUtils.handleContactListener(
+            this.contactListeners,
+            false,
+            ContactUtils.keys.MOB_LISTENER,
+            new MovableObjectContactListener()
         );
     }
 
@@ -95,7 +106,10 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
                 toReturn[y][x] = 0;
 
                 List<Boolean> canCreate = new ArrayList<>();
-                canCreate.add(y >= TILES_VIEW_HEIGHT - 1);
+                canCreate.add(y >= TILES_VIEW_HEIGHT - 2);  //chão
+                canCreate.add(y == 0);                      //teto
+                canCreate.add(x == 0);                      //parede esquerda
+                canCreate.add(x == TILES_VIEW_WIDTH - 1);   //parede direita
 
                 for (boolean value : canCreate) {
                     if (value) {
