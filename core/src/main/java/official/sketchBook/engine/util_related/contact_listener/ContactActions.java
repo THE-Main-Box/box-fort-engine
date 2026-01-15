@@ -6,7 +6,7 @@ import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.WorldManifold;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
-import official.sketchBook.engine.components_related.objects.MovementComponent;
+import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.util_related.enumerators.Direction;
 
 public class ContactActions {

@@ -1,4 +1,4 @@
-package official.sketchBook.engine.components_related.objects;
+package official.sketchBook.engine.components_related.movement;
 
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;

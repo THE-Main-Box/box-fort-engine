@@ -11,10 +11,10 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.RoomGroundInteractableObject;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
-import official.sketchBook.engine.components_related.objects.RoomTileGroundDetection;
-import official.sketchBook.engine.components_related.objects.MovableObjectPhysicsComponent;
-import official.sketchBook.engine.components_related.objects.MovementComponent;
-import official.sketchBook.engine.components_related.objects.PhysicsComponent;
+import official.sketchBook.engine.components_related.physics.RoomTileGroundDetection;
+import official.sketchBook.engine.components_related.movement.MovableObjectPhysicsComponent;
+import official.sketchBook.engine.components_related.movement.MovementComponent;
+import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.gameObject_related.AnimatedRenderableRoomGameObject;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;

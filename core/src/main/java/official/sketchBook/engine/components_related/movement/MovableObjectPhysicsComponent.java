@@ -1,9 +1,8 @@
-package official.sketchBook.engine.components_related.objects;
+package official.sketchBook.engine.components_related.movement;
 
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
-
-import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
+import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 
 public class MovableObjectPhysicsComponent extends PhysicsComponent {
 

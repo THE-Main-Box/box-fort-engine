@@ -1,7 +1,8 @@
-package official.sketchBook.engine.components_related.objects;
+package official.sketchBook.engine.components_related.physics;
 
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.RoomGroundInteractableObject;
+import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.engine.world_gen.model.TileModel;
 import official.sketchBook.game.util_related.enumerators.TileBodyType;

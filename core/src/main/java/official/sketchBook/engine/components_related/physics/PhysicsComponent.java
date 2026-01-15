@@ -1,10 +1,11 @@
-package official.sketchBook.engine.components_related.objects;
+package official.sketchBook.engine.components_related.physics;
 
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
+import official.sketchBook.engine.components_related.objects.TransformComponent;
 
 import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
 
