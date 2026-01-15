@@ -7,10 +7,12 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import official.sketchBook.engine.animation_rendering_related.ObjectAnimationPlayer;
 import official.sketchBook.engine.animation_rendering_related.Sprite;
 import official.sketchBook.engine.animation_rendering_related.SpriteSheetDataHandler;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.JumpCapableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.RoomGroundInteractableObject;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
+import official.sketchBook.engine.components_related.movement.JumpComponent;
 import official.sketchBook.engine.components_related.physics.RoomTileGroundDetection;
 import official.sketchBook.engine.components_related.movement.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
@@ -35,7 +37,8 @@ public class Player extends AnimatedRenderableRoomGameObject
     StaticResourceDisposable,
     MovableObjectII,
     PhysicalObjectII,
-    RoomGroundInteractableObject {
+    RoomGroundInteractableObject,
+    JumpCapableObjectII {
 
     public static Texture playerSheet;
 
@@ -45,8 +48,10 @@ public class Player extends AnimatedRenderableRoomGameObject
     private MovementComponent moveC;
     /// Componente de aplicação de movimento ao corpo físico
     private MovableObjectPhysicsComponent physicsC;
-
+    /// Componente de detecção de colisão com tiles de room
     private RoomTileGroundDetection roomGroundDetectC;
+    /// Componente de pulo
+    private JumpComponent jumpC;
 
     /// Corpo físico
     private Body body;
@@ -97,7 +102,25 @@ public class Player extends AnimatedRenderableRoomGameObject
         initRenderingComponent();
         initControllerComponent();
         initMovementComponent();
+        initJumpComponent();
         initGroundDetectionComponent();
+    }
+
+    private void initJumpComponent() {
+        jumpC = new JumpComponent(
+            this,
+            40,
+            200,
+            0.1f,
+            0.2f,
+//            aniPlayer.getTotalAnimationTime(aniPlayer.getAnimationByKey(afterFall)),
+            0.2f,
+            1f,
+            1,
+            false
+        );
+
+        this.toUpdateComponentList.add(jumpC);
     }
 
     private void initGroundDetectionComponent() {
@@ -134,10 +157,10 @@ public class Player extends AnimatedRenderableRoomGameObject
     private void initMovementComponent() {
         this.moveC = new MovementComponent(
             this,
-            350,
-            900,
-            800f,
-            1,
+            250,
+            500,
+            999f,
+            0,
             true,
             true,
             true,
@@ -271,6 +294,16 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     @Override
+    public JumpComponent getJumpC() {
+        return jumpC;
+    }
+
+    @Override
+    public boolean canJump() {
+        return jumpC.isCoyoteJumpAvailable() || this.isOnGround();
+    }
+
+    @Override
     public Body getBody() {
         return body;
     }
@@ -325,6 +358,7 @@ public class Player extends AnimatedRenderableRoomGameObject
         System.out.println("Player limpando dados de instancia");
         body = null;
         moveC = null;
+        jumpC = null;
         roomGroundDetectC = null;
     }
 

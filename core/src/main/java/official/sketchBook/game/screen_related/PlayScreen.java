@@ -54,7 +54,7 @@ public class PlayScreen extends BaseScreen {
             new World(
                 new Vector2(
                     0,
-                    -80f
+                    -15f
                 ),
                 true
             ),

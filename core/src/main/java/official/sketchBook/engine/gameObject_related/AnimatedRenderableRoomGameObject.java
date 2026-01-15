@@ -41,8 +41,6 @@ public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObjec
             xAxisInverted,
             yAxisInverted
         );
-
-        initObject();
     }
 
     @Override

@@ -20,7 +20,15 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
             mob.getMoveC().xMaxSpeed,
             mob.getMoveC().yMaxSpeed
         );
+    }
 
+    @Override
+    public void postUpdate() {
+        super.postUpdate();
+        limitVelocity(
+            mob.getMoveC().xMaxSpeed,
+            mob.getMoveC().yMaxSpeed
+        );
     }
 
     @Override

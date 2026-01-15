@@ -30,7 +30,7 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     }
 
     public void up(boolean pressed) {
-
+        player.jump(!pressed);
     }
 
     public void down(boolean pressed) {

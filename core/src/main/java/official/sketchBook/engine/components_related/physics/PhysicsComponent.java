@@ -213,6 +213,10 @@ public class PhysicsComponent implements Component {
         return tmpVel;
     }
 
+    public Vector2 getTmpVel() {
+        return tmpVel;
+    }
+
     protected final void updateVelBuffer() {
         tmpVel.set(body.getLinearVelocity());
     }
@@ -232,6 +236,7 @@ public class PhysicsComponent implements Component {
         syncObjectToBodyPos();
 
         object.onObjectAndBodyPosSync();
+
     }
 
     @Override
