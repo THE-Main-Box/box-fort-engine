@@ -5,7 +5,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import official.sketchBook.engine.animation_rendering_related.ObjectAnimationPlayer;
-import official.sketchBook.engine.animation_rendering_related.Sprite;
 import official.sketchBook.engine.animation_rendering_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.JumpCapableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
@@ -24,13 +23,13 @@ import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
+import official.sketchBook.game.components_related.PlayerAnimationControllerComponent;
 import official.sketchBook.game.components_related.PlayerControllerComponent;
+import official.sketchBook.game.util_related.constants.WorldConstants;
 import official.sketchBook.game.util_related.path.GameAssetsPaths;
-import official.sketchBook.game.util_related.values.AnimationKeys;
-
-import java.util.Arrays;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
+import static official.sketchBook.game.components_related.PlayerAnimationInitializerComponent.initAnimations;
 
 public class Player extends AnimatedRenderableRoomGameObject
     implements
@@ -104,16 +103,22 @@ public class Player extends AnimatedRenderableRoomGameObject
         initMovementComponent();
         initJumpComponent();
         initGroundDetectionComponent();
+        initAnimationControllerComponent();
+    }
+
+    private void initAnimationControllerComponent(){
+        this.toUpdateComponentList.add(
+            new PlayerAnimationControllerComponent(this)
+        );
     }
 
     private void initJumpComponent() {
         jumpC = new JumpComponent(
             this,
-            40,
-            100,
-            0.1f,
-            0.2f,
-//            aniPlayer.getTotalAnimationTime(aniPlayer.getAnimationByKey(afterFall)),
+            WorldConstants.PlayerConstants.JUMP_FORCE,
+            WorldConstants.PlayerConstants.FALL_SPEED_AFTER_JUMP_CANCEL,
+            WorldConstants.PlayerConstants.COYOTE_T,
+            WorldConstants.PlayerConstants.JUMP_BUFF_T,
             0.2f,
             1f,
             1,
@@ -158,10 +163,10 @@ public class Player extends AnimatedRenderableRoomGameObject
     private void initMovementComponent() {
         this.moveC = new MovementComponent(
             this,
-            250,
-            500,
-            999f,
-            0,
+            WorldConstants.PlayerConstants.MAX_SPEED_X,
+            WorldConstants.PlayerConstants.MAX_SPEED_Y,
+            WorldConstants.PlayerConstants.X_DECELERATION,
+            WorldConstants.PlayerConstants.Y_DECELERATION,
             true,
             true,
             true,
@@ -208,17 +213,6 @@ public class Player extends AnimatedRenderableRoomGameObject
             sheetHandler,
             aniPlayer
         );
-    }
-
-    private void initAnimations(ObjectAnimationPlayer aniPlayer) {
-        aniPlayer.addAnimation(AnimationKeys.Entities.idle, Arrays.asList(
-            new Sprite(0, 0, 0.15f),
-            new Sprite(1, 0, 0.15f),
-            new Sprite(2, 0, 0.15f),
-            new Sprite(3, 0, 0.15f)
-        ));
-
-        aniPlayer.playAnimation(AnimationKeys.Entities.idle);
     }
 
     protected void initBodyData() {
