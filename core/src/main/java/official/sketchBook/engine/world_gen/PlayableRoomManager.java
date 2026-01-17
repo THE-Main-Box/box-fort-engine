@@ -9,7 +9,7 @@ import official.sketchBook.game.util_related.body.world_gen.RoomBodyFactory;
 
 import java.util.List;
 
-import static official.sketchBook.game.util_related.constants.WorldC.TILE_SIZE_PX;
+import static official.sketchBook.game.util_related.constants.WorldConstants.TILE_SIZE_PX;
 
 public class PlayableRoomManager {
 

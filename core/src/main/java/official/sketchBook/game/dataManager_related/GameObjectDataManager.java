@@ -12,8 +12,8 @@ import official.sketchBook.game.gameObject_related.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-import static official.sketchBook.game.util_related.constants.RenderingC.TILES_VIEW_HEIGHT;
-import static official.sketchBook.game.util_related.constants.RenderingC.TILES_VIEW_WIDTH;
+import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_HEIGHT;
+import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_WIDTH;
 
 public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 

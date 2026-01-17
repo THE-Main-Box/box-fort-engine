@@ -4,7 +4,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 
-import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
 public class BodyCreatorHelper {
 

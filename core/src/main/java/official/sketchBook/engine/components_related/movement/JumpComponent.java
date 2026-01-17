@@ -6,7 +6,7 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.objects.TimerComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 
-import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
 public class JumpComponent implements Component {
 
@@ -279,13 +279,11 @@ public class JumpComponent implements Component {
                 coyoteTimer.reset();
             }
         } else {
-            if (physicsC.getTmpVel().y > fallSpeedAfterJCancel) {
-
+            if (jumping && moveC.ySpeed / PPM> fallSpeedAfterJCancel) {
                 body.setLinearVelocity(
                     physicsC.getTmpVel().x,
                     fallSpeedAfterJCancel
                 );
-
             }
         }
     }

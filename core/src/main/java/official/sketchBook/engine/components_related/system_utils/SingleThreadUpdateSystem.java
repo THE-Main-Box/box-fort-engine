@@ -4,8 +4,8 @@ import official.sketchBook.engine.components_related.intefaces.base_interfaces.U
 import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
 import official.sketchBook.engine.screen_related.BaseScreen;
 
-import static official.sketchBook.game.util_related.constants.PhysicsC.FIXED_TIMESTAMP;
-import static official.sketchBook.game.util_related.constants.PhysicsC.MAX_ACCUMULATOR;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.FIXED_TIMESTAMP;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.MAX_ACCUMULATOR;
 
 public class SingleThreadUpdateSystem implements UpdateSystem {
     private float accumulator = 0;

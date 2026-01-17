@@ -7,7 +7,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.game.util_related.enumerators.TileBodyType;
 
-import static official.sketchBook.game.util_related.constants.WorldC.TILE_SIZE_PX;
+import static official.sketchBook.game.util_related.constants.WorldConstants.TILE_SIZE_PX;
 
 public class TileBodyFactory {
 

@@ -7,7 +7,7 @@ import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.engine.world_gen.model.TileModel;
 import official.sketchBook.game.util_related.enumerators.TileBodyType;
 
-import static official.sketchBook.game.util_related.constants.WorldC.TILE_SIZE_PX;
+import static official.sketchBook.game.util_related.constants.WorldConstants.TILE_SIZE_PX;
 
 public class RoomTileGroundDetection implements Component {
 

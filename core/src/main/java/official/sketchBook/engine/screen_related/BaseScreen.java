@@ -8,7 +8,7 @@ import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.RenderSystem;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.UpdateSystem;
 
-import static official.sketchBook.game.util_related.constants.RenderingC.FPS_TARGET;
+import static official.sketchBook.game.util_related.constants.RenderingConstants.FPS_TARGET;
 
 public abstract class BaseScreen implements Screen {
 

@@ -7,7 +7,7 @@ import official.sketchBook.engine.components_related.intefaces.base_interfaces.C
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 
-import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
 public class PhysicsComponent implements Component {
 

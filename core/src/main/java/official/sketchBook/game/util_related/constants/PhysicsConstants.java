@@ -1,6 +1,6 @@
 package official.sketchBook.game.util_related.constants;
 
-public class PhysicsC {
+public class PhysicsConstants {
 
     /// Pixels Per Meters, constante que determina o quantos pixels correspondem a 1 metro
     public static final float PPM = 100;

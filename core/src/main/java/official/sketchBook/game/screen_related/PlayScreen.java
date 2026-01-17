@@ -12,13 +12,14 @@ import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadRenderSystem;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadUpdateSystem;
 import official.sketchBook.engine.screen_related.BaseScreen;
-import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;
 import official.sketchBook.game.gameObject_related.Player;
 
-import static official.sketchBook.game.util_related.constants.DebugC.*;
-import static official.sketchBook.game.util_related.constants.PhysicsC.*;
-import static official.sketchBook.game.util_related.constants.RenderingC.*;
+import static official.sketchBook.game.util_related.constants.DebugConstants.*;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.*;
+import static official.sketchBook.game.util_related.constants.RenderingConstants.*;
+import static official.sketchBook.game.util_related.constants.WorldConstants.PlayerConstants.HEIGHT;
+import static official.sketchBook.game.util_related.constants.WorldConstants.PlayerConstants.WIDTH;
 
 public class PlayScreen extends BaseScreen {
     private OrthographicCameraManager uiCameraManager;
@@ -99,10 +100,10 @@ public class PlayScreen extends BaseScreen {
             40,
             0,
             0,
-            16,
-            16,
+            WIDTH,
+            HEIGHT,
             1f,
-            1,
+            1f,
             false,
             false
         );

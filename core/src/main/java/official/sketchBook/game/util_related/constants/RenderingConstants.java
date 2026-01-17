@@ -1,8 +1,8 @@
 package official.sketchBook.game.util_related.constants;
 
-import static official.sketchBook.game.util_related.constants.WorldC.TILE_SIZE_PX;
+import static official.sketchBook.game.util_related.constants.WorldConstants.TILE_SIZE_PX;
 
-public class RenderingC {
+public class RenderingConstants {
     /// Taxa de fps que tentaremos seguir
     public static float FPS_TARGET;
 

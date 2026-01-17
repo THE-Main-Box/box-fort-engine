@@ -6,7 +6,7 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.util_related.contact_listener.MultiContactListener;
 
-import static official.sketchBook.game.util_related.constants.PhysicsC.PPM;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
 public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataManager{
 
