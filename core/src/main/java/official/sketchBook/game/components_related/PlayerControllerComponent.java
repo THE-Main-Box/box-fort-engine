@@ -27,14 +27,18 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
         this.bindKey(ControlKeys.dir_down, this::down);
         this.bindKey(ControlKeys.dir_left, this::left);
         this.bindKey(ControlKeys.dir_right, this::right);
+        this.bindKey(ControlKeys.jump, this::jump);
     }
 
     public void up(boolean pressed) {
-        player.jump(!pressed);
     }
 
     public void down(boolean pressed) {
 
+    }
+
+    public void jump(boolean pressed){
+        player.jump(!pressed);
     }
 
     public void left(boolean pressed) {

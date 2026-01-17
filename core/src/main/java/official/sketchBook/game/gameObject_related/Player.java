@@ -110,7 +110,7 @@ public class Player extends AnimatedRenderableRoomGameObject
         jumpC = new JumpComponent(
             this,
             40,
-            200,
+            100,
             0.1f,
             0.2f,
 //            aniPlayer.getTotalAnimationTime(aniPlayer.getAnimationByKey(afterFall)),
@@ -121,6 +121,7 @@ public class Player extends AnimatedRenderableRoomGameObject
         );
 
         this.toUpdateComponentList.add(jumpC);
+        this.toPostUpdateComponentList.add(jumpC);
     }
 
     private void initGroundDetectionComponent() {

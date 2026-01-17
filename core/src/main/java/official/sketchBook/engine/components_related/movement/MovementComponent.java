@@ -83,7 +83,7 @@ public class MovementComponent implements Component {
 
     }
 
-    public void applyMovementToMob(float delta) {
+    protected void applyMovementToMob(float delta) {
         mob.getTransformC().x = (
             mob.getTransformC().x + this.xSpeed * delta
         );

@@ -22,7 +22,6 @@ public class JumpComponent implements Component {
         defGravityScale,
         enhancedGravityScale;
 
-
     /// Valor de impulso de pulo
     public float
         jumpForce,
@@ -58,7 +57,7 @@ public class JumpComponent implements Component {
     private boolean disposed = false;
 
     /**
-     * Componente de pulo
+     * Componente de pulo, os valores de impulso devem ser passados como pixels e serão convertidos para metros
      *
      * @param object                entidade dona do componente
      * @param jumpForce             força de pulo da entidade
@@ -98,7 +97,10 @@ public class JumpComponent implements Component {
         this.jumpForce = jumpForce / PPM;
         this.fallSpeedAfterJCancel = fallSpeedAfterJCancel / PPM;
 
-        setGravityValues(defGravityScale, enhancedGravityScale);
+        setGravityValues(
+            defGravityScale,
+            enhancedGravityScale
+        );
 
         this.jumping = false;
         this.falling = false;
@@ -108,10 +110,6 @@ public class JumpComponent implements Component {
 
     @Override
     public void update(float delta) {
-        updateJump();
-        applyEnhancedGravity();
-        updateLandedFlag();
-
         jumpBufferTimer.update(delta);
         coyoteTimer.update(delta);
         landBuffer.update(delta);
@@ -119,7 +117,10 @@ public class JumpComponent implements Component {
 
     @Override
     public void postUpdate() {
+        updateJump();
+        applyEnhancedGravity();
 
+        updateLandedFlag();
     }
 
     private void updateLandedFlag() {
@@ -138,9 +139,9 @@ public class JumpComponent implements Component {
         landBuffer.resetByFinished();
     }
 
+    /// Alteramos o valor da escala de gravidade do corpo físico do objeto com base em valores pré-determinados
     private void applyEnhancedGravity() {
         if (!enhancedGravity) return;
-
 
         if (jumpedFromGround && falling) {
             if (body.getGravityScale() == defGravityScale) {
@@ -165,6 +166,7 @@ public class JumpComponent implements Component {
     private void updateJumpingFallingFlags() {
         boolean onGround = object.isOnGround();
         float vy = physicsC.getTmpVel().y;
+        moveC.ySpeed = vy * PPM;
 
         if (onGround) {
             jumping = false;
@@ -254,8 +256,8 @@ public class JumpComponent implements Component {
 
                 //zera a velocidade vertical caso ela seja negativa antes de pular para evitar um pulo fraco
                 //ou zeramos para evitar um superPulo sem a intenção
-                if (physicsC.getTmpVel().y < 0 ||
-                    physicsC.getTmpVel().y > 0 && !superJump
+                if (moveC.ySpeed < 0 ||
+                    moveC.ySpeed > 0 && !superJump
                 ) {
                     body.setLinearVelocity(
                         physicsC.getTmpVel().x,
