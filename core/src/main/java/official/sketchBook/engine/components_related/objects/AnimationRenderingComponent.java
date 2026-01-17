@@ -145,7 +145,11 @@ public class AnimationRenderingComponent {
         disposed = true;
     }
 
-    private static class AnimationLayer {
+    public List<AnimationLayer> getLayers() {
+        return layers;
+    }
+
+    public static class AnimationLayer {
         /// Gerenciador de dados de sprite sheet
         public SpriteSheetDataHandler sheetHandler;
         /// Gerenciador de animações

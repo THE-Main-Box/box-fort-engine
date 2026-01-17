@@ -325,4 +325,8 @@ public class ObjectAnimationPlayer {
     public List<Sprite> getAnimationByKey(String key) {
         return animations.get(key);
     }
+
+    public int getAniTick() {
+        return aniTick;
+    }
 }
