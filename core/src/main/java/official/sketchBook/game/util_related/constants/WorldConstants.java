@@ -3,6 +3,7 @@ package official.sketchBook.game.util_related.constants;
 public class WorldConstants {
     /// Tamanho das tiles em pixels
     public static final int TILE_SIZE_PX = 8;
+    public static final int MAX_PROJECTILE_PER_POOL = 900;
 
     public static class PlayerConstants {
 
