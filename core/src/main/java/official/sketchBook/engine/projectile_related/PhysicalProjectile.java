@@ -8,9 +8,11 @@ public abstract class PhysicalProjectile extends BaseProjectile implements Physi
     protected World world;
     protected PhysicsComponent physicsC;
 
-    public PhysicalProjectile(World world) {
-        super();
-        this.world = world;
+    public PhysicalProjectile(
+        PhysicalProjectilePool<PhysicalProjectile> ownerPool
+    ) {
+        super(ownerPool);
+        this.world = ownerPool.getWorld();
     }
 
     @Override
