@@ -8,8 +8,22 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
 
     private MovableObjectII mob;
 
-    public MovableObjectPhysicsComponent(PhysicalObjectII object) {
-        super(object);
+    public MovableObjectPhysicsComponent(
+        PhysicalObjectII object,
+        int categoryBit,
+        int maskBit,
+        float density,
+        float frict,
+        float rest
+    ) {
+        super(
+            object,
+            categoryBit,
+            maskBit,
+            density,
+            frict,
+            rest
+        );
         this.mob = (MovableObjectII) object;
     }
 

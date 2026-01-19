@@ -21,19 +21,4 @@ public interface PhysicalObjectII {
 
     /// Garante que tenhamos uma body
     Body getBody();
-
-    /// Garante que tenhamos constantes de densidade da body
-    float getDensity();
-
-    /// Garante que tenhamos constantes de restituição da body
-    float getRest();
-
-    /// Garante que tenhamos constantes de fricção da body
-    float getFrict();
-
-    /// Garante que exista uma mask para definir com quem podemos interagir
-    short getMaskBit();
-
-    /// Garante que exista uma category para dizer quem nós somos
-    short getCategoryBit();
 }
