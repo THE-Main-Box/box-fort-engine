@@ -8,6 +8,8 @@ public class WorldConstants {
         public static final int MAX_PROJECTILE_PER_POOL = 900;
         public static final int MAX_PROJECTILE_DESTRUCTION_PER_POOL = 900;
 
+        public static final float POOL_CLEAN_INTERVAL_MS = 8f;
+        public static final float POOL_REMOVE_INTERVAL_MS = 16f;
     }
 
     public static class PlayerConstants {

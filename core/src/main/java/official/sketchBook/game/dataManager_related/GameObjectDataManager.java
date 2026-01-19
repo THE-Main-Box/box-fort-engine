@@ -3,6 +3,10 @@ package official.sketchBook.game.dataManager_related;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
+import official.sketchBook.engine.projectile_related.GlobalProjectilePool;
+import official.sketchBook.engine.projectile_related.PhysicalProjectile;
+import official.sketchBook.engine.projectile_related.PhysicalProjectilePool;
+import official.sketchBook.engine.projectile_related.ProjectilePool;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.MovableObjectContactListener;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
@@ -16,6 +20,8 @@ import static official.sketchBook.game.util_related.constants.RenderingConstants
 import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_WIDTH;
 
 public class GameObjectDataManager extends PhysicalGameObjectDataManager {
+
+    private GlobalProjectilePool globalProjectilePool;
 
     /// Gerenciador de salas do mundo
     private PlayableRoom currentRoom;
@@ -36,9 +42,19 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         super(physicsWorld, timeStep, velIterations, posIterations);
     }
 
+    private void initPoolFactories(){
+        globalProjectilePool.registerFactory(
+            PhysicalProjectile.class,
+            type -> new PhysicalProjectilePool<>(type, physicsWorld)
+        );
+    }
+
     @Override
     protected void setupSystems() {
         super.setupSystems();
+        this.initPoolFactories();
+
+        globalProjectilePool = new GlobalProjectilePool();
 
         //Inicializa o manager de salas
         roomManager = new PlayableRoomManager();

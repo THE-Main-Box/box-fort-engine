@@ -79,10 +79,18 @@ public class ProjectilePool<T extends BaseProjectile> extends CustomPool<T> impl
     @Override
     public void dispose() {
         if (disposed) return;
+        disposeGeneralData();
         disposeProjectiles();
         clearLists();
+        disposeCriticalData();
+        nullifyReferences();
         disposed = true;
     }
+
+    protected void disposeCriticalData(){}
+    protected void disposeGeneralData(){}
+
+    protected void nullifyReferences(){}
 
     protected void disposeProjectiles(){
         destroyAllProjectiles();
