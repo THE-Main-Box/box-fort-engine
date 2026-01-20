@@ -1,5 +1,7 @@
 package official.sketchBook.engine.projectile_related;
 
+import com.badlogic.gdx.physics.box2d.World;
+
 public class ProjectileFactory {
 
     /**
@@ -20,5 +22,23 @@ public class ProjectileFactory {
             throw new RuntimeException("Falha ao instanciar projétil do tipo: " + type.getSimpleName(), e);
         }
     }
+
+    public static <T extends BaseProjectile> T createByType(
+        Class<T> type,
+        ProjectilePool<T> pool,
+        World world
+    ) {
+        try {
+            return type
+                .getConstructor(ProjectilePool.class, World.class)
+                .newInstance(pool, world);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                "Falha ao instanciar projétil do tipo: " + type.getSimpleName(),
+                e
+            );
+        }
+    }
+
 
 }

@@ -1,7 +1,6 @@
 package official.sketchBook.engine.projectile_related;
 
 import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.compression.lzma.Base;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
@@ -13,8 +12,8 @@ import java.util.List;
 
 public abstract class BaseProjectile
     implements
-    MovableObjectII,
     CustomPool.Poolable,
+    MovableObjectII,
     Disposable {
 
     protected ProjectilePool<?> ownerPool;
@@ -26,7 +25,8 @@ public abstract class BaseProjectile
     protected MovementComponent moveC;
 
     /// Lista de componentes que precisam ser atualizados e disposed
-    protected List<Component> componentList;
+    protected List<Component> toUpdate;
+    protected List<Component> toPostUpdate;
 
     /// Flags de estado relacionado a pool
     protected boolean
@@ -38,29 +38,32 @@ public abstract class BaseProjectile
     ) {
         reset = true;
 
-        componentList = new ArrayList<>();
+        transformC = new TransformComponent();
+
+        toUpdate = new ArrayList<>();
+        toPostUpdate = new ArrayList<>();
 
         this.ownerPool = ownerPool;
     }
 
-    public void update(float delta){
-        if(reset || disposed) return;
+    public void update(float delta) {
+        if (reset || disposed) return;
         updateComponents(delta);
     }
 
-    public void postUpdate(){
-        if(reset || disposed) return;
+    public void postUpdate() {
+        if (reset || disposed) return;
         postUpdateComponents();
     }
 
-    private void updateComponents(float delta){
-        for(Component component : componentList){
+    private void updateComponents(float delta) {
+        for (Component component : toUpdate) {
             component.update(delta);
         }
     }
 
-    private void postUpdateComponents(){
-        for(Component component : componentList){
+    private void postUpdateComponents() {
+        for (Component component : toPostUpdate) {
             component.postUpdate();
         }
     }
@@ -105,7 +108,12 @@ public abstract class BaseProjectile
 
     /// Limpa os componentes
     protected void disposeComponents() {
-        for (Component component : componentList) {
+        for (Component component : toUpdate) {
+            if (component.isDisposed()) continue;
+            component.dispose();
+        }
+
+        for (Component component : toPostUpdate) {
             if (component.isDisposed()) continue;
             component.dispose();
         }
@@ -113,7 +121,8 @@ public abstract class BaseProjectile
 
     /// Limpa as listas
     protected void cleanLists() {
-        componentList.clear();
+        toPostUpdate.clear();
+        toUpdate.clear();
     }
 
     /// Realiza o dispose final de dados, geralmente aqueles que precisam ser limpos por último
@@ -132,12 +141,10 @@ public abstract class BaseProjectile
         return disposed;
     }
 
-    @Override
     public MovementComponent getMoveC() {
         return moveC;
     }
 
-    @Override
     public TransformComponent getTransformC() {
         return transformC;
     }

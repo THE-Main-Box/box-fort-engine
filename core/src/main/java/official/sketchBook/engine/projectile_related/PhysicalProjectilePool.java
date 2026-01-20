@@ -11,6 +11,11 @@ public class PhysicalProjectilePool<T extends PhysicalProjectile> extends Projec
     }
 
     @Override
+    protected T newObject() {
+        return ProjectileFactory.createByType(projectileType, this, world);
+    }
+
+    @Override
     protected void nullifyReferences() {
         super.nullifyReferences();
         world = null;
