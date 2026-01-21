@@ -1,10 +1,10 @@
-package official.sketchBook.engine.projectile_related;
+package official.sketchBook.engine.projectile_related.models;
 
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
-import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
+import official.sketchBook.game.projectile_related.pool.ProjectilePool;
 
 public abstract class PhysicalProjectile extends BaseProjectile implements PhysicalObjectII {
     protected World world;

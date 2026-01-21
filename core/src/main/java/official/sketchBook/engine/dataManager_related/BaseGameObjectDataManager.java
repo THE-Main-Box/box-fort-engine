@@ -2,7 +2,7 @@ package official.sketchBook.engine.dataManager_related;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Disposable;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.dataManager_related.util.RenderableObjectManager;
 import official.sketchBook.engine.gameObject_related.BaseGameObject;
@@ -13,7 +13,7 @@ import java.util.*;
 public abstract class BaseGameObjectDataManager implements Disposable {
 
     /// Lista de objects que precisam de rendering - DEPOIS
-    protected final RenderableObjectManager renderTreeManager = new RenderableObjectManager();
+    protected final RenderableObjectManager renderTree = new RenderableObjectManager();
 
     /// Lista de gameObjects base ativos
     protected final List<BaseGameObject> gameObjectList = new ArrayList<>();
@@ -64,9 +64,9 @@ public abstract class BaseGameObjectDataManager implements Disposable {
         gameObjectList.remove(i);                       //Remove da lista de objetos ativos
 
         //remove da pipeline de render caso seja renderizável e esteja marcado para remoção
-        if (object instanceof RenderAbleObject) {
-            renderTreeManager.remove(
-                (RenderAbleObject) object
+        if (object instanceof RenderAbleObjectII) {
+            renderTree.remove(
+                (RenderAbleObjectII) object
             );
         }
 
@@ -81,8 +81,8 @@ public abstract class BaseGameObjectDataManager implements Disposable {
 
             //AGORA adiciona à árvore de renderização (depois de estar na gameObjectList)
             for (BaseGameObject go : gameObjectToAddList) {
-                if (go instanceof RenderAbleObject) {
-                    renderTreeManager.add((RenderAbleObject) go);
+                if (go instanceof RenderAbleObjectII) {
+                    renderTree.add((RenderAbleObjectII) go);
                 }
             }
 
@@ -108,7 +108,7 @@ public abstract class BaseGameObjectDataManager implements Disposable {
 
     /// Percorre o renderManager para atualizar os visuais de cada objeto renderizável
     private void updateRenderableObjectVisuals(float delta){
-        renderTreeManager.forEachForUpdate(
+        renderTree.forEachForUpdate(
             obj -> obj.updateVisuals(delta)
         );
     }
@@ -120,7 +120,7 @@ public abstract class BaseGameObjectDataManager implements Disposable {
 
     ///Percorre o renderManager e renderiza todos os objetos que podem ser renderizados
     private void drawRenderableObjects(SpriteBatch batch){
-        renderTreeManager.forEachForRender(
+        renderTree.forEachForRender(
             obj -> obj.render(batch)
         );
     }
@@ -171,7 +171,7 @@ public abstract class BaseGameObjectDataManager implements Disposable {
         gameObjectList.clear();
         gameObjectToAddList.clear();
         registeredClasses.clear();
-        renderTreeManager.clear();
+        renderTree.clear();
     }
 
     /**
@@ -231,8 +231,8 @@ public abstract class BaseGameObjectDataManager implements Disposable {
         return gameObjectList;
     }
 
-    public RenderableObjectManager getRenderTreeManager() {
-        return renderTreeManager;
+    public RenderableObjectManager getRenderTree() {
+        return renderTree;
     }
 
     public boolean isDisposed() {

@@ -272,6 +272,11 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     @Override
+    public void updateVisuals(float delta) {
+        super.updateVisuals(delta);
+    }
+
+    @Override
     protected void onObjectDestruction() {
         super.onObjectDestruction();
     }
@@ -317,6 +322,11 @@ public class Player extends AnimatedRenderableRoomGameObject
     @Override
     public RoomTileGroundDetection getRoomGroundDetectC() {
         return roomGroundDetectC;
+    }
+
+    @Override
+    public boolean canRender() {
+        return !this.isPendingRemoval();
     }
 
     @Override

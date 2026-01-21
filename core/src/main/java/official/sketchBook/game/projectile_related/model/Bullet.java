@@ -1,4 +1,4 @@
-package official.sketchBook.engine.projectile_related;
+package official.sketchBook.game.projectile_related.model;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef;
@@ -6,7 +6,9 @@ import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.components_related.movement.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
+import official.sketchBook.engine.projectile_related.models.PhysicalProjectile;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
+import official.sketchBook.game.projectile_related.pool.ProjectilePool;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.ALL;
@@ -71,7 +73,7 @@ public class Bullet extends PhysicalProjectile {
     }
 
     private void createBody() {
-        if(body != null) return;
+        if (body != null) return;
 
         this.body = BodyCreatorHelper.createCircle(
             this.world,
@@ -91,12 +93,9 @@ public class Bullet extends PhysicalProjectile {
         body.setActive(false);
     }
 
-    public void startProjectile(
-        float x,
-        float y,
-        float rotation
-    ) {
-        super.startProjectile(x, y, rotation);
+    @Override
+    protected void executeProjectileStart(float x, float y, float rotation) {
+        super.executeProjectileStart(x, y, rotation);
 
         this.createBody();
 

@@ -1,19 +1,20 @@
-package official.sketchBook.engine.projectile_related;
+package official.sketchBook.engine.projectile_related.pool;
 
 import official.sketchBook.engine.components_related.objects.TimerComponent;
+import official.sketchBook.engine.projectile_related.models.BaseProjectile;
+import official.sketchBook.game.projectile_related.pool.ProjectilePool;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
-import static official.sketchBook.game.util_related.constants.WorldConstants.ProjectilePoolConstants.POOL_CLEAN_INTERVAL_MS;
-import static official.sketchBook.game.util_related.constants.WorldConstants.ProjectilePoolConstants.POOL_REMOVE_INTERVAL_MS;
+import static official.sketchBook.game.util_related.constants.WorldConstants.ProjectilePoolConstants.POOL_CLEAN_INTERVAL_S;
+import static official.sketchBook.game.util_related.constants.WorldConstants.ProjectilePoolConstants.POOL_REMOVE_INTERVAL_S;
 
 public class GlobalProjectilePool {
     /// Mapa de pools de projéteis por tipo
     private final Map<Class<? extends BaseProjectile>, ProjectilePool<? extends BaseProjectile>> poolMap;
     /// Mapa de criadores de pools
-    private final Map<Class<? extends BaseProjectile>, ProjectilePoolFactory<?>> factories;
+    private Map<Class<? extends BaseProjectile>, ProjectilePoolFactory<?>> factories;
 
     /// Tempo de limpeza de pools
     private final TimerComponent poolCleanTimer;
@@ -27,10 +28,10 @@ public class GlobalProjectilePool {
         poolMap = new HashMap<>();
         factories = new HashMap<>();
 
-        this.poolCleanTimer = new TimerComponent(POOL_CLEAN_INTERVAL_MS);
+        this.poolCleanTimer = new TimerComponent(POOL_CLEAN_INTERVAL_S);
         this.poolCleanTimer.start();
 
-        this.poolDeleteTimer = new TimerComponent(POOL_REMOVE_INTERVAL_MS);
+        this.poolDeleteTimer = new TimerComponent(POOL_REMOVE_INTERVAL_S);
         this.poolDeleteTimer.start();
     }
 
@@ -139,6 +140,16 @@ public class GlobalProjectilePool {
         return value;
     }
 
+    public int getTotalActiveProjectiles(){
+        int value = 0;
+
+        for (ProjectilePool<? extends BaseProjectile> pool : poolMap.values()) {
+            value += pool.getActiveProjectiles().size;//Para cada pool adicionamos os valores da suas listas ativas aqui dentro
+        }
+
+        return value;
+    }
+
     public ProjectilePool<?> getPoolOf(Class<? extends BaseProjectile> projectile){
         return poolMap.get(projectile);
     }
@@ -151,13 +162,9 @@ public class GlobalProjectilePool {
         return disposed;
     }
 
-    public <T extends BaseProjectile> void registerFactory(
-        Class<T> type,
-        ProjectilePoolFactory<T> factory
-    ) {
-        factories.put(type, factory);
+    public void setFactories(Map<Class<? extends BaseProjectile>, ProjectilePoolFactory<?>> factories) {
+        this.factories = factories;
     }
-
 
     public interface ProjectilePoolFactory<T extends BaseProjectile> {
         ProjectilePool<T> create(Class<T> type);
