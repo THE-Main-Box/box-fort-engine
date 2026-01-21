@@ -11,6 +11,7 @@ import official.sketchBook.game.util_related.constants.WorldConstants;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.ALL;
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.PROJECTILES;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
 public class Bullet extends PhysicalProjectile {
 
@@ -50,6 +51,8 @@ public class Bullet extends PhysicalProjectile {
 
     private void initTransformC() {
         this.transformC = new TransformComponent();
+        this.transformC.width = 5;
+        this.transformC.height = 5;
     }
 
     @Override
@@ -63,13 +66,13 @@ public class Bullet extends PhysicalProjectile {
             0f
         );
 
-        this.createBody();
-
         this.toUpdate.add(physicsC);
         this.toPostUpdate.add(physicsC);
     }
 
     private void createBody() {
+        if(body != null) return;
+
         this.body = BodyCreatorHelper.createCircle(
             this.world,
             new Vector2(
@@ -84,6 +87,8 @@ public class Bullet extends PhysicalProjectile {
             physicsC.getCategoryBit(),
             physicsC.getMaskBit()
         );
+
+        body.setActive(false);
     }
 
     public void startProjectile(
@@ -91,7 +96,20 @@ public class Bullet extends PhysicalProjectile {
         float y,
         float rotation
     ) {
-        this.reset = false;
+        super.startProjectile(x, y, rotation);
+
+        this.createBody();
+
+        this.body.setTransform(
+            (
+                (x + transformC.getHalfWidth()) / PPM
+            ),
+            (
+                (y + transformC.getHalfHeight()) / PPM
+            ),
+            rotation
+        );
+
         this.body.setActive(true);
     }
 

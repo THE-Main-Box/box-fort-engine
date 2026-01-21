@@ -50,6 +50,18 @@ public abstract class BaseProjectile
     /// Inicia todos os componentes, preparando para usar dentro da pool
     protected abstract void initComponents();
 
+    public void startProjectile(
+        float x,
+        float y,
+        float rotation
+    ){
+        this.reset = false;
+
+        this.transformC.x = x;
+        this.transformC.y = y;
+        this.transformC.rotation = rotation;
+    }
+
     public final void update(float delta) {
         if (reset || disposed) return;
         updateComponents(delta);

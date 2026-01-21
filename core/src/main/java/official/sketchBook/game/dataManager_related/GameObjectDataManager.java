@@ -81,6 +81,13 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         Emitter bulletEmitter = new Emitter(globalProjectilePool);
         bulletEmitter.configure(Bullet.class);
         Bullet bullet = (Bullet) bulletEmitter.obtain();
+
+//        bullet.startProjectile(
+//            300,
+//            90,
+//            45
+//        );
+
     }
 
     @Override
@@ -120,6 +127,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     protected void updateGameObjects(float delta) {
         super.updateGameObjects(delta);
         globalProjectilePool.update(delta);
+        globalProjectilePool.updatePoolProjectiles(delta);
     }
 
     @Override
