@@ -2,8 +2,8 @@ package official.sketchBook.engine.components_related.physics;
 
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalGameObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 
@@ -13,8 +13,7 @@ public class PhysicsComponent implements Component {
 
     /// Objeto dono do componente
     protected PhysicalObjectII object;
-    /// Corpo do objeto
-    protected Body body;
+
     /// Componente de transformação do dono, referenciado
     protected TransformComponent transformC;
 
@@ -32,10 +31,34 @@ public class PhysicsComponent implements Component {
 
     private boolean disposed = false;
 
-    public PhysicsComponent(PhysicalObjectII object) {
+    /// Dita com quem podemos colidir
+    private final short maskBit;
+    /// Dita quem somos na questão de colisão
+    private final short categoryBit;
+
+    /// Propriedades da body
+    private final float
+        density,
+        frict,
+        rest;
+
+    public PhysicsComponent(
+        PhysicalObjectII object,
+        int categoryBit,
+        int maskBit,
+        float density,
+        float frict,
+        float rest
+    ) {
         this.object = object;
-        this.body = object.getBody();
         this.transformC = object.getTransformC();
+
+        this.categoryBit = (short) categoryBit;
+        this.maskBit = (short) maskBit;
+
+        this.density = density;
+        this.frict = frict;
+        this.rest = rest;
 
         this.tmpImpulse = new Vector2();
         this.tmpVel = new Vector2();
@@ -50,13 +73,12 @@ public class PhysicsComponent implements Component {
      * Aplica um impulso para alcançar uma velocidade em específico
      * (todos os valores precisam ser em píxels já que serão convertidos em metros)
      *
-     * @param xSpeed velocidade horizontal em píxels
+     * @param xSpeed    velocidade horizontal em píxels
      * @param maxXSpeed velocidade horizontal máxima permitida em píxels
-     * @param ySpeed velocidade vertical em píxels
+     * @param ySpeed    velocidade vertical em píxels
      * @param maxYSpeed velocidade vertical máxima permitida em píxels
-     * */
+     */
     public void applyImpulseForSpeed(float xSpeed, float ySpeed, float maxXSpeed, float maxYSpeed) {
-        if (body == null) return;
 
         updateVelBuffer();
 
@@ -68,7 +90,9 @@ public class PhysicsComponent implements Component {
             desiredY != 0 ? desiredY - tmpVel.y : 0
         );
 
-        applyImpulse(tmpVel.scl(body.getMass()));
+        applyImpulse(
+            tmpVel.scl(object.getBody().getMass())
+        );
     }
 
     //converte os valores de velocidade em pixel para metros, e os limita com base em uma velocidade maxima passada
@@ -81,54 +105,52 @@ public class PhysicsComponent implements Component {
 
     /// Aplicamos um impulso diretamente no centro do corpo do objeto
     public final void applyImpulse(Vector2 impulse) {
-        body.applyLinearImpulse(impulse, body.getWorldCenter(), true);
+        object.getBody().applyLinearImpulse(impulse, object.getBody().getWorldCenter(), true);
     }
 
     /// Coloca o objeto na posição da body
     public final void syncObjectToBodyPos() {
-        updatePosBuffer();
-
         transformC.x = (
             (tmpPos.x * PPM) - halfWidth
         );
-        transformC.y =(
+        transformC.y = (
             (tmpPos.y * PPM) - halfHeight
         );
 
-        float bodyAngleDeg = body.getAngle() * MathUtils.radiansToDegrees;
+        float bodyAngleDeg = object.getBody().getAngle() * MathUtils.radiansToDegrees;
         if (Math.abs(transformC.rotation - bodyAngleDeg) > 0.01f) {
             transformC.rotation = bodyAngleDeg;
         }
     }
 
     public final void rotateBody(float deltaDegrees) {
-        if (disposed || body == null) return;
+        if (disposed) return;
 
-        /// Early exit para valores irrelevantes
+        // Early exit para valores irrelevantes
         if (Math.abs(deltaDegrees) < 0.0001f) return;
 
-        /// Conversão para radianos e cálculo do novo ângulo
+        // Conversão para radianos e cálculo do novo ângulo
         float deltaRad = deltaDegrees * MathUtils.degreesToRadians;
-        float newAngleRad = body.getAngle() + deltaRad;
+        float newAngleRad = object.getBody().getAngle() + deltaRad;
 
-        /// Normalização do ângulo (sem múltiplos cálculos)
+        // Normalização do ângulo (sem múltiplos cálculos)
         newAngleRad = normalizeAngle(newAngleRad);
 
         /// Aplicação com buffer reutilizável
-        tmpPos.set(body.getPosition());
-        body.setTransform(tmpPos, newAngleRad);
-        body.setAngularVelocity(0);
+        tmpPos.set(object.getBody().getPosition());
+        object.getBody().setTransform(tmpPos, newAngleRad);
+        object.getBody().setAngularVelocity(0);
     }
 
     public final void setBodyRotation(float degrees) {
-        if (disposed || body == null) return;
+        if (disposed) return;
 
         float normalizedDegrees = degrees % 360f;
         float angleRad = normalizedDegrees * MathUtils.degreesToRadians;
 
-        tmpPos.set(body.getPosition());
-        body.setTransform(tmpPos, angleRad);
-        body.setAngularVelocity(0);
+        tmpPos.set(object.getBody().getPosition());
+        object.getBody().setTransform(tmpPos, angleRad);
+        object.getBody().setAngularVelocity(0);
     }
 
     private float normalizeAngle(float angleRad) {
@@ -138,8 +160,8 @@ public class PhysicsComponent implements Component {
     }
 
     public final void applyTrajectoryImpulse(float height, float distance) {
-        float gravity = Math.abs(body.getWorld().getGravity().y);
-        float mass = body.getMass();
+        float gravity = Math.abs(object.getBody().getWorld().getGravity().y);
+        float mass = object.getBody().getMass();
 
         float initialVelocityY = (float) Math.copySign(Math.sqrt(2 * gravity * Math.abs(height)), height);
         tmpImpulse.set(distance * mass, initialVelocityY * mass);
@@ -160,7 +182,7 @@ public class PhysicsComponent implements Component {
             tmpImpulse.nor();
         }
 
-        applyImpulse(tmpImpulse.scl(magnitude * body.getMass()));
+        applyImpulse(tmpImpulse.scl(magnitude * object.getBody().getMass()));
     }
 
     /// Limita a velocidade do corpo usando clamping
@@ -176,34 +198,34 @@ public class PhysicsComponent implements Component {
 
         /// Só aplica se houver diferença significativa
         if (Math.abs(tmpVel.x - limitedX) > 0.0001f || Math.abs(tmpVel.y - limitedY) > 0.0001f) {
-            body.setLinearVelocity(limitedX, limitedY);
+            object.getBody().setLinearVelocity(limitedX, limitedY);
         }
     }
 
     /// Define a velocidade do corpo diretamente (sem impulso)
     /// Use para sistemas de movimento custom (como MovementComponent)
     public final void setVelocity(float vx, float vy) {
-        if (disposed || body == null) return;
-        body.setLinearVelocity(vx, vy);
+        if (disposed || object.getBody() == null) return;
+        object.getBody().setLinearVelocity(vx, vy);
     }
 
     /// Define a velocidade do corpo com conversão de píxels para metros
     /// Use quando tem valores em píxels (como do MovementComponent)
     public final void setVelocityFromPixels(float vxPixels, float vyPixels) {
-        if (disposed || body == null) return;
-        body.setLinearVelocity(vxPixels / PPM, vyPixels / PPM);
+        if (disposed || object.getBody() == null) return;
+        object.getBody().setLinearVelocity(vxPixels / PPM, vyPixels / PPM);
     }
 
     /// Zera a velocidade do corpo (parada completa)
     public final void stopMovement() {
-        if (disposed || body == null) return;
-        body.setLinearVelocity(0, 0);
+        if (disposed || object.getBody() == null) return;
+        object.getBody().setLinearVelocity(0, 0);
     }
 
     /// Zera a velocidade angular (parada rotacional)
     public final void stopRotation() {
-        if (disposed || body == null) return;
-        body.setAngularVelocity(0);
+        if (disposed || object.getBody() == null) return;
+        object.getBody().setAngularVelocity(0);
     }
 
     /// Obtém a velocidade atual do corpo em píxels por segundo
@@ -218,11 +240,11 @@ public class PhysicsComponent implements Component {
     }
 
     protected final void updateVelBuffer() {
-        tmpVel.set(body.getLinearVelocity());
+        tmpVel.set(object.getBody().getLinearVelocity());
     }
 
     protected final void updatePosBuffer() {
-        tmpPos.set(body.getPosition());
+        tmpPos.set(object.getBody().getPosition());
     }
 
     @Override
@@ -232,25 +254,25 @@ public class PhysicsComponent implements Component {
 
     @Override
     public void postUpdate() {
-        if (disposed || body == null) return;
-        syncObjectToBodyPos();
+        if (disposed) return;
+        updatePosBuffer();
 
+        syncObjectToBodyPos();
         object.onObjectAndBodyPosSync();
 
     }
 
     @Override
     public void dispose() {
-        if (body == null) return;
+        if (object.getBody() == null) return;
 
-        this.body.getWorld().destroyBody(body);
+        this.object.getBody().getWorld().destroyBody(object.getBody());
         this.nullifyReferences();
 
         disposed = true;
     }
 
-    public void nullifyReferences(){
-        this.body = null;
+    public void nullifyReferences() {
         this.object = null;
         this.transformC = null;
     }
@@ -258,5 +280,25 @@ public class PhysicsComponent implements Component {
     @Override
     public boolean isDisposed() {
         return disposed;
+    }
+
+    public short getMaskBit() {
+        return maskBit;
+    }
+
+    public short getCategoryBit() {
+        return categoryBit;
+    }
+
+    public float getDensity() {
+        return density;
+    }
+
+    public float getFrict() {
+        return frict;
+    }
+
+    public float getRest() {
+        return rest;
     }
 }

@@ -5,7 +5,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.WorldManifold;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalGameObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.util_related.enumerators.Direction;
 
@@ -61,8 +61,8 @@ public class ContactActions {
         if (dir == Direction.STILL || mob == null) return;
 
         MovementComponent moveC = mob.getMoveC();
-        Body body = mob instanceof PhysicalObjectII ?
-            ((PhysicalObjectII) mob).getBody() :
+        Body body = mob instanceof PhysicalGameObjectII ?
+            ((PhysicalGameObjectII) mob).getBody() :
             null;
 
         //Se a direção da batida em relação ao objeto for na esquerda e estivermos nos movendo naquela direção

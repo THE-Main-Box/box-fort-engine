@@ -2,7 +2,6 @@ package official.sketchBook.game.components_related;
 
 import official.sketchBook.engine.animation_rendering_related.ObjectAnimationPlayer;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
-import official.sketchBook.engine.components_related.objects.AnimationRenderingComponent.AnimationLayer;
 import official.sketchBook.game.gameObject_related.Player;
 
 import static official.sketchBook.game.util_related.values.AnimationKeys.Entities.*;
@@ -13,25 +12,24 @@ public class PlayerAnimationControllerComponent implements Component {
     private ObjectAnimationPlayer currentAniPlayer;
 
     private boolean disposed = false;
+
     public PlayerAnimationControllerComponent(Player player) {
         this.player = player;
     }
 
 
-
     @Override
     public void update(float delta) {
-        for(AnimationLayer layer : player.getAnimationRenderC().getLayers()) {
-            currentAniPlayer = layer.aniPlayer;
+        currentAniPlayer = player.getAnimationRenderC().getLayers().get(0).aniPlayer;
 
-            if(currentAniPlayer == null) continue;
+        if (currentAniPlayer == null) return;
 
-            // Ordem de prioridade: Pulo > Queda > Corrida > Idle
-            if (handleJumpAnimation(currentAniPlayer)) continue;
-            if (handleAirborneAnimation(currentAniPlayer)) continue;
-            if (handleRunAnimation(currentAniPlayer)) continue;
-            handleIdleAnimation(currentAniPlayer);
-        }
+        // Ordem de prioridade: Pulo > Queda > Corrida > Idle
+        if (handleJumpAnimation(currentAniPlayer)) return;
+        if (handleAirborneAnimation(currentAniPlayer)) return;
+        if (handleRunAnimation(currentAniPlayer)) return;
+        handleIdleAnimation(currentAniPlayer);
+
     }
 
     private boolean handleJumpAnimation(ObjectAnimationPlayer ani) {
@@ -124,7 +122,7 @@ public class PlayerAnimationControllerComponent implements Component {
 
     @Override
     public void dispose() {
-        if(disposed) return;
+        if (disposed) return;
         nullifyReferences();
         disposed = true;
     }

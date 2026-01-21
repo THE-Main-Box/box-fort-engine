@@ -8,7 +8,7 @@ import official.sketchBook.engine.animation_rendering_related.ObjectAnimationPla
 import official.sketchBook.engine.animation_rendering_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.JumpCapableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalGameObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.RoomGroundInteractableObject;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.components_related.movement.JumpComponent;
@@ -35,7 +35,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     implements
     StaticResourceDisposable,
     MovableObjectII,
-    PhysicalObjectII,
+    PhysicalGameObjectII,
     RoomGroundInteractableObject,
     JumpCapableObjectII {
 
@@ -54,8 +54,6 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     /// Corpo físico
     private Body body;
-    private short maskBit, categoryBit;
-    private float density, frict, rest;
 
     public Player(
         PhysicalGameObjectDataManager worldDataManager,
@@ -94,8 +92,6 @@ public class Player extends AnimatedRenderableRoomGameObject
     protected void initObject() {
         super.initObject();
 
-        initBodyData();
-        createBody();
         initPhysicsComponent();
 
         initRenderingComponent();
@@ -106,7 +102,7 @@ public class Player extends AnimatedRenderableRoomGameObject
         initAnimationControllerComponent();
     }
 
-    private void initAnimationControllerComponent(){
+    private void initAnimationControllerComponent() {
         this.toUpdateComponentList.add(
             new PlayerAnimationControllerComponent(this)
         );
@@ -179,7 +175,16 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     private void initPhysicsComponent() {
-        this.physicsC = new MovableObjectPhysicsComponent(this);
+        this.physicsC = new MovableObjectPhysicsComponent(
+            this,
+            ALLY_ENTITY.bit(),
+            SENSOR.bit() | ENVIRONMENT.bit(),
+            0.5f,
+            1f,
+            0f
+        );
+
+        this.createBody();
 
         this.toUpdateComponentList.add(physicsC);
         this.toPostUpdateComponentList.add(physicsC);
@@ -215,17 +220,8 @@ public class Player extends AnimatedRenderableRoomGameObject
         );
     }
 
-    protected void initBodyData() {
-        this.categoryBit = ALLY_ENTITY.bit();
-        this.maskBit = (short) (SENSOR.bit() | ENVIRONMENT.bit());
-
-        this.density = 0.5f;
-        this.frict = 1f;
-        this.rest = 0;
-    }
-
-    public void createBody() {
-        this.body = BodyCreatorHelper.createBox(
+    private void createBody() {
+        body = BodyCreatorHelper.createBox(
             this.getPhysicalManager().getPhysicsWorld(),
             new Vector2(
                 this.transformC.x,
@@ -235,11 +231,11 @@ public class Player extends AnimatedRenderableRoomGameObject
             this.transformC.width,
             this.transformC.height,
             BodyDef.BodyType.DynamicBody,
-            density,
-            frict,
-            rest,
-            categoryBit,
-            maskBit
+            physicsC.getDensity(),
+            physicsC.getFrict(),
+            physicsC.getRest(),
+            physicsC.getCategoryBit(),
+            physicsC.getMaskBit()
         );
 
         this.body.setFixedRotation(true);
@@ -301,31 +297,6 @@ public class Player extends AnimatedRenderableRoomGameObject
     @Override
     public Body getBody() {
         return body;
-    }
-
-    @Override
-    public short getMaskBit() {
-        return maskBit;
-    }
-
-    @Override
-    public short getCategoryBit() {
-        return categoryBit;
-    }
-
-    @Override
-    public float getDensity() {
-        return density;
-    }
-
-    @Override
-    public float getFrict() {
-        return frict;
-    }
-
-    @Override
-    public float getRest() {
-        return rest;
     }
 
     @Override

@@ -4,6 +4,26 @@ public class WorldConstants {
     /// Tamanho das tiles em pixels
     public static final int TILE_SIZE_PX = 8;
 
+    public static class ProjectilePoolConstants {
+        public static final int MAX_PROJECTILE_PER_POOL = 900;
+        public static final int MAX_PROJECTILE_DESTRUCTION_PER_POOL = 900;
+
+        public static final float POOL_CLEAN_INTERVAL_MS = 8f;
+        public static final float POOL_REMOVE_INTERVAL_MS = 16f;
+    }
+
+    public static class ProjectileConstants {
+        /// Limite de velocidade máximo para projéteis
+        public static final float
+            PROJECTILE_MAX_SPEED_X = 999,
+            PROJECTILE_MAX_SPEED_Y = 999;
+
+        /// Desaceleração padrão para projéteis
+        public static final float
+            PROJECTILE_DECELERATION_X = 0,
+            PROJECTILE_DECELERATION_Y = 0;
+    }
+
     public static class PlayerConstants {
 
         /// Dimensões do jogador

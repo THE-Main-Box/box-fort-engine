@@ -3,6 +3,7 @@ package official.sketchBook.game.dataManager_related;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
+import official.sketchBook.engine.projectile_related.*;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.MovableObjectContactListener;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
@@ -12,10 +13,13 @@ import official.sketchBook.game.gameObject_related.Player;
 import java.util.ArrayList;
 import java.util.List;
 
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_HEIGHT;
 import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_WIDTH;
 
 public class GameObjectDataManager extends PhysicalGameObjectDataManager {
+
+    private GlobalProjectilePool globalProjectilePool;
 
     /// Gerenciador de salas do mundo
     private PlayableRoom currentRoom;
@@ -36,9 +40,19 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         super(physicsWorld, timeStep, velIterations, posIterations);
     }
 
+    private void initPoolFactories(){
+        globalProjectilePool.registerFactory(
+            Bullet.class,
+            type -> new PhysicalProjectilePool<>(type, physicsWorld)
+        );
+    }
+
     @Override
     protected void setupSystems() {
         super.setupSystems();
+
+        globalProjectilePool = new GlobalProjectilePool();
+        this.initPoolFactories();
 
         //Inicializa o manager de salas
         roomManager = new PlayableRoomManager();
@@ -63,6 +77,17 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             currentRoom,
             initBaseTileMap()
         );
+
+        Emitter bulletEmitter = new Emitter(globalProjectilePool);
+        bulletEmitter.configure(Bullet.class);
+        Bullet bullet = (Bullet) bulletEmitter.obtain();
+
+//        bullet.startProjectile(
+//            300,
+//            90,
+//            45
+//        );
+
     }
 
     @Override
@@ -96,6 +121,19 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         //Depois de tudo atualizado, move a câmera
         updateCameraTracking();
+    }
+
+    @Override
+    protected void updateGameObjects(float delta) {
+        super.updateGameObjects(delta);
+        globalProjectilePool.update(delta);
+        globalProjectilePool.updatePoolProjectiles(delta);
+    }
+
+    @Override
+    protected void postUpdateGameObjects() {
+        super.postUpdateGameObjects();
+        globalProjectilePool.postUpdateProjectiles();
     }
 
     private int[][] initBaseTileMap() {
@@ -132,6 +170,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     protected void disposeGeneralData() {
         super.disposeGeneralData();
         currentRoom.dispose();
+        globalProjectilePool.dispose();
     }
 
     public PlayableRoom getCurrentRoom() {

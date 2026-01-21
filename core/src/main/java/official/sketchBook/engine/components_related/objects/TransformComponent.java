@@ -25,6 +25,21 @@ public class TransformComponent {
     /// Rotação atual do sprite em graus
     public float rotation;
 
+    public TransformComponent() {
+        this(
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            false,
+            false
+        );
+    }
+
     public TransformComponent(
         float x,
         float y,
@@ -100,9 +115,9 @@ public class TransformComponent {
         float height,
         float scaleX,
         float scaleY,
-        boolean xAxisInverted,
-        boolean yAxisInverted
-    ){
+        boolean mirrorX,
+        boolean mirrorY
+    ) {
         return new TransformComponent(
             x,
             y,
@@ -112,8 +127,8 @@ public class TransformComponent {
             height,
             scaleX,
             scaleY,
-            xAxisInverted,
-            yAxisInverted
+            mirrorX,
+            mirrorY
         );
     }
 }
