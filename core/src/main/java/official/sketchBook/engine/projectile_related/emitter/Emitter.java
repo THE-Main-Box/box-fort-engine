@@ -1,6 +1,8 @@
-package official.sketchBook.engine.projectile_related;
+package official.sketchBook.engine.projectile_related.emitter;
 
 import com.badlogic.gdx.utils.Disposable;
+import official.sketchBook.engine.projectile_related.models.BaseProjectile;
+import official.sketchBook.engine.projectile_related.pool.GlobalProjectilePool;
 
 public class Emitter implements Disposable {
 

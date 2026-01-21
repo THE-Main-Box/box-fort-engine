@@ -3,11 +3,11 @@ package official.sketchBook.engine.components_related.intefaces.integration_inte
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 
-public interface RenderAbleObject {
+public interface RenderAbleObjectII {
     int getRenderIndex();
     void updateVisuals(float delta);
     void render(SpriteBatch batch);
-    boolean isPendingRemoval();
+    boolean canRender();
 
     TransformComponent getTransformC();
 

@@ -3,7 +3,11 @@ package official.sketchBook.game.dataManager_related;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
-import official.sketchBook.engine.projectile_related.*;
+import official.sketchBook.engine.projectile_related.emitter.Emitter;
+import official.sketchBook.game.projectile_related.factories.PoolFactory;
+import official.sketchBook.game.projectile_related.model.Bullet;
+import official.sketchBook.engine.projectile_related.pool.GlobalProjectilePool;
+import official.sketchBook.game.projectile_related.pool.PhysicalProjectilePool;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.MovableObjectContactListener;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
@@ -13,7 +17,6 @@ import official.sketchBook.game.gameObject_related.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_HEIGHT;
 import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_WIDTH;
 
@@ -40,11 +43,9 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         super(physicsWorld, timeStep, velIterations, posIterations);
     }
 
-    private void initPoolFactories(){
-        globalProjectilePool.registerFactory(
-            Bullet.class,
-            type -> new PhysicalProjectilePool<>(type, physicsWorld)
-        );
+    private void initPoolFactories() {
+        PoolFactory.initPoolFactories(renderTree, physicsWorld);
+        PoolFactory.applyFactories(globalProjectilePool);
     }
 
     @Override
@@ -82,13 +83,14 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         bulletEmitter.configure(Bullet.class);
         Bullet bullet = (Bullet) bulletEmitter.obtain();
 
-//        bullet.startProjectile(
-//            300,
-//            90,
-//            45
-//        );
+        bullet.startProjectile(
+            300,
+            90,
+            45
+        );
 
     }
+
 
     @Override
     protected void setupContactListeners() {
@@ -194,10 +196,10 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         );
 
         /*
-        * Como os objetos em si, que eram da sala que deveriam ser disposed,
-        * foram lidados préviamente com a função de usada para a transição,
-        * aqui iremos apenas realizar uma limpeza final de dados que são gerenciados únicamente pela sala
-        */
+         * Como os objetos em si, que eram da sala que deveriam ser disposed,
+         * foram lidados préviamente com a função de usada para a transição,
+         * aqui iremos apenas realizar uma limpeza final de dados que são gerenciados únicamente pela sala
+         */
 
         //Realizamos um dispose dos dados da antiga sala
         roomManager.cleanUpRoom(oldRoom);
@@ -207,5 +209,9 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     /// Define a câmera do jogo (chamado por PlayScreen após criar o manager)
     public void setGameCamera(OrthographicCameraManager camera) {
         this.gameCamera = camera;
+    }
+
+    public GlobalProjectilePool getGlobalProjectilePool() {
+        return globalProjectilePool;
     }
 }

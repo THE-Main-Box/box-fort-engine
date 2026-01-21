@@ -1,13 +1,13 @@
 package official.sketchBook.engine.gameObject_related;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObjectII;
 import official.sketchBook.engine.components_related.objects.AnimationRenderingComponent;
 import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 
-public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObject implements RenderAbleObject {
+public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObject implements RenderAbleObjectII {
 
     protected AnimationRenderingComponent animationRenderC;
 

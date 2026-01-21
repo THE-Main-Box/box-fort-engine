@@ -1,6 +1,6 @@
 package official.sketchBook.engine.dataManager_related.util;
 
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObjectII;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -17,13 +17,13 @@ public class RenderableObjectManager {
 
     /// Árvore que mantém objetos ordenados por renderIndex
     /// Chave = renderIndex, Valor = lista de objetos com mesmo índice
-    private final TreeMap<Integer, List<RenderAbleObject>> renderTree;
+    private final TreeMap<Integer, List<RenderAbleObjectII>> renderTree;
 
     /// Mapa auxiliar para rastrear o renderIndex atual de cada objeto
-    private final HashMap<RenderAbleObject, Integer> objectIndexMap;
+    private final HashMap<RenderAbleObjectII, Integer> objectIndexMap;
 
     /// Buffer reutilizável para atualização visual (evita alocação nova toda frame)
-    private final List<RenderAbleObject> updateBuffer;
+    private final List<RenderAbleObjectII> updateBuffer;
 
     public RenderableObjectManager() {
         this.renderTree = new TreeMap<>();
@@ -32,12 +32,12 @@ public class RenderableObjectManager {
     }
 
     /// Adiciona um objeto renderizável à árvore
-    public void add(RenderAbleObject obj) {
+    public void add(RenderAbleObjectII obj) {
         //Obtém o índice de renderização
         int renderIndex = obj.getRenderIndex();
 
         //Obtém ou cria a lista para esse índice
-        List<RenderAbleObject> list = renderTree.computeIfAbsent(renderIndex, k -> new ArrayList<>());
+        List<RenderAbleObjectII> list = renderTree.computeIfAbsent(renderIndex, k -> new ArrayList<>());
 
         //Adiciona o objeto à lista (O(1))
         list.add(obj);
@@ -47,13 +47,13 @@ public class RenderableObjectManager {
     }
 
     /// Remove um objeto renderizável da árvore
-    public void remove(RenderAbleObject obj) {
+    public void remove(RenderAbleObjectII obj) {
         //Obtém o índice anterior do objeto
         Integer previousIndex = objectIndexMap.remove(obj);
         if (previousIndex == null) return;
 
         //Obtém a lista para esse índice
-        List<RenderAbleObject> list = renderTree.get(previousIndex);
+        List<RenderAbleObjectII> list = renderTree.get(previousIndex);
         if (list != null) {
             //Remove da lista
             list.remove(obj);
@@ -67,7 +67,7 @@ public class RenderableObjectManager {
 
     /// Atualiza o índice de renderização de um objeto
     /// Chamamos quando queremos aplicar a nova render index de um objeto renderizável nele
-    public void updateRenderIndex(RenderAbleObject obj) {
+    public void updateRenderIndex(RenderAbleObjectII obj) {
         //Obtém o índice antigo
         Integer oldIndex = objectIndexMap.get(obj);
         //Obtém o novo índice
@@ -86,39 +86,35 @@ public class RenderableObjectManager {
 
     /// Itera sobre todos os objetos em ordem de renderIndex para atualização visual
     /// Usa buffer reutilizável para evitar alocação nova
-    public void forEachForUpdate(Consumer<RenderAbleObject> action) {
-        //Limpa o buffer
-        updateBuffer.clear();
-
-        //Coleta todos os objetos no buffer
-        for (List<RenderAbleObject> list : renderTree.values()) {
-            updateBuffer.addAll(list);
-        }
-
-        //Itera sobre o buffer
-        for (RenderAbleObject obj : updateBuffer) {
-            if (!obj.isPendingRemoval()) {
-                action.accept(obj);
-            }
-        }
-    }
-
-    /// Itera sobre todos os objetos em ordem de renderIndex (menor para maior) para renderização
-    public void forEachForRender(Consumer<RenderAbleObject> action) {
-        //Itera diretamente sobre a árvore sem criar buffers
-        for (List<RenderAbleObject> list : renderTree.values()) {
-            for (RenderAbleObject obj : list) {
-                if (!obj.isPendingRemoval()) {
+    public void forEachForUpdate(Consumer<RenderAbleObjectII> action) {
+        for (List<RenderAbleObjectII> list : renderTree.values()) {
+            for (int i = list.size() - 1; i >= 0; i--) {
+                RenderAbleObjectII obj = list.get(i);
+                if (obj.canRender()) {
                     action.accept(obj);
                 }
             }
         }
     }
 
+
+    /// Itera sobre todos os objetos em ordem de renderIndex (menor para maior) para renderização
+    public void forEachForRender(Consumer<RenderAbleObjectII> action) {
+        for (List<RenderAbleObjectII> list : renderTree.values()) {
+            for (int i = list.size() - 1; i >= 0; i--) {
+                RenderAbleObjectII obj = list.get(i);
+                if (obj.canRender()) {
+                    action.accept(obj);
+                }
+            }
+        }
+    }
+
+
     /// Retorna o número total de objetos na árvore
     public int size() {
         int count = 0;
-        for (List<RenderAbleObject> list : renderTree.values()) {
+        for (List<RenderAbleObjectII> list : renderTree.values()) {
             count += list.size();
         }
         return count;

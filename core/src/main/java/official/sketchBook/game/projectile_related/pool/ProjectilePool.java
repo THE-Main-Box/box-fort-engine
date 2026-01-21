@@ -1,7 +1,12 @@
-package official.sketchBook.engine.projectile_related;
+package official.sketchBook.game.projectile_related.pool;
 
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObjectII;
+import official.sketchBook.engine.dataManager_related.util.RenderableObjectManager;
+import official.sketchBook.engine.projectile_related.models.PhysicalProjectile;
+import official.sketchBook.game.projectile_related.factories.ProjectileFactory;
+import official.sketchBook.engine.projectile_related.models.BaseProjectile;
 import official.sketchBook.engine.util_related.custom_utils.CustomPool;
 
 import static official.sketchBook.game.util_related.constants.WorldConstants.ProjectilePoolConstants.MAX_PROJECTILE_DESTRUCTION_PER_POOL;
@@ -10,15 +15,20 @@ import static official.sketchBook.game.util_related.constants.WorldConstants.Pro
 
 public class ProjectilePool<T extends BaseProjectile> extends CustomPool<T> implements Disposable {
 
+    protected RenderableObjectManager renderTree;
     protected Array<T> activeProjectiles;
     protected Class<T> projectileType;
 
     private boolean disposed;
 
-    public ProjectilePool(Class<T> projectileType) {
+    public ProjectilePool(
+        RenderableObjectManager renderTree,
+        Class<T> projectileType
+    ) {
         super(16, MAX_PROJECTILE_PER_POOL);
         this.projectileType = projectileType;
         this.activeProjectiles = new Array<>();
+        this.renderTree = renderTree;
     }
 
     @Override
@@ -35,13 +45,13 @@ public class ProjectilePool<T extends BaseProjectile> extends CustomPool<T> impl
     }
 
     /// Desativa e destroi todos os projéteis
-    public void destroyAllProjectiles(){
+    public void destroyAllProjectiles() {
         releaseAllProjectiles();
         destroyAllInactiveProjectiles();
     }
 
     /// Destróis todos os projéteis inativos em batchs de acordo com o limite
-    public void destroyInactiveProjectilesInBatch(){
+    public void destroyInactiveProjectilesInBatch() {
         int count = 0;
         //Percorre a lista de projéteis livres de cima pra baixo
         for (int i = getFreeCount() - 1; i >= 0 && count < MAX_PROJECTILE_DESTRUCTION_PER_POOL; i--) {
@@ -62,18 +72,48 @@ public class ProjectilePool<T extends BaseProjectile> extends CustomPool<T> impl
     public void free(BaseProjectile projectile) {
         super.free((T) projectile);
         activeProjectiles.removeValue((T) projectile, true);
+        //Caso possamos renderizar o projétil removemos ele
+        tryRemoveFromRenderingPipeLine(projectile);
+
     }
 
-    public void updateActiveProjectiles(float delta){
+    @Override
+    protected void discard(T object) {
+        super.discard(object);
+    }
+
+    public void updateActiveProjectiles(float delta) {
         for (T proj : activeProjectiles) {
             proj.update(delta);
         }
     }
 
-    public void postUpdateActiveProjectiles(){
+    public void postUpdateActiveProjectiles() {
         for (T proj : activeProjectiles) {
             proj.postUpdate();
         }
+    }
+
+    protected void tryRemoveFromRenderingPipeLine(BaseProjectile projectile) {
+        if (
+            !(projectile instanceof RenderAbleObjectII)
+        ) return;
+
+        renderTree.remove(
+            (RenderAbleObjectII) projectile
+        );
+
+    }
+
+    protected void tryAddToRenderingPipeLine(BaseProjectile projectile) {
+        if (
+            !(projectile instanceof RenderAbleObjectII)
+        ) return;
+
+        renderTree.add(
+            (RenderAbleObjectII) projectile
+        );
+
     }
 
     @Override
@@ -87,22 +127,32 @@ public class ProjectilePool<T extends BaseProjectile> extends CustomPool<T> impl
         disposed = true;
     }
 
-    protected void disposeCriticalData(){}
-    protected void disposeGeneralData(){}
+    protected void disposeGeneralData() {
 
-    protected void nullifyReferences(){}
+    }
 
-    protected void disposeProjectiles(){
+    protected void disposeCriticalData() {
+    }
+
+    protected void nullifyReferences() {
+        renderTree = null;
+    }
+
+    protected void disposeProjectiles() {
         destroyAllProjectiles();
     }
-    protected void clearLists(){
+
+    protected void clearLists() {
         freeObjects.clear();
         activeProjectiles.clear();
     }
 
     @SuppressWarnings("unchecked")
     public void addToActive(BaseProjectile proj) {
+        if(proj.isReset()) return;
         this.activeProjectiles.add((T) proj);
+        this.freeObjects.removeValue((T) proj, true);
+        tryAddToRenderingPipeLine(proj);
     }
 
     public boolean canSpawnNewProjectile() {

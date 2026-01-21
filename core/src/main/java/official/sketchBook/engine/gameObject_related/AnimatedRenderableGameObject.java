@@ -1,12 +1,12 @@
 package official.sketchBook.engine.gameObject_related;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObject;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObjectII;
 import official.sketchBook.engine.components_related.objects.AnimationRenderingComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
 
-public abstract class AnimatedRenderableGameObject extends BaseGameObject implements RenderAbleObject {
+public abstract class AnimatedRenderableGameObject extends BaseGameObject implements RenderAbleObjectII {
 
     protected TransformComponent transformC;
     protected AnimationRenderingComponent animationRenderC;

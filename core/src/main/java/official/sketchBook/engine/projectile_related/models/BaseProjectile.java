@@ -1,10 +1,11 @@
-package official.sketchBook.engine.projectile_related;
+package official.sketchBook.engine.projectile_related.models;
 
 import com.badlogic.gdx.utils.Disposable;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
+import official.sketchBook.game.projectile_related.pool.ProjectilePool;
 import official.sketchBook.engine.util_related.custom_utils.CustomPool;
 
 import java.util.ArrayList;
@@ -55,7 +56,22 @@ public abstract class BaseProjectile
         float y,
         float rotation
     ){
+        if(ownerPool == null || disposed) return;
+        executeProjectileStart(
+            x,
+            y,
+            rotation
+        );
+    }
+
+    protected void executeProjectileStart(
+        float x,
+        float y,
+        float rotation
+    ){
         this.reset = false;
+        this.ownerPool.addToActive(this);
+
 
         this.transformC.x = x;
         this.transformC.y = y;
@@ -172,6 +188,10 @@ public abstract class BaseProjectile
 
     public TransformComponent getTransformC() {
         return transformC;
+    }
+
+    public ProjectilePool<?> getOwnerPool() {
+        return ownerPool;
     }
 
     @Override
