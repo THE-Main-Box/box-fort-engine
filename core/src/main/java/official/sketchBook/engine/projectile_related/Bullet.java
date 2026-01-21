@@ -7,6 +7,7 @@ import official.sketchBook.engine.components_related.movement.MovableObjectPhysi
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
+import official.sketchBook.game.util_related.constants.WorldConstants;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.ALL;
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.PROJECTILES;
@@ -21,26 +22,26 @@ public class Bullet extends PhysicalProjectile {
 
     @Override
     protected void initComponents() {
-        this.reset = false;
+        this.reset = true;
 
         initTransformC();
         initPhysicsComponent();
         initMovementComponent();
     }
 
-    private void initMovementComponent(){
+    private void initMovementComponent() {
         this.moveC = new MovementComponent(
             this,
-            9999,
-            9999,
-            0,
-            0,
+            WorldConstants.ProjectileConstants.PROJECTILE_MAX_SPEED_X,
+            WorldConstants.ProjectileConstants.PROJECTILE_MAX_SPEED_Y,
+            WorldConstants.ProjectileConstants.PROJECTILE_DECELERATION_X,
+            WorldConstants.ProjectileConstants.PROJECTILE_DECELERATION_Y,
             true,
             true,
             true,
             true,
-            true,
-            true,
+            false,
+            false,
             false
         );
 
@@ -48,18 +49,7 @@ public class Bullet extends PhysicalProjectile {
     }
 
     private void initTransformC() {
-        this.transformC = TransformComponent.initNewTransformComponent(
-            0,
-            0,
-            0,
-            0,
-            16,
-            0,
-            1,
-            1,
-            false,
-            false
-        );
+        this.transformC = new TransformComponent();
     }
 
     @Override
@@ -79,7 +69,7 @@ public class Bullet extends PhysicalProjectile {
         this.toPostUpdate.add(physicsC);
     }
 
-    public void createBody() {
+    private void createBody() {
         this.body = BodyCreatorHelper.createCircle(
             this.world,
             new Vector2(
@@ -96,6 +86,26 @@ public class Bullet extends PhysicalProjectile {
         );
     }
 
+    public void startProjectile(
+        float x,
+        float y,
+        float rotation
+    ) {
+        this.reset = false;
+        this.body.setActive(true);
+    }
+
+    @Override
+    protected void executeUpdate(float delta) {
+
+    }
+
+    @Override
+    protected void executePostUpdate() {
+
+    }
+
+
     public void onObjectAndBodyPosSync() {
 
     }
@@ -107,6 +117,11 @@ public class Bullet extends PhysicalProjectile {
 
     @Override
     protected void executeReset() {
+        this.body.setActive(false);
+    }
+
+    @Override
+    protected void disposeGeneralData() {
 
     }
 }

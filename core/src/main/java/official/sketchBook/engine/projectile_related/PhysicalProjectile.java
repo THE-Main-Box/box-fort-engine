@@ -18,19 +18,10 @@ public abstract class PhysicalProjectile extends BaseProjectile implements Physi
     ) {
         super(ownerPool);
         this.world = world;
-
     }
 
-    /// Inicia todos os componentes
-    protected abstract void initComponents();
-
-    /// Inicia os dados importantes da body
+    /// Inicia os dados importantes da body e a body
     protected abstract void initPhysicsComponent();
-
-    @Override
-    protected void disposeGeneralData() {
-
-    }
 
     @Override
     protected void nullifyReferences() {
@@ -47,7 +38,4 @@ public abstract class PhysicalProjectile extends BaseProjectile implements Physi
         return body;
     }
 
-    public PhysicalGameObjectDataManager getPhysicalManager() {
-        return null;
-    }
 }

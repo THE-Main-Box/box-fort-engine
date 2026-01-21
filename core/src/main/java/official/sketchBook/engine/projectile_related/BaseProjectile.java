@@ -44,17 +44,29 @@ public abstract class BaseProjectile
         toPostUpdate = new ArrayList<>();
 
         this.ownerPool = ownerPool;
+
     }
 
-    public void update(float delta) {
+    /// Inicia todos os componentes, preparando para usar dentro da pool
+    protected abstract void initComponents();
+
+    public final void update(float delta) {
         if (reset || disposed) return;
         updateComponents(delta);
+        executeUpdate(delta);
     }
 
-    public void postUpdate() {
+    public final void postUpdate() {
         if (reset || disposed) return;
         postUpdateComponents();
+        executePostUpdate();
     }
+
+    /// Execução de atualização dentro de cada instancia
+    protected abstract void executeUpdate(float delta);
+
+    /// Execução de pós atualização dentro de cada instancia
+    protected abstract void executePostUpdate();
 
     private void updateComponents(float delta) {
         for (Component component : toUpdate) {
@@ -70,7 +82,7 @@ public abstract class BaseProjectile
 
     /// Sequencia de destruição de um projétil
     @Override
-    public void destroy() {
+    public final void destroy() {
         executeProjectileDestruction();
 
         this.reset();
@@ -81,7 +93,7 @@ public abstract class BaseProjectile
     protected abstract void executeProjectileDestruction();
 
     @Override
-    public void reset() {
+    public final void reset() {
         //Se já tivermos realizado um reset não resetamos novamente
         //Também evitamos de prosseguir caso já tenhamos realizado um dispose dos dados
         if (reset || disposed) return;
@@ -89,9 +101,10 @@ public abstract class BaseProjectile
         reset = true;
     }
 
+    /// Execução de reset dentro de cada instancia
     protected abstract void executeReset();
 
-    public void dispose() {
+    public final void dispose() {
         //Se já tivermos realizado um disposed ou ainda não tivermos resetado os dados não podemos realizar o dispose
         if (disposed || !reset) return;
 

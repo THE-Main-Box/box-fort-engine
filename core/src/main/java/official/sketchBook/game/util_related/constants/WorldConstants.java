@@ -12,6 +12,18 @@ public class WorldConstants {
         public static final float POOL_REMOVE_INTERVAL_MS = 16f;
     }
 
+    public static class ProjectileConstants {
+        /// Limite de velocidade máximo para projéteis
+        public static final float
+            PROJECTILE_MAX_SPEED_X = 999,
+            PROJECTILE_MAX_SPEED_Y = 999;
+
+        /// Desaceleração padrão para projéteis
+        public static final float
+            PROJECTILE_DECELERATION_X = 0,
+            PROJECTILE_DECELERATION_Y = 0;
+    }
+
     public static class PlayerConstants {
 
         /// Dimensões do jogador

@@ -8,7 +8,7 @@ import official.sketchBook.engine.animation_rendering_related.ObjectAnimationPla
 import official.sketchBook.engine.animation_rendering_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.JumpCapableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalGameObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.RoomGroundInteractableObject;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.components_related.movement.JumpComponent;
@@ -35,7 +35,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     implements
     StaticResourceDisposable,
     MovableObjectII,
-    PhysicalObjectII,
+    PhysicalGameObjectII,
     RoomGroundInteractableObject,
     JumpCapableObjectII {
 
@@ -220,7 +220,7 @@ public class Player extends AnimatedRenderableRoomGameObject
         );
     }
 
-    public void createBody() {
+    private void createBody() {
         body = BodyCreatorHelper.createBox(
             this.getPhysicalManager().getPhysicsWorld(),
             new Vector2(

@@ -2,8 +2,8 @@ package official.sketchBook.engine.components_related.physics;
 
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalGameObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 
@@ -110,8 +110,6 @@ public class PhysicsComponent implements Component {
 
     /// Coloca o objeto na posição da body
     public final void syncObjectToBodyPos() {
-        updatePosBuffer();
-
         transformC.x = (
             (tmpPos.x * PPM) - halfWidth
         );
@@ -128,14 +126,14 @@ public class PhysicsComponent implements Component {
     public final void rotateBody(float deltaDegrees) {
         if (disposed) return;
 
-        /// Early exit para valores irrelevantes
+        // Early exit para valores irrelevantes
         if (Math.abs(deltaDegrees) < 0.0001f) return;
 
-        /// Conversão para radianos e cálculo do novo ângulo
+        // Conversão para radianos e cálculo do novo ângulo
         float deltaRad = deltaDegrees * MathUtils.degreesToRadians;
         float newAngleRad = object.getBody().getAngle() + deltaRad;
 
-        /// Normalização do ângulo (sem múltiplos cálculos)
+        // Normalização do ângulo (sem múltiplos cálculos)
         newAngleRad = normalizeAngle(newAngleRad);
 
         /// Aplicação com buffer reutilizável
@@ -257,8 +255,9 @@ public class PhysicsComponent implements Component {
     @Override
     public void postUpdate() {
         if (disposed) return;
-        syncObjectToBodyPos();
+        updatePosBuffer();
 
+        syncObjectToBodyPos();
         object.onObjectAndBodyPosSync();
 
     }

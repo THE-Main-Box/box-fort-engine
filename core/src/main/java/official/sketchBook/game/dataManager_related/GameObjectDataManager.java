@@ -80,13 +80,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         Emitter bulletEmitter = new Emitter(globalProjectilePool);
         bulletEmitter.configure(Bullet.class);
-        Bullet bullet = (Bullet) bulletEmitter.obtain(
-            260,
-            30,
-            0
-        );
-
-        System.out.println(bullet.getBody().getPosition());
+        Bullet bullet = (Bullet) bulletEmitter.obtain();
     }
 
     @Override
