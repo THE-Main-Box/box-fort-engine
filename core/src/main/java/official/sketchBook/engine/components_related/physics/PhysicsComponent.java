@@ -222,6 +222,24 @@ public class PhysicsComponent implements Component {
         object.getBody().setLinearVelocity(0, 0);
     }
 
+    /// Zera a velocidade do eixo X do corpo
+    public final void stopMovementX() {
+        if (disposed || object.getBody() == null) return;
+        object.getBody().setLinearVelocity(
+            object.getBody().getLinearVelocity().x,
+            0
+        );
+    }
+
+    /// Zera a velocidade do eixo Y do corpo
+    public final void stopMovementY() {
+        if (disposed || object.getBody() == null) return;
+        object.getBody().setLinearVelocity(
+            0,
+            object.getBody().getLinearVelocity().y
+        );
+    }
+
     /// Zera a velocidade angular (parada rotacional)
     public final void stopRotation() {
         if (disposed || object.getBody() == null) return;
@@ -249,12 +267,10 @@ public class PhysicsComponent implements Component {
 
     @Override
     public void update(float delta) {
-
     }
 
     @Override
     public void postUpdate() {
-        if (disposed) return;
         updatePosBuffer();
 
         syncObjectToBodyPos();

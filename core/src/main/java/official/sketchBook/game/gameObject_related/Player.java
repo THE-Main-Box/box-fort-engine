@@ -161,15 +161,21 @@ public class Player extends AnimatedRenderableRoomGameObject
             this,
             WorldConstants.PlayerConstants.MAX_SPEED_X,
             WorldConstants.PlayerConstants.MAX_SPEED_Y,
+            0,
             WorldConstants.PlayerConstants.X_DECELERATION,
             WorldConstants.PlayerConstants.Y_DECELERATION,
+            0,
             true,
             true,
+            false,
             true,
             true,
+            false,
             true,
             true,
-            false
+            false,
+            false,
+            true
         );
         this.toUpdateComponentList.add(moveC);
     }
@@ -178,7 +184,7 @@ public class Player extends AnimatedRenderableRoomGameObject
         this.physicsC = new MovableObjectPhysicsComponent(
             this,
             ALLY_ENTITY.bit(),
-            SENSOR.bit() | ENVIRONMENT.bit(),
+            SENSOR.bit() | ENVIRONMENT.bit() | PROJECTILES.bit(),
             0.5f,
             1f,
             0f
@@ -238,8 +244,6 @@ public class Player extends AnimatedRenderableRoomGameObject
             physicsC.getMaskBit()
         );
 
-        this.body.setFixedRotation(true);
-        this.body.resetMassData();
         this.body.setLinearDamping(0);
 
         this.body.setUserData(

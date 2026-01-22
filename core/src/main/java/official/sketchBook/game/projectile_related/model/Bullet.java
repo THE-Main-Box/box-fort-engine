@@ -6,6 +6,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.components_related.movement.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
+import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
 import official.sketchBook.engine.projectile_related.models.PhysicalProjectile;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.game.projectile_related.pool.ProjectilePool;
@@ -32,20 +33,34 @@ public class Bullet extends PhysicalProjectile {
         initMovementComponent();
     }
 
+    @Override
+    protected void initController() {
+        this.controllerC = new ProjectileControllerComponent(this);
+
+        this.toUpdate.add(controllerC);
+        this.toPostUpdate.add(controllerC);
+    }
+
     private void initMovementComponent() {
         this.moveC = new MovementComponent(
             this,
             WorldConstants.ProjectileConstants.PROJECTILE_MAX_SPEED_X,
             WorldConstants.ProjectileConstants.PROJECTILE_MAX_SPEED_Y,
+            999,
             WorldConstants.ProjectileConstants.PROJECTILE_DECELERATION_X,
             WorldConstants.ProjectileConstants.PROJECTILE_DECELERATION_Y,
+            0,
             true,
             true,
             true,
             true,
-            false,
-            false,
-            false
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
         );
 
         this.toUpdate.add(moveC);
@@ -64,7 +79,7 @@ public class Bullet extends PhysicalProjectile {
             PROJECTILES.bit(),
             ALL.bit(),
             0.5f,
-            1f,
+            0f,
             0f
         );
 

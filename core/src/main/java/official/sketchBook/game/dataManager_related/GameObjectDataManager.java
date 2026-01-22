@@ -2,12 +2,12 @@ package official.sketchBook.game.dataManager_related;
 
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
+import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
-import official.sketchBook.engine.projectile_related.emitter.Emitter;
+import official.sketchBook.engine.projectile_related.util.Emitter;
 import official.sketchBook.game.projectile_related.factories.PoolFactory;
 import official.sketchBook.game.projectile_related.model.Bullet;
 import official.sketchBook.engine.projectile_related.pool.GlobalProjectilePool;
-import official.sketchBook.game.projectile_related.pool.PhysicalProjectilePool;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.MovableObjectContactListener;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
@@ -83,9 +83,15 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         bulletEmitter.configure(Bullet.class);
         Bullet bullet = (Bullet) bulletEmitter.obtain();
 
+        MovementComponent moveC = bullet.getMoveC();
+        moveC.gravityAffected = true;
+        moveC.canMoveY = true;
+        moveC.canMoveX = true;
+        moveC.canRotate = true;
+
         bullet.startProjectile(
             300,
-            90,
+            30,
             45
         );
 
