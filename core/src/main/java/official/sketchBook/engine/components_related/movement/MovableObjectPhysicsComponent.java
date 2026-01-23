@@ -1,13 +1,14 @@
 package official.sketchBook.engine.components_related.movement;
 
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalGameObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 
 public class MovableObjectPhysicsComponent extends PhysicsComponent {
 
     private MovableObjectII mob;
+
+    private float defaultGravityScale;
 
     public MovableObjectPhysicsComponent(
         PhysicalObjectII object,
@@ -36,6 +37,11 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
             mob.getMoveC().xMaxSpeed,
             mob.getMoveC().yMaxSpeed
         );
+
+        constraintMovementAxis();
+        constraintRotation();
+        constraintGravity();
+
     }
 
     @Override
@@ -53,5 +59,46 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
     public void nullifyReferences() {
         super.nullifyReferences();
         this.mob = null;
+    }
+
+    private void constraintRotation() {
+        if (!mob.getMoveC().canRotate) {
+            object.getBody().setAngularVelocity(0);
+            object.getBody().setFixedRotation(true);
+        } else {
+            object.getBody().setFixedRotation(false);
+
+            object.getBody().setAngularVelocity(
+                mob.getMoveC().rSpeed
+            );
+        }
+    }
+
+
+    /// Impede a movimentação nos eixos
+    private void constraintMovementAxis() {
+        if (!mob.getMoveC().canMoveX && !mob.getMoveC().canMoveY) {
+            stopMovement();
+        } else if (!mob.getMoveC().canMoveX) {
+            stopMovementX();
+        } else if (!mob.getMoveC().canMoveY) {
+            stopMovementY();
+        }
+    }
+
+    /// Impede o efeito da gravidade no objeto caso não possamos nos mover no eixo y
+    private void constraintGravity() {
+        if (!mob.getMoveC().gravityAffected) {
+            defaultGravityScale = object.getBody().getGravityScale();
+            object.getBody().setGravityScale(0);
+        } else {
+            if (defaultGravityScale > 0) {
+                object.getBody().setGravityScale(
+                    defaultGravityScale
+                );
+
+                defaultGravityScale = -1;
+            }
+        }
     }
 }

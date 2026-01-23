@@ -5,6 +5,7 @@ import official.sketchBook.engine.components_related.intefaces.base_interfaces.C
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
+import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
 import official.sketchBook.game.projectile_related.pool.ProjectilePool;
 import official.sketchBook.engine.util_related.custom_utils.CustomPool;
 
@@ -34,6 +35,9 @@ public abstract class BaseProjectile
         reset,
         disposed;
 
+    /// Componente de controle, precisa ser iniciado de forma estrategica
+    protected ProjectileControllerComponent controllerC;
+
     public BaseProjectile(
         ProjectilePool<?> ownerPool
     ) {
@@ -50,6 +54,8 @@ public abstract class BaseProjectile
 
     /// Inicia todos os componentes, preparando para usar dentro da pool
     protected abstract void initComponents();
+
+    protected abstract void initController();
 
     public void startProjectile(
         float x,
@@ -176,6 +182,7 @@ public abstract class BaseProjectile
         moveC = null;
         transformC = null;
         ownerPool = null;
+        controllerC = null;
     }
 
     public boolean isDisposed() {

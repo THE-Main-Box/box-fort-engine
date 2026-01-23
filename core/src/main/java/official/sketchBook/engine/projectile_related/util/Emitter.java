@@ -1,4 +1,4 @@
-package official.sketchBook.engine.projectile_related.emitter;
+package official.sketchBook.engine.projectile_related.util;
 
 import com.badlogic.gdx.utils.Disposable;
 import official.sketchBook.engine.projectile_related.models.BaseProjectile;
