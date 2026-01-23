@@ -20,7 +20,7 @@ public class MovementComponent implements Component {
         yMaxSpeed,          //Limite de velocidade do eixo y (m|px/s)
         rMaxSpeed;          //Limite de velocidade de rotação (rad/s)
 
-    /// Valores de aceleração em metros
+    /// Valores de aceleração (input, sempre vem em pixels, exceto pelo rad que é em radianos)
     public float
         xAccel,             //Aceleração do eixo x (m|px/s)
         yAccel,             //Aceleração do eixo y (m|px/s)
@@ -49,7 +49,7 @@ public class MovementComponent implements Component {
     public boolean
         canDeAccelerateX,           //Se podemos desacelerar no eixo x
         canDeAccelerateY,           //Se podemos desacelerar no eixo y
-        canDeAccelerateR;    //Se podemos desacelerar a rotação
+        canDeAccelerateR;           //Se podemos desacelerar a rotação
 
     /// Esta variavel determina se a velocidade é aplicada no objeto de forma direta
     public final boolean autoApplySpeed;
@@ -104,9 +104,46 @@ public class MovementComponent implements Component {
 
     @Override
     public void update(float delta) {
-        updateXAxis(delta);
-        updateYAxis(delta);
-        updateRotation(delta);
+
+        xSpeed = updateAxis(
+            xSpeed,
+            xAccel,
+            xMaxSpeed,
+            xDeceleration,
+            canMoveX,
+            canAccelerateX,
+            canDeAccelerateX,
+            delta
+        );
+
+        ySpeed = updateAxis(
+            ySpeed,
+            yAccel,
+            yMaxSpeed,
+            yDeceleration,
+            canMoveY,
+            canAccelerateY,
+            canDeAccelerateY,
+            delta
+        );
+
+        rSpeed = updateAxis(
+            rSpeed,
+            rAccel,
+            rMaxSpeed,
+            rDeceleration,
+            canRotate,
+            canAccelerateR,
+            canDeAccelerateR,
+            delta
+        );
+
+        if (!canRotate)
+            resetRotation();
+        if (!canMoveX)
+            resetXMovement();
+        if (!canMoveY)
+            resetYMovement();
 
         if (autoApplySpeed) {
             applyMovementToMob(delta);
@@ -117,36 +154,6 @@ public class MovementComponent implements Component {
     public void postUpdate() {
 
     }
-
-    private void updateRotation(float delta) {
-        if (!canRotate) {
-            resetRotation();
-            return;
-        }
-
-        if (canAccelerateR && isAcceleratingRotation()) {
-            rSpeed += rAccel;
-        } else {
-            rAccel = 0;
-
-            if (isRotating() && canDeAccelerateR) {
-                rSpeed = applyDeceleration(
-                    rSpeed,
-                    rDeceleration * delta
-                );
-            }
-        }
-
-        applyAngularSpeedClamp();
-    }
-    private void applyAngularSpeedClamp() {
-        if (rSpeed > rMaxSpeed) {
-            rSpeed = rMaxSpeed;
-        } else if (rSpeed < -rMaxSpeed) {
-            rSpeed = -rMaxSpeed;
-        }
-    }
-
 
     protected void applyMovementToMob(float delta) {
         mob.getTransformC().x = (
@@ -159,83 +166,31 @@ public class MovementComponent implements Component {
 
     }
 
-    /// Atualização interna da movimentação do eixo x
-    private void updateXAxis(float delta) {
-        // Se não pudermos mover no eixo x, resetamos a movimentação do eixo x
-        if (!canMoveX) {
-            resetXMovement();
-            return;
+    private float updateAxis(
+        float speed,
+        float accel,
+        float maxSpeed,
+        float deceleration,
+        boolean canMove,
+        boolean canAccelerate,
+        boolean canDeAccelerate,
+        float delta
+    ) {
+        if (!canMove) return 0;
+
+
+        if (canAccelerate && accel != 0) {
+            speed += accel;
+        } else if (canDeAccelerate && speed != 0) {
+            speed = applyDeceleration(speed, deceleration * delta);
         }
 
-        //Se pudermos acelerar no eixo x
-        // e tivermos uma aceleração acumulada
-        if (canAccelerateX && isAcceleratingX()) {
-            //Aplicamos a aceleração na velocidade
-            xSpeed += xAccel;
-        } else { // se não pudermos acelerar, ou não tivermos aceleração sendo passada
-
-            //Resetamos a aceleração para impedir que haja um fluxo de movimentação incoerente
-            xAccel = 0;
-
-            //Se houver velocidade no eixo x lidamos com a desaceleração
-            if (isMovingX() && canDeAccelerateX) {
-                //Aplicamos uma desaceleração no eixo x
-                xSpeed = applyDeceleration(
-                    xSpeed,
-                    (xDeceleration * delta)
-                );
-            }
-        }
-
-        //Limitamos a velocidade no eixo x
-        applyXSpeedClamp();
+        return clamp(speed, maxSpeed);
     }
 
-    /// Mantém a velocidade do eixo x dentro do limite estabelecido quer seja maior ou menor que 0
-    private void applyXSpeedClamp() {
-        if (xSpeed > xMaxSpeed) {
-            xSpeed = xMaxSpeed;
-        } else if (xSpeed < -xMaxSpeed) {
-            xSpeed = -xMaxSpeed;
-        }
-    }
-
-    private void updateYAxis(float delta) {
-        // Se não puder se mover no eixo y, resetamos a velocidade e aceleração do eixo
-        if (!canMoveY) {
-            resetYMovement();
-            return;
-        }
-
-        // Se pudermos acelerar e tivermos aceleração armazenada no eixo y, aceleramos
-        if (canAccelerateY && isAcceleratingY()) {
-            ySpeed += yAccel;
-        } else { //Caso não possamos acelerar ou não tenhamos aceleração no eixo y, começamos a desacelerar
-            yAccel = 0;
-
-            //Importante lembrar que se não houver velocidade não é preciso limitar nada
-            if (isMovingY() && canDeAccelerateY) {
-
-                ySpeed = applyDeceleration(
-                    ySpeed,
-                    (yDeceleration * delta)
-                );
-            }
-
-        }
-
-        //Limita a velocidade do eixo y
-        applyYSpeedClamp();
-
-    }
-
-    /// Mantém a velocidade do eixo y dentro do limite estabelecido quer seja maior ou menor que 0
-    private void applyYSpeedClamp() {
-        if (ySpeed > yMaxSpeed) {
-            ySpeed = yMaxSpeed;
-        } else if (ySpeed < -yMaxSpeed) {
-            ySpeed = -yMaxSpeed;
-        }
+    private float clamp(float value, float max) {
+        if (value > max) return max;
+        return Math.max(value, -max);
     }
 
     /// Aplica a desaceleração artificial
@@ -247,7 +202,6 @@ public class MovementComponent implements Component {
 
         return speed - deceleration * Math.signum(speed);
     }
-
 
     /// Reseta a movimentação no eixo x de aceleração e velocidade
     public void resetXMovement() {
@@ -261,6 +215,7 @@ public class MovementComponent implements Component {
         this.yAccel = 0;
     }
 
+    /// Reseta os valores de movimento de rotação
     public void resetRotation() {
         this.rSpeed = 0;
         this.rAccel = 0;
