@@ -92,14 +92,25 @@ public class Player extends AnimatedRenderableRoomGameObject
     protected void initObject() {
         super.initObject();
 
+        //Controlador
+        initControllerComponent();
+        //Gerenciador de animações
+        initAnimationControllerComponent();
+
+        //Detecção de colisão
+        initGroundDetectionComponent();
+
+        //Aplicador de movimento
+        initMovementComponent();
+
+        //Aplicador final de movimento
         initPhysicsComponent();
 
-        initRenderingComponent();
-        initControllerComponent();
-        initMovementComponent();
+        //Aplicador de movimento secundário
         initJumpComponent();
-        initGroundDetectionComponent();
-        initAnimationControllerComponent();
+
+        //Renderizador
+        initRenderingComponent();
     }
 
     private void initAnimationControllerComponent() {
