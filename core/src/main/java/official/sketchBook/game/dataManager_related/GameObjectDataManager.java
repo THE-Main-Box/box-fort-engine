@@ -1,5 +1,6 @@
 package official.sketchBook.game.dataManager_related;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
@@ -142,6 +143,29 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     protected void postUpdateGameObjects() {
         super.postUpdateGameObjects();
         globalProjectilePool.postUpdateProjectiles();
+    }
+
+    @Override
+    protected void updateRenderableObjectVisuals(float delta) {
+
+        renderTree.forEachObject(
+            obj -> obj.updateVisuals(delta),
+            (gameCamera.getCamera().position.x),
+            (gameCamera.getCamera().position.y),
+            (gameCamera.getCamera().viewportWidth * gameCamera.getCamera().zoom),
+            (gameCamera.getCamera().viewportHeight * gameCamera.getCamera().zoom)
+        );
+    }
+
+    @Override
+    protected void drawRenderableObjects(SpriteBatch batch) {
+        renderTree.forEachObject(
+            obj -> obj.render(batch),
+            (gameCamera.getCamera().position.x),
+            (gameCamera.getCamera().position.y),
+            (gameCamera.getCamera().viewportWidth * gameCamera.getCamera().zoom),
+            (gameCamera.getCamera().viewportHeight * gameCamera.getCamera().zoom)
+        );
     }
 
     private int[][] initBaseTileMap() {
