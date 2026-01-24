@@ -114,8 +114,10 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     private void initAnimationControllerComponent() {
-        this.toUpdateComponentList.add(
-            new PlayerAnimationControllerComponent(this)
+        this.managerC.add(
+            new PlayerAnimationControllerComponent(this),
+            true,
+            false
         );
     }
 
@@ -132,8 +134,11 @@ public class Player extends AnimatedRenderableRoomGameObject
             false
         );
 
-        this.toUpdateComponentList.add(jumpC);
-        this.toPostUpdateComponentList.add(jumpC);
+        this.managerC.add(
+            jumpC,
+            true,
+            true
+        );
     }
 
     private void initGroundDetectionComponent() {
@@ -143,8 +148,11 @@ public class Player extends AnimatedRenderableRoomGameObject
             -1
         );
 
-        this.toPostUpdateComponentList.add(roomGroundDetectC);
-        this.toUpdateComponentList.add(roomGroundDetectC);
+        this.managerC.add(
+            roomGroundDetectC,
+            true,
+            true
+        );
     }
 
     private void initControllerComponent() {
@@ -152,8 +160,7 @@ public class Player extends AnimatedRenderableRoomGameObject
             controllerC = new PlayerControllerComponent(this);
         } else {
             //Fazemos com que o antigo player perca o acesso ao controller
-            removeComponentByType(
-                controllerC.player,
+            controllerC.player.managerC.remove(
                 PlayerControllerComponent.class,
                 true,
                 false,
@@ -164,7 +171,11 @@ public class Player extends AnimatedRenderableRoomGameObject
             controllerC.player = this;
         }
 
-        this.toUpdateComponentList.add(controllerC);
+        this.managerC.add(
+            controllerC,
+            true,
+            false
+        );
     }
 
     private void initMovementComponent() {
@@ -188,7 +199,12 @@ public class Player extends AnimatedRenderableRoomGameObject
             false,
             true
         );
-        this.toUpdateComponentList.add(moveC);
+
+        this.managerC.add(
+            moveC,
+            true,
+            false
+        );
     }
 
     private void initPhysicsComponent() {
@@ -203,8 +219,11 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         this.createBody();
 
-        this.toUpdateComponentList.add(physicsC);
-        this.toPostUpdateComponentList.add(physicsC);
+        this.managerC.add(
+            physicsC,
+            true,
+            true
+        );
     }
 
     private void initRenderingComponent() {
@@ -345,7 +364,8 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     @Override
-    protected void disposeData() {
+    protected void disposeCriticalData() {
+        super.disposeCriticalData();
         System.out.println("Player limpando dados de instancia");
         body = null;
         moveC = null;
@@ -360,5 +380,10 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         playerSheet = null;
         controllerC = null;
+    }
+
+    @Override
+    protected void disposeGeneralData() {
+
     }
 }

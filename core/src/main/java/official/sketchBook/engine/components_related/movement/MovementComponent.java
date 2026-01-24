@@ -139,7 +139,7 @@ public class MovementComponent implements Component {
         );
 
         if (!canRotate)
-            resetRotation();
+            resetRMovement();
         if (!canMoveX)
             resetXMovement();
         if (!canMoveY)
@@ -216,7 +216,7 @@ public class MovementComponent implements Component {
     }
 
     /// Reseta os valores de movimento de rotação
-    public void resetRotation() {
+    public void resetRMovement() {
         this.rSpeed = 0;
         this.rAccel = 0;
     }
