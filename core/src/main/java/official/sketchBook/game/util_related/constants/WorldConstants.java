@@ -12,6 +12,13 @@ public class WorldConstants {
         public static final float POOL_REMOVE_INTERVAL_S = 8f;
     }
 
+    public static class MobConstants {
+        public static final float
+            MAX_SPEED_X = 999,
+            MAX_SPEED_Y = 999,
+            MAX_ROTATION_SPEED = 360;
+    }
+
     public static class ProjectileConstants {
         /// Limite de velocidade máximo para projéteis
         public static final float

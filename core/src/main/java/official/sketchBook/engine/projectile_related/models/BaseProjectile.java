@@ -52,17 +52,27 @@ public abstract class BaseProjectile
 
     }
 
-    /// Inicia todos os componentes, preparando para usar dentro da pool
+    /// Inicia os componentes para prepararmos para o uso da pool
     protected abstract void initComponents();
 
+    /// Inicia o controlador do projétil
     protected abstract void initController();
 
-    public void startProjectile(
+    /// Inicia o projétil e o torna ativo para ser usado
+    public final void startProjectile(
         float x,
         float y,
         float rotation
     ){
         if(ownerPool == null || disposed) return;
+
+        //Marca o projétil como não sendo resetado, pois estamos iniciando o projétil aqui
+        this.reset = false;
+
+        //Fazemos o projétil entrar na pipeline de objetos ativos
+        this.ownerPool.addToActive(this);
+
+        //Executa a inicialização de cada instância
         executeProjectileStart(
             x,
             y,
@@ -70,27 +80,26 @@ public abstract class BaseProjectile
         );
     }
 
+    /// Sequencia de ativação do projétil, de cada instancia
     protected void executeProjectileStart(
         float x,
         float y,
         float rotation
     ){
-        this.reset = false;
-        this.ownerPool.addToActive(this);
-
-
         this.transformC.x = x;
         this.transformC.y = y;
         this.transformC.rotation = rotation;
     }
 
     public final void update(float delta) {
+        //Se o projétil estiver resetado ou disposed, não atualizamos
         if (reset || disposed) return;
         updateComponents(delta);
         executeUpdate(delta);
     }
 
     public final void postUpdate() {
+        //Se o projétil estiver resetado ou disposed não atualizamos
         if (reset || disposed) return;
         postUpdateComponents();
         executePostUpdate();
@@ -102,12 +111,14 @@ public abstract class BaseProjectile
     /// Execução de pós atualização dentro de cada instancia
     protected abstract void executePostUpdate();
 
+    /// Atualiza todos os componentes
     private void updateComponents(float delta) {
         for (Component component : toUpdate) {
             component.update(delta);
         }
     }
 
+    /// Realiza a pós atualização de todos os componentes
     private void postUpdateComponents() {
         for (Component component : toPostUpdate) {
             component.postUpdate();
@@ -145,6 +156,7 @@ public abstract class BaseProjectile
         disposeGeneralData();
         disposeComponents();
         cleanLists();
+        nullifyReferences();
         disposeCriticalData();
 
         disposed = true;
@@ -155,11 +167,13 @@ public abstract class BaseProjectile
 
     /// Limpa os componentes
     protected void disposeComponents() {
+        //Realiza o dispose de todos os componentes da lista de update
         for (Component component : toUpdate) {
             if (component.isDisposed()) continue;
             component.dispose();
         }
 
+        //Realiza o dispose de todos os componentes da lista de post update
         for (Component component : toPostUpdate) {
             if (component.isDisposed()) continue;
             component.dispose();
@@ -173,9 +187,7 @@ public abstract class BaseProjectile
     }
 
     /// Realiza o dispose final de dados, geralmente aqueles que precisam ser limpos por último
-    protected void disposeCriticalData() {
-        nullifyReferences();
-    }
+    protected abstract void disposeCriticalData();
 
     /// Limpa as referenciais
     protected void nullifyReferences() {

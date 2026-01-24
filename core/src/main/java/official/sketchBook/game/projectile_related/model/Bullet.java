@@ -28,9 +28,18 @@ public class Bullet extends PhysicalProjectile {
     protected void initComponents() {
         this.reset = true;
 
+        /*Iniciamos o controller, ele que irá determinar algumas informações extremamente importantes,
+         *então ele precisa ter prioridade na atualização*/
+        initController();
+        /*Iniciamos o pseudoComponente de transform, ele não é um compoentne de fato,
+         *mas armazena dados de coordenadas e dimensão,
+         *importante e precisa ser um dos primeiros a ser criado*/
         initTransformC();
-        initPhysicsComponent();
+        /*Iniciamos o componente de movimento, ele lida com a movimentação do projétil,
+        * então precisa existir após o controlador e antes do sistema de física*/
         initMovementComponent();
+        /*Iniciamos o componetne de física, ele que aplica tudo na body*/
+        initPhysicsComponent();
     }
 
     @Override
@@ -87,6 +96,7 @@ public class Bullet extends PhysicalProjectile {
         this.toPostUpdate.add(physicsC);
     }
 
+    /// Criamos a body do projétil
     private void createBody() {
         if (body != null) return;
 
@@ -129,7 +139,6 @@ public class Bullet extends PhysicalProjectile {
 
     @Override
     protected void executeUpdate(float delta) {
-
     }
 
     @Override
@@ -154,6 +163,11 @@ public class Bullet extends PhysicalProjectile {
 
     @Override
     protected void disposeGeneralData() {
+
+    }
+
+    @Override
+    protected void disposeCriticalData() {
 
     }
 }

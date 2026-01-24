@@ -107,8 +107,8 @@ public abstract class BaseGameObjectDataManager implements Disposable {
     }
 
     /// Percorre o renderManager para atualizar os visuais de cada objeto renderizável
-    private void updateRenderableObjectVisuals(float delta){
-        renderTree.forEachForUpdate(
+    protected void updateRenderableObjectVisuals(float delta){
+        renderTree.forEachObject(
             obj -> obj.updateVisuals(delta)
         );
     }
@@ -119,8 +119,8 @@ public abstract class BaseGameObjectDataManager implements Disposable {
     }
 
     ///Percorre o renderManager e renderiza todos os objetos que podem ser renderizados
-    private void drawRenderableObjects(SpriteBatch batch){
-        renderTree.forEachForRender(
+    protected void drawRenderableObjects(SpriteBatch batch){
+        renderTree.forEachObject(
             obj -> obj.render(batch)
         );
     }
