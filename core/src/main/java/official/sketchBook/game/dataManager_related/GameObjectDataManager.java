@@ -4,16 +4,18 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
+import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
 import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
-import official.sketchBook.engine.projectile_related.util.Emitter;
-import official.sketchBook.game.projectile_related.factories.PoolFactory;
-import official.sketchBook.game.projectile_related.model.Bullet;
 import official.sketchBook.engine.projectile_related.pool.GlobalProjectilePool;
+import official.sketchBook.engine.projectile_related.util.Emitter;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.MovableObjectContactListener;
-import official.sketchBook.engine.world_gen.model.PlayableRoom;
+import official.sketchBook.engine.util_related.contact_listener.ProjectileContactListener;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
+import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.gameObject_related.Player;
+import official.sketchBook.game.projectile_related.factories.PoolFactory;
+import official.sketchBook.game.projectile_related.model.Bullet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,7 +92,11 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         moveC.canMoveX = true;
         moveC.canRotate = true;
 
-        bullet.startProjectile(
+        ProjectileControllerComponent controller = bullet.getControllerC();
+        controller.continuousDetection = true;
+        controller.getLockC().stickToLeftCollision = true;
+
+        bullet.activateProjectile(
             300,
             30,
             45
@@ -106,6 +112,13 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             false,
             ContactUtils.keys.MOB_LISTENER,
             new MovableObjectContactListener()
+        );
+
+        ContactUtils.handleContactListener(
+            this.contactListeners,
+            false,
+            ContactUtils.keys.PROJECTILE_LISTENER,
+            new ProjectileContactListener()
         );
     }
 
