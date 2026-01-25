@@ -8,6 +8,8 @@ import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
 import official.sketchBook.engine.projectile_related.models.PhysicalProjectile;
+import official.sketchBook.engine.util_related.enumerators.ObjectType;
+import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.game.projectile_related.pool.ProjectilePool;
 import official.sketchBook.game.util_related.constants.WorldConstants;
@@ -27,7 +29,9 @@ public class Bullet extends PhysicalProjectile {
     @Override
     protected void initComponents() {
         this.reset = true;
-
+        /*Iniciamos o componente de movimento, ele lida com a movimentação do projétil,
+         * então precisa existir antes do sistema de física*/
+        initMovementComponent();
         /*Iniciamos o controller, ele que irá determinar algumas informações extremamente importantes,
          *então ele precisa ter prioridade na atualização*/
         initController();
@@ -35,9 +39,7 @@ public class Bullet extends PhysicalProjectile {
          *mas armazena dados de coordenadas e dimensão,
          *importante e precisa ser um dos primeiros a ser criado*/
         initTransformC();
-        /*Iniciamos o componente de movimento, ele lida com a movimentação do projétil,
-        * então precisa existir após o controlador e antes do sistema de física*/
-        initMovementComponent();
+
         /*Iniciamos o componetne de física, ele que aplica tudo na body*/
         initPhysicsComponent();
     }
@@ -46,8 +48,11 @@ public class Bullet extends PhysicalProjectile {
     protected void initController() {
         this.controllerC = new ProjectileControllerComponent(this);
 
-        this.toUpdate.add(controllerC);
-        this.toPostUpdate.add(controllerC);
+        managerC.add(
+            controllerC,
+            true,
+            true
+        );
     }
 
     private void initMovementComponent() {
@@ -72,7 +77,11 @@ public class Bullet extends PhysicalProjectile {
             true
         );
 
-        this.toUpdate.add(moveC);
+        managerC.add(
+            moveC,
+            true,
+            false
+        );
     }
 
     private void initTransformC() {
@@ -89,11 +98,14 @@ public class Bullet extends PhysicalProjectile {
             ALL.bit(),
             0.5f,
             0f,
-            0f
+            1f
         );
 
-        this.toUpdate.add(physicsC);
-        this.toPostUpdate.add(physicsC);
+        managerC.add(
+            physicsC,
+            true,
+            true
+        );
     }
 
     /// Criamos a body do projétil
@@ -116,11 +128,15 @@ public class Bullet extends PhysicalProjectile {
         );
 
         body.setActive(false);
+        body.setBullet(true);
+        body.setUserData(
+            new GameObjectTag(ObjectType.PROJECTILE, this)
+        );
     }
 
     @Override
-    protected void executeProjectileStart(float x, float y, float rotation) {
-        super.executeProjectileStart(x, y, rotation);
+    protected void executeProjectileActivation(float x, float y, float rotation) {
+        super.executeProjectileActivation(x, y, rotation);
 
         this.createBody();
 
@@ -139,11 +155,22 @@ public class Bullet extends PhysicalProjectile {
 
     @Override
     protected void executeUpdate(float delta) {
+
     }
 
     @Override
     protected void executePostUpdate() {
 
+    }
+
+    @Override
+    public void onCollisionDetection() {
+//        System.out.println("entrando em colisao");
+    }
+
+    @Override
+    public void onEndCollisionDetection() {
+//        System.out.println("saindo de colisao");
     }
 
 
