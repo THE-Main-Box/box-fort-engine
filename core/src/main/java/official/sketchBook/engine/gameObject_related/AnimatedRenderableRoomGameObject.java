@@ -59,8 +59,8 @@ public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObjec
     }
 
     @Override
-    protected void disposeData() {
-        super.disposeData();
+    protected void disposeCriticalData() {
+        super.disposeCriticalData();
         this.animationRenderC.dispose();
         this.animationRenderC = null;
     }

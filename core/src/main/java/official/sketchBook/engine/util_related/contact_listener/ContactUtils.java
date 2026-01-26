@@ -7,6 +7,7 @@ public class ContactUtils {
 
     public static class keys{
         public static final String MOB_LISTENER = "movable_object_listener";
+        public static final String PROJECTILE_LISTENER = "projectile_listener";
     }
 
     public static synchronized void handleContactListener(

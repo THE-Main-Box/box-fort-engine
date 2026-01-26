@@ -67,7 +67,8 @@ public abstract class BaseRoomGameObject extends BaseGameObject {
     }
 
     @Override
-    protected void disposeData() {
+    protected void disposeCriticalData() {
+        super.disposeCriticalData();
         transformC = null;
     }
 

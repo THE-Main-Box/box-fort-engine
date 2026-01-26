@@ -6,6 +6,7 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
+import official.sketchBook.engine.components_related.system_utils.ComponentManagerComponent;
 import official.sketchBook.game.projectile_related.pool.ProjectilePool;
 import official.sketchBook.engine.util_related.custom_utils.CustomPool;
 
@@ -27,26 +28,24 @@ public abstract class BaseProjectile
     protected MovementComponent moveC;
 
     /// Lista de componentes que precisam ser atualizados e disposed
-    protected List<Component> toUpdate;
-    protected List<Component> toPostUpdate;
+    protected ComponentManagerComponent managerC;
+
+    /// Componente de controle do projétil
+    protected ProjectileControllerComponent controllerC;
 
     /// Flags de estado relacionado a pool
     protected boolean
         reset,
         disposed;
 
-    /// Componente de controle, precisa ser iniciado de forma estrategica
-    protected ProjectileControllerComponent controllerC;
-
     public BaseProjectile(
         ProjectilePool<?> ownerPool
     ) {
-        reset = true;
+        //Colocamos como reset pois ainda não iniciamos nada
+        this.reset = true;
 
-        transformC = new TransformComponent();
-
-        toUpdate = new ArrayList<>();
-        toPostUpdate = new ArrayList<>();
+        this.transformC = new TransformComponent();
+        this.managerC = new ComponentManagerComponent();
 
         this.ownerPool = ownerPool;
 
@@ -59,7 +58,7 @@ public abstract class BaseProjectile
     protected abstract void initController();
 
     /// Inicia o projétil e o torna ativo para ser usado
-    public final void startProjectile(
+    public final void activateProjectile(
         float x,
         float y,
         float rotation
@@ -73,15 +72,17 @@ public abstract class BaseProjectile
         this.ownerPool.addToActive(this);
 
         //Executa a inicialização de cada instância
-        executeProjectileStart(
+        executeProjectileActivation(
             x,
             y,
             rotation
         );
+
+        controllerC.start();
     }
 
     /// Sequencia de ativação do projétil, de cada instancia
-    protected void executeProjectileStart(
+    protected void executeProjectileActivation(
         float x,
         float y,
         float rotation
@@ -113,17 +114,16 @@ public abstract class BaseProjectile
 
     /// Atualiza todos os componentes
     private void updateComponents(float delta) {
-        for (Component component : toUpdate) {
-            component.update(delta);
-        }
+        managerC.update(delta);
     }
 
     /// Realiza a pós atualização de todos os componentes
     private void postUpdateComponents() {
-        for (Component component : toPostUpdate) {
-            component.postUpdate();
-        }
+        managerC.postUpdate();
     }
+
+    public abstract void onCollisionDetection();
+    public abstract void onEndCollisionDetection();
 
     /// Sequencia de destruição de um projétil
     @Override
@@ -142,6 +142,7 @@ public abstract class BaseProjectile
         //Se já tivermos realizado um reset não resetamos novamente
         //Também evitamos de prosseguir caso já tenhamos realizado um dispose dos dados
         if (reset || disposed) return;
+        controllerC.reset();
         executeReset();
         reset = true;
     }
@@ -155,7 +156,6 @@ public abstract class BaseProjectile
 
         disposeGeneralData();
         disposeComponents();
-        cleanLists();
         nullifyReferences();
         disposeCriticalData();
 
@@ -167,23 +167,7 @@ public abstract class BaseProjectile
 
     /// Limpa os componentes
     protected void disposeComponents() {
-        //Realiza o dispose de todos os componentes da lista de update
-        for (Component component : toUpdate) {
-            if (component.isDisposed()) continue;
-            component.dispose();
-        }
-
-        //Realiza o dispose de todos os componentes da lista de post update
-        for (Component component : toPostUpdate) {
-            if (component.isDisposed()) continue;
-            component.dispose();
-        }
-    }
-
-    /// Limpa as listas
-    protected void cleanLists() {
-        toPostUpdate.clear();
-        toUpdate.clear();
+        managerC.dispose();
     }
 
     /// Realiza o dispose final de dados, geralmente aqueles que precisam ser limpos por último
@@ -193,6 +177,7 @@ public abstract class BaseProjectile
     protected void nullifyReferences() {
         moveC = null;
         transformC = null;
+        managerC = null;
         ownerPool = null;
         controllerC = null;
     }
@@ -207,6 +192,14 @@ public abstract class BaseProjectile
 
     public TransformComponent getTransformC() {
         return transformC;
+    }
+
+    public ComponentManagerComponent getManagerC() {
+        return managerC;
+    }
+
+    public ProjectileControllerComponent getControllerC() {
+        return controllerC;
     }
 
     public ProjectilePool<?> getOwnerPool() {

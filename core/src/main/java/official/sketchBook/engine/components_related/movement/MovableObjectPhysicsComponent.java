@@ -27,6 +27,8 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
             rest
         );
         this.mob = (MovableObjectII) object;
+
+        this.defaultGravityScale = -1;
     }
 
     public void update(float deltaTime) {
@@ -89,16 +91,16 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
     /// Impede o efeito da gravidade no objeto caso não possamos nos mover no eixo y
     private void constraintGravity() {
         if (!mob.getMoveC().gravityAffected) {
-            defaultGravityScale = object.getBody().getGravityScale();
+            if (defaultGravityScale < 0) {  // Só salva UMA VEZ
+                defaultGravityScale = object.getBody().getGravityScale();
+            }
             object.getBody().setGravityScale(0);
         } else {
-            if (defaultGravityScale > 0) {
-                object.getBody().setGravityScale(
-                    defaultGravityScale
-                );
-
+            if (defaultGravityScale >= 0) {  // Restaura se foi salvo
+                object.getBody().setGravityScale(defaultGravityScale);
                 defaultGravityScale = -1;
             }
         }
     }
+
 }
