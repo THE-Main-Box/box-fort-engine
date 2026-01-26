@@ -178,7 +178,6 @@ public class MovementComponent implements Component {
     ) {
         if (!canMove) return 0;
 
-
         if (canAccelerate && accel != 0) {
             speed += accel;
         } else if (canDeAccelerate && speed != 0) {
@@ -201,6 +200,21 @@ public class MovementComponent implements Component {
         if (Math.abs(speed) <= deceleration) return 0;
 
         return speed - deceleration * Math.signum(speed);
+    }
+
+    public void cleanAcceleration(){
+        this.xAccel = 0;
+        this.rAccel = 0;
+        this.yAccel = 0;
+    }
+
+    public void cleanAccelToDeAccelManually(){
+        if (canDeAccelerateX)
+            xAccel = 0;
+        if (canDeAccelerateY)
+            yAccel = 0;
+        if (canDeAccelerateR)
+            rAccel = 0;
     }
 
     /// Reseta a movimentação no eixo x de aceleração e velocidade
