@@ -6,6 +6,7 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
+import official.sketchBook.engine.components_related.projectile.ProjectileMovementLockComponent;
 import official.sketchBook.engine.components_related.system_utils.ComponentManagerComponent;
 import official.sketchBook.game.projectile_related.pool.ProjectilePool;
 import official.sketchBook.engine.util_related.custom_utils.CustomPool;
@@ -23,15 +24,12 @@ public abstract class BaseProjectile
 
     /// Componente de transformação, me permite iterar por dimensões e por unidades de coordenadas
     protected TransformComponent transformC;
-
     /// Componente de movimentação, me permite lidar com movimentos e outras coisas
     protected MovementComponent moveC;
-
-    /// Lista de componentes que precisam ser atualizados e disposed
-    protected ComponentManagerComponent managerC;
-
     /// Componente de controle do projétil
     protected ProjectileControllerComponent controllerC;
+    /// Lista de componentes que precisam ser atualizados e disposed
+    protected ComponentManagerComponent managerC;
 
     /// Flags de estado relacionado a pool
     protected boolean

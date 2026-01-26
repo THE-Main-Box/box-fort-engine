@@ -23,12 +23,14 @@ public class WorldConstants {
         /// Limite de velocidade máximo para projéteis
         public static final float
             PROJECTILE_MAX_SPEED_X = 999,
-            PROJECTILE_MAX_SPEED_Y = 999;
+            PROJECTILE_MAX_SPEED_Y = 999,
+            PROJECTILE_MAX_SPEED_R = 360;
 
         /// Desaceleração padrão para projéteis
         public static final float
-            PROJECTILE_DECELERATION_X = 0,
-            PROJECTILE_DECELERATION_Y = 0;
+            PROJECTILE_DECELERATION_R = 10,
+            PROJECTILE_DECELERATION_X = 222,
+            PROJECTILE_DECELERATION_Y = 222;
     }
 
     public static class PlayerConstants {

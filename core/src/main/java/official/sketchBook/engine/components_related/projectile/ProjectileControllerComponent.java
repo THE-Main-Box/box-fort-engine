@@ -2,6 +2,7 @@ package official.sketchBook.engine.components_related.projectile;
 
 import com.badlogic.gdx.math.Vector2;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
+import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.system_utils.ComponentManagerComponent;
 import official.sketchBook.engine.projectile_related.models.BaseProjectile;
 import official.sketchBook.engine.projectile_related.util.CollisionDataBuffer;
@@ -9,16 +10,15 @@ import official.sketchBook.engine.util_related.enumerators.Direction;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
 
 public class ProjectileControllerComponent implements Component {
-    protected BaseProjectile projectile;
+    private BaseProjectile projectile;
 
     /// Flags de configuração de projétil
     public boolean
         moveOnStart,            //Se devemos aplicar a movimentação no projétil ao ativar ele
-        useTrajectory,          //Se devemos usar cálculos de trajetória para determinar a movimentação
         continuousDetection;    //Se a detecção de colisão é contínua
 
     /// Flags de estado auxiliares
-    protected boolean colliding;
+    private boolean colliding;
 
     public CollisionDataBuffer
         lastCollisionEndBuffer,       //Buffer da última saída de colisão
@@ -27,16 +27,26 @@ public class ProjectileControllerComponent implements Component {
     private boolean disposed = false;
     private boolean reset = false;
 
+    private MovementComponent moveC;
+
     private ComponentManagerComponent managerC;
     private ProjectileMovementLockComponent lockC;
 
+    /// Valores velocidade a ser aplicada no lançamento
+    public float
+        launchSpeedX,       //Valor de movimento no eixo X em pixels
+        launchSpeedY,       //Valor de movimento no eixo Y em pixels
+        launchSpeedR;       //Valor de rotação em radianos por segundo
+
     public ProjectileControllerComponent(BaseProjectile projectile) {
         this.projectile = projectile;
+
         this.lastCollisionStartBuffer = new CollisionDataBuffer();
         this.lastCollisionEndBuffer = new CollisionDataBuffer();
 
-        this.managerC = new ComponentManagerComponent();
+        this.moveC = projectile.getMoveC();
 
+        this.managerC = new ComponentManagerComponent();
         this.lockC = new ProjectileMovementLockComponent(
             this,
             projectile.getMoveC()
@@ -59,9 +69,21 @@ public class ProjectileControllerComponent implements Component {
     @Override
     public void postUpdate() {
         managerC.postUpdate();
+
+        moveC.cleanAccelToDeAccelManually();
+    }
+
+    public void launch() {
+        this.moveC.xAccel = launchSpeedX;
+        this.moveC.yAccel = launchSpeedY;
+        this.moveC.rAccel = launchSpeedR;
     }
 
     public void start() {
+        if (moveOnStart) {
+            launch();
+        }
+
         this.reset = false;
     }
 
@@ -131,6 +153,7 @@ public class ProjectileControllerComponent implements Component {
     @Override
     public void nullifyReferences() {
         projectile = null;
+        moveC = null;
         managerC = null;
         lockC = null;
 

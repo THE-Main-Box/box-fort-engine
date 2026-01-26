@@ -60,10 +60,10 @@ public class Bullet extends PhysicalProjectile {
             this,
             WorldConstants.ProjectileConstants.PROJECTILE_MAX_SPEED_X,
             WorldConstants.ProjectileConstants.PROJECTILE_MAX_SPEED_Y,
-            999,
+            WorldConstants.ProjectileConstants.PROJECTILE_MAX_SPEED_R,
             WorldConstants.ProjectileConstants.PROJECTILE_DECELERATION_X,
             WorldConstants.ProjectileConstants.PROJECTILE_DECELERATION_Y,
-            0,
+            WorldConstants.ProjectileConstants.PROJECTILE_DECELERATION_R,
             true,
             true,
             true,
@@ -73,7 +73,7 @@ public class Bullet extends PhysicalProjectile {
             true,
             true,
             true,
-            true,
+            false,
             true
         );
 
