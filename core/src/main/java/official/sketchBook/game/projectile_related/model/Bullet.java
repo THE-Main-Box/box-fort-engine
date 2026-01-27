@@ -98,7 +98,7 @@ public class Bullet extends PhysicalProjectile {
             ALL.bit(),
             0.5f,
             0f,
-            0f
+            1f
         );
 
         managerC.add(
@@ -155,17 +155,19 @@ public class Bullet extends PhysicalProjectile {
 
     @Override
     protected void executeUpdate(float delta) {
-
     }
 
     @Override
     protected void executePostUpdate() {
-
     }
 
     @Override
     public void onCollisionDetection() {
 //        System.out.println("entrando em colisao");
+
+        if(controllerC.lastCollisionStartBuffer.lastDirection.isXAxis()){
+            moveC.reverseR();
+        }
     }
 
     @Override

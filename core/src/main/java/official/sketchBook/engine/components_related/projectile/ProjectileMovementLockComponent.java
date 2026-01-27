@@ -68,17 +68,7 @@ public class ProjectileMovementLockComponent implements Component {
     private void constraintMovement() {
         Direction colDir = controllerC.lastCollisionStartBuffer.lastDirection;
 
-        if (     //Se tivermos batido
-            stickToAnyCollision
-                ||  //Se tivermos batido pra cima e tivermos uma constraint
-                colDir.isUp() && stickToUpCollision
-                ||  //Se tivermos batido pra baixo e tivermos uma constraint
-                colDir.isDown() && stickToDownCollision
-                ||  //Se tivermos batido a esquerda e tivermos uma constraint
-                colDir.isLeft() && stickToLeftCollision
-                ||//Se tivermos batido a direita e tivermos uma constraint
-                colDir.isRight() && stickToRightCollision
-        ) {
+        if (shouldLockMovement(colDir)) {
             lockMovement();
         }
 
@@ -134,5 +124,18 @@ public class ProjectileMovementLockComponent implements Component {
     @Override
     public boolean isDisposed() {
         return disposed;
+    }
+
+    /// Verifica se devemos ou não travar os eixos do projétil com base nos valores passados
+    public boolean shouldLockMovement(Direction colDir){
+        return stickToAnyCollision
+            ||  //Se tivermos batido pra cima e tivermos uma constraint
+            colDir.isUp() && stickToUpCollision
+            ||  //Se tivermos batido pra baixo e tivermos uma constraint
+            colDir.isDown() && stickToDownCollision
+            ||  //Se tivermos batido a esquerda e tivermos uma constraint
+            colDir.isLeft() && stickToLeftCollision
+            ||//Se tivermos batido a direita e tivermos uma constraint
+            colDir.isRight() && stickToRightCollision;
     }
 }

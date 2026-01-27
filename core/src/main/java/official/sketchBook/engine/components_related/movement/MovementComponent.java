@@ -208,6 +208,21 @@ public class MovementComponent implements Component {
         this.yAccel = 0;
     }
 
+    public void reverseX(){
+        this.xAccel *= -1;
+        this.xSpeed *= -1;
+    }
+
+    public void reverseY(){
+        this.yAccel *= -1;
+        this.ySpeed *= -1;
+    }
+
+    public void reverseR(){
+        this.rAccel *= -1;
+        this.rSpeed *= -1;
+    }
+
     public void cleanAccelToDeAccelManually(){
         if (canDeAccelerateX)
             xAccel = 0;

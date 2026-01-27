@@ -13,6 +13,14 @@ public enum Direction {
     UP_DOWN,
     LEFT_RIGHT;
 
+    public boolean isYAxis(){
+        return isDown() || isUp();
+    }
+
+    public boolean isXAxis(){
+        return isLeft() || isRight();
+    }
+
     /// Verifica se tem a direção baixo
     public boolean isDown() {
         return this == DOWN || this == DOWN_LEFT || this == DOWN_RIGHT;
