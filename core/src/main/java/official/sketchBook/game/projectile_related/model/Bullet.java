@@ -155,17 +155,19 @@ public class Bullet extends PhysicalProjectile {
 
     @Override
     protected void executeUpdate(float delta) {
-
     }
 
     @Override
     protected void executePostUpdate() {
-
     }
 
     @Override
     public void onCollisionDetection() {
 //        System.out.println("entrando em colisao");
+
+        if(controllerC.lastCollisionStartBuffer.lastDirection.isXAxis()){
+            moveC.reverseR();
+        }
     }
 
     @Override

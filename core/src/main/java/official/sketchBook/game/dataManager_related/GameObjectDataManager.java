@@ -95,9 +95,9 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         ProjectileControllerComponent controller = bullet.getControllerC();
         controller.continuousDetection = false;
         controller.moveOnStart = true;
-        controller.launchSpeedX = 500;
-        controller.launchSpeedY = 50;
-        controller.launchSpeedR = 50;
+        controller.launchSpeedR = 500;
+
+        controller.getLockC().stickToAnyCollision = true;
 
         bullet.activateProjectile(
             300,
