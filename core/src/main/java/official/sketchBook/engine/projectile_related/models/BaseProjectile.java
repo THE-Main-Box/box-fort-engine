@@ -90,6 +90,11 @@ public abstract class BaseProjectile
         this.transformC.rotation = rotation;
     }
 
+    /// Chama os métodos de disparo do controlador
+    public void launch(){
+        controllerC.launch();
+    }
+
     public final void update(float delta) {
         //Se o projétil estiver resetado ou disposed, não atualizamos
         if (reset || disposed) return;

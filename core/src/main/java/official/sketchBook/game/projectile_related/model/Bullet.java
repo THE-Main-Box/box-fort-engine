@@ -70,9 +70,9 @@ public class Bullet extends PhysicalProjectile {
             true,
             true,
             true,
-            true,
-            true,
-            true,
+            false,
+            false,
+            false,
             false,
             true
         );
@@ -97,9 +97,11 @@ public class Bullet extends PhysicalProjectile {
             PROJECTILES.bit(),
             ALL.bit(),
             0.5f,
-            0f,
+            1f,
             1f
         );
+
+//        physicsC.autoApplyMovement = false;
 
         managerC.add(
             physicsC,
