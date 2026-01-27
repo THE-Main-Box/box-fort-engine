@@ -7,6 +7,8 @@ import official.sketchBook.engine.components_related.movement.MovableObjectPhysi
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.game.projectile_related.pool.ProjectilePool;
 
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
+
 public abstract class PhysicalProjectile extends BaseProjectile implements PhysicalObjectII {
     protected World world;
     protected Body body;
@@ -19,6 +21,20 @@ public abstract class PhysicalProjectile extends BaseProjectile implements Physi
     ) {
         super(ownerPool);
         this.world = world;
+    }
+
+    @Override
+    public void launch() {
+        super.launch();
+
+        //Se o componente de física já estiver lidando com a aplicação da movimentação retornamos
+        if (physicsC.autoApplyMovement) return;
+
+        //Caso aidna precisemos lidar com a movimentação de forma manual, realizamos aqui
+        physicsC.applyTrajectoryImpulse(
+            controllerC.launchSpeedY / PPM,
+            controllerC.launchSpeedX / PPM
+        );
     }
 
     /// Inicia os dados importantes da body e a body

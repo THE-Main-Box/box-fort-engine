@@ -177,9 +177,7 @@ public class ProjectileContactListener implements MultiContactListener.SubContac
        Utils
        =========================== */
 
-    private PhysicalProjectile extractProjectile(
-        Fixture fixture
-    ) {
+    private PhysicalProjectile extractProjectile(Fixture fixture) {
         Object userData = fixture.getBody().getUserData();
         if (userData instanceof GameObjectTag) {
             GameObjectTag tag = (GameObjectTag) userData;

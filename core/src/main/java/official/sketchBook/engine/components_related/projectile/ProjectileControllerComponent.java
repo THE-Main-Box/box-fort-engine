@@ -73,15 +73,19 @@ public class ProjectileControllerComponent implements Component {
         moveC.cleanAccelToDeAccelManually();
     }
 
+    /// Insere a velocidade de disparo na pipeline de aceleração
     public void launch() {
         this.moveC.xAccel = launchSpeedX;
         this.moveC.yAccel = launchSpeedY;
         this.moveC.rAccel = launchSpeedR;
     }
 
+    /// Ativa o controlador
     public void start() {
-        if (moveOnStart) {
-            launch();
+        //Caso queiramos começar a nos mover logo após ativar o projétil
+        if(moveOnStart){
+            //Mandamos para a pipeline de lançamento do projétil
+            projectile.launch();
         }
 
         this.reset = false;

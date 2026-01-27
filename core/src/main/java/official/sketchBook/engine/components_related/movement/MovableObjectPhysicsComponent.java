@@ -9,6 +9,7 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
     private MovableObjectII mob;
 
     private float defaultGravityScale;
+    public boolean autoApplyMovement = true;
 
     public MovableObjectPhysicsComponent(
         PhysicalObjectII object,
@@ -32,6 +33,16 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
     }
 
     public void update(float deltaTime) {
+        if (autoApplyMovement) {
+            applyMovementToBody();
+        }
+        constraintMovementAxis();
+        constraintRotation();
+        constraintGravity();
+
+    }
+
+    public void applyMovementToBody() {
         //Aplica a movimentação no corpo
         applyImpulseForSpeed(
             mob.getMoveC().xSpeed,
@@ -39,11 +50,6 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
             mob.getMoveC().xMaxSpeed,
             mob.getMoveC().yMaxSpeed
         );
-
-        constraintMovementAxis();
-        constraintRotation();
-        constraintGravity();
-
     }
 
     @Override
