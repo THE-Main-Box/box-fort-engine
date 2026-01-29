@@ -1,18 +1,13 @@
 package official.sketchBook.engine.projectile_related.models;
 
 import com.badlogic.gdx.utils.Disposable;
-import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
-import official.sketchBook.engine.components_related.projectile.ProjectileMovementLockComponent;
 import official.sketchBook.engine.components_related.system_utils.ComponentManagerComponent;
 import official.sketchBook.game.projectile_related.pool.ProjectilePool;
 import official.sketchBook.engine.util_related.custom_utils.CustomPool;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class BaseProjectile
     implements
@@ -56,7 +51,7 @@ public abstract class BaseProjectile
     protected abstract void initController();
 
     /// Inicia o projétil e o torna ativo para ser usado
-    public final void activateProjectile(
+    public final void activate(
         float x,
         float y,
         float rotation
@@ -173,9 +168,6 @@ public abstract class BaseProjectile
         managerC.dispose();
     }
 
-    /// Realiza o dispose final de dados, geralmente aqueles que precisam ser limpos por último
-    protected abstract void disposeCriticalData();
-
     /// Limpa as referenciais
     protected void nullifyReferences() {
         moveC = null;
@@ -184,6 +176,9 @@ public abstract class BaseProjectile
         ownerPool = null;
         controllerC = null;
     }
+
+    /// Realiza o dispose final de dados, geralmente aqueles que precisam ser limpos por último
+    protected abstract void disposeCriticalData();
 
     public boolean isDisposed() {
         return disposed;

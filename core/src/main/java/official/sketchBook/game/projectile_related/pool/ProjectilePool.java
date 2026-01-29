@@ -27,7 +27,7 @@ public class ProjectilePool<T extends BaseProjectile> extends CustomPool<T> impl
     ) {
         super(16, MAX_PROJECTILE_PER_POOL);
         this.projectileType = projectileType;
-        this.activeProjectiles = new Array<>();
+        this.activeProjectiles = new Array<>(false, 64);
         this.renderTree = renderTree;
     }
 
@@ -83,14 +83,14 @@ public class ProjectilePool<T extends BaseProjectile> extends CustomPool<T> impl
     }
 
     public void updateActiveProjectiles(float delta) {
-        for (T proj : activeProjectiles) {
-            proj.update(delta);
+        for(int i = 0; i < activeProjectiles.size; i++){
+            activeProjectiles.get(i).update(delta);
         }
     }
 
     public void postUpdateActiveProjectiles() {
-        for (T proj : activeProjectiles) {
-            proj.postUpdate();
+        for(int i = 0; i < activeProjectiles.size; i++){
+            activeProjectiles.get(i).postUpdate();
         }
     }
 

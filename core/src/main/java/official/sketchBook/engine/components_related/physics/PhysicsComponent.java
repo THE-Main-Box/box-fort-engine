@@ -98,14 +98,24 @@ public class PhysicsComponent implements Component {
     //converte os valores de velocidade em pixel para metros, e os limita com base em uma velocidade maxima passada
     public final float limitAndConvertSpeedToMeters(float speedToApply, float maxSpeed, float currentSpeed) {
         if (speedToApply != 0) {
-            return Math.max(-maxSpeed / PPM, Math.min(speedToApply / PPM, maxSpeed / PPM));
+            return Math.max(
+                -maxSpeed / PPM,
+                Math.min(
+                    speedToApply / PPM,
+                    maxSpeed / PPM
+                )
+            );
         }
         return currentSpeed; // Se speed for 0, não altera a velocidade atual
     }
 
     /// Aplicamos um impulso diretamente no centro do corpo do objeto
     public final void applyImpulse(Vector2 impulse) {
-        object.getBody().applyLinearImpulse(impulse, object.getBody().getWorldCenter(), true);
+        object.getBody().applyLinearImpulse(
+            impulse,
+            object.getBody().getWorldCenter(),
+            true
+        );
     }
 
     /// Coloca o objeto na posição da body

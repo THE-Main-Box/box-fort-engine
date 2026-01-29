@@ -82,29 +82,6 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             initBaseTileMap()
         );
 
-        Emitter bulletEmitter = new Emitter(globalProjectilePool);
-        bulletEmitter.configure(Bullet.class);
-        Bullet bullet = (Bullet) bulletEmitter.obtain();
-
-        MovementComponent moveC = bullet.getMoveC();
-        moveC.gravityAffected = true;
-        moveC.canMoveY = true;
-        moveC.canMoveX = true;
-        moveC.canRotate = true;
-
-        ProjectileControllerComponent controller = bullet.getControllerC();
-        controller.continuousDetection = false;
-        controller.moveOnStart = true;
-        controller.launchSpeedR = 100f;
-
-//        controller.getLockC().stickToAnyCollision = true;
-
-        bullet.activateProjectile(
-            300,
-            30,
-            45
-        );
-
     }
 
 

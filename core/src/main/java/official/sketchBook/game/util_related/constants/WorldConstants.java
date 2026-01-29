@@ -5,7 +5,8 @@ public class WorldConstants {
     public static final int TILE_SIZE_PX = 8;
 
     public static class ProjectilePoolConstants {
-        public static final int MAX_PROJECTILE_PER_POOL = 900;
+//        public static final int MAX_PROJECTILE_PER_POOL = 900;
+        public static final int MAX_PROJECTILE_PER_POOL = 999999999;
         public static final int MAX_PROJECTILE_DESTRUCTION_PER_POOL = 900;
 
         public static final float POOL_CLEAN_INTERVAL_S = 8f;

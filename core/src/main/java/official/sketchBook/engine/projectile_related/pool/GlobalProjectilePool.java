@@ -54,8 +54,12 @@ public class GlobalProjectilePool {
 
     /// Limpa os projéteis inativos de todas as pools
     private void cleanPools() {
-        for (ProjectilePool<? extends BaseProjectile> pool : poolMap.values()) {
-            pool.clear();
+        //Converte para uma array para não termos que usar um iterator
+        Object[] pools = poolMap.values().toArray();
+        for (int i = 0; i < pools.length; i++) {
+            (
+                (ProjectilePool<?>) pools[i]
+            ).clear();
         }
     }
 
@@ -70,23 +74,32 @@ public class GlobalProjectilePool {
     }
 
     /// Atualiza todos os projéteis ativos
-    public void updatePoolProjectiles(float delta){
-        for (ProjectilePool<?> pool : poolMap.values()) {
-            pool.updateActiveProjectiles(delta);
+    public void updatePoolProjectiles(float delta) {
+        Object[] pools = poolMap.values().toArray();
+        for (int i = 0; i < pools.length; i++) {
+            (
+                (ProjectilePool<?>) pools[i]
+            ).updateActiveProjectiles(delta);
         }
     }
 
     /// Pós atualiza todos os projéteis ativos
-    public void postUpdateProjectiles(){
-        for (ProjectilePool<?> pool : poolMap.values()) {
-            pool.postUpdateActiveProjectiles();
+    public void postUpdateProjectiles() {
+        Object[] pools = poolMap.values().toArray();
+        for (int i = 0; i < pools.length; i++) {
+            (
+                (ProjectilePool<?>) pools[i]
+            ).postUpdateActiveProjectiles();
         }
     }
 
     /// Limpa todos os projéteis de todas as pools
-    public void killAllPoolProjectiles(){
-        for (ProjectilePool<?> pool : poolMap.values()) {
-            pool.destroyAllProjectiles();
+    public void killAllPoolProjectiles() {
+        Object[] pools = poolMap.values().toArray();
+        for (int i = 0; i < pools.length; i++) {
+            (
+                (ProjectilePool<?>) pools[i]
+            ).destroyAllProjectiles();
         }
     }
 
@@ -112,15 +125,17 @@ public class GlobalProjectilePool {
     @SuppressWarnings("unchecked")
     public <T extends BaseProjectile> T returnProjectileRequested(Class<T> type) {
         ProjectilePool<T> pool = (ProjectilePool<T>) poolMap.get(type);
+
         if (pool != null && !pool.canSpawnNewProjectile()) return null;
 
         pool = createPoolIfAbsent(type); // só cria se necessário
         return pool.obtain();
     }
 
-    public void dispose(){
-        if(disposed) return;
-        for(ProjectilePool<?> pool : poolMap.values()){
+    public void dispose() {
+        if (disposed) return;
+
+        for (ProjectilePool<?> pool : poolMap.values()) {
             pool.dispose();
         }
 
@@ -132,25 +147,23 @@ public class GlobalProjectilePool {
 
     public int getTotalInactiveProjectiles() {
         int value = 0;
-
-        for (ProjectilePool<? extends BaseProjectile> pool : poolMap.values()) {
-            value += pool.getFreeCount();//Para cada pool adicionamos os valores da suas listas ativas aqui dentro
+        Object[] pools = poolMap.values().toArray();
+        for (int i = 0; i < pools.length; i++) {
+            value += ((ProjectilePool<?>) pools[i]).getFreeCount();
         }
-
         return value;
     }
 
-    public int getTotalActiveProjectiles(){
+    public int getTotalActiveProjectiles() {
         int value = 0;
-
-        for (ProjectilePool<? extends BaseProjectile> pool : poolMap.values()) {
-            value += pool.getActiveProjectiles().size;//Para cada pool adicionamos os valores da suas listas ativas aqui dentro
+        Object[] pools = poolMap.values().toArray();
+        for (int i = 0; i < pools.length; i++) {
+            value += ((ProjectilePool<?>) pools[i]).getActiveProjectiles().size;
         }
-
         return value;
     }
 
-    public ProjectilePool<?> getPoolOf(Class<? extends BaseProjectile> projectile){
+    public ProjectilePool<?> getPoolOf(Class<? extends BaseProjectile> projectile) {
         return poolMap.get(projectile);
     }
 
