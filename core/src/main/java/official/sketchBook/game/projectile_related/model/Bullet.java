@@ -165,11 +165,7 @@ public class Bullet extends PhysicalProjectile {
 
     @Override
     public void onCollisionDetection() {
-//        System.out.println("entrando em colisao");
 
-        if(controllerC.lastCollisionStartBuffer.lastDirection.isXAxis()){
-            moveC.reverseR();
-        }
     }
 
     @Override

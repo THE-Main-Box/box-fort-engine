@@ -9,11 +9,15 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.AppMain;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
+import official.sketchBook.engine.components_related.movement.MovementComponent;
+import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadRenderSystem;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadUpdateSystem;
+import official.sketchBook.engine.projectile_related.util.Emitter;
 import official.sketchBook.engine.screen_related.BaseScreen;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;
 import official.sketchBook.game.gameObject_related.Player;
+import official.sketchBook.game.projectile_related.model.Bullet;
 
 import static official.sketchBook.game.util_related.constants.DebugConstants.*;
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.*;
@@ -27,6 +31,8 @@ public class PlayScreen extends BaseScreen {
     private BitmapFont font;
 
     private GameObjectDataManager worldManager;
+
+    private Emitter testEmitter;
 
     public PlayScreen(AppMain app) {
         super(app);
@@ -107,6 +113,9 @@ public class PlayScreen extends BaseScreen {
             false,
             false
         );
+
+        testEmitter = new Emitter(worldManager.getGlobalProjectilePool());
+        testEmitter.configure(Bullet.class);
     }
 
 
@@ -167,6 +176,29 @@ public class PlayScreen extends BaseScreen {
             );
         }
 
+        if (Gdx.input.isKeyPressed(
+            Input.Keys.S
+        )) {
+            Bullet bullet = (Bullet) testEmitter.obtain();
+
+            MovementComponent moveC = bullet.getMoveC();
+            moveC.gravityAffected = true;
+            moveC.canMoveY = true;
+            moveC.canMoveX = true;
+            moveC.canRotate = true;
+
+            ProjectileControllerComponent controller = bullet.getControllerC();
+            controller.continuousDetection = false;
+            controller.moveOnStart = true;
+            controller.launchSpeedR = 100f;
+
+            bullet.activate(
+                300,
+                30,
+                45
+            );
+        }
+
     }
 
     @Override
@@ -204,11 +236,22 @@ public class PlayScreen extends BaseScreen {
         }
 
         if (show_active_game_objects) {
+            GameObjectDataManager wm = worldManager;
             font.draw(                              //Mostra a quantidade de objetos ativos
                 batch,
-                "Objects: " + worldManager.getGameObjectList().size(),
+                "Objects: " + wm.getGameObjectList().size(),
                 10,
                 this.screenHeightInPx - 50
+            );
+
+            if(!show_projectile_pool_metrics) return;
+            font.draw(
+                batch,
+                "Projectiles: " + wm.getGlobalProjectilePool().getTotalActiveProjectiles()
+                + " | Inactive_ones: " + wm.getGlobalProjectilePool().getTotalInactiveProjectiles()
+                    + " | Pools: " + wm.getGlobalProjectilePool().getTotalPools(),
+                10,
+                this.screenHeightInPx - 70
             );
         }
     }
