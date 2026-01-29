@@ -14,8 +14,7 @@ import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.game.projectile_related.pool.ProjectilePool;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.ALL;
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.PROJECTILES;
+import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
 public class Bullet extends PhysicalProjectile {
@@ -95,7 +94,7 @@ public class Bullet extends PhysicalProjectile {
         this.physicsC = new MovableObjectPhysicsComponent(
             this,
             PROJECTILES.bit(),
-            ALL.bit(),
+            ENVIRONMENT.bit(),
             0.5f,
             1f,
             1f
@@ -165,7 +164,16 @@ public class Bullet extends PhysicalProjectile {
 
     @Override
     public void onCollisionDetection() {
+//        System.out.println("entrando em colisao");
 
+//        if(controllerC.lastCollisionStartBuffer.lastDirection.isXAxis()){
+//            moveC.reverseX();
+//            moveC.reverseR();
+//        }
+//
+//        if(controllerC.lastCollisionStartBuffer.lastDirection.isYAxis()){
+//            moveC.reverseY();
+//        }
     }
 
     @Override

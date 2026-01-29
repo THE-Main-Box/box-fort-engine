@@ -1,15 +1,16 @@
 package official.sketchBook.engine.util_related.contact_listener;
 
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
-import official.sketchBook.engine.components_related.projectile.ProjectileMovementLockComponent;
 import official.sketchBook.engine.projectile_related.models.PhysicalProjectile;
 import official.sketchBook.engine.util_related.enumerators.Direction;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
 
-import static official.sketchBook.engine.util_related.contact_listener.ContactActions.getCollisionDirection;
-
 public class ProjectileContactListener implements MultiContactListener.SubContactListener {
+
+    // Cache de buffers para evitar alocação
+    private final Vector2 tmpNormal = new Vector2();
 
     @Override
     public void beginContact(Contact contact, GameObjectTag tagA, GameObjectTag tagB) {
@@ -24,41 +25,37 @@ public class ProjectileContactListener implements MultiContactListener.SubContac
     @Override
     public void preSolve(Contact contact, Manifold oldManifold, GameObjectTag tagA, GameObjectTag tagB) {
         processContact(contact, tagA, tagB, true);
-        checkAndDisableRestitutionIfLocked(contact);
+
+        // Desativa restituição se necessário (feito aqui uma única vez)
+        disableRestitutionIfLocked(contact);
     }
 
     @Override
     public void postSolve(Contact contact, ContactImpulse impulse, GameObjectTag tagA, GameObjectTag tagB) {
     }
 
-    /* ===========================
-       Restituição / Lock
-       =========================== */
+    private void disableRestitutionIfLocked(Contact contact) {
+        Fixture fixtureA = contact.getFixtureA();
+        PhysicalProjectile projectileA = extractProjectile(fixtureA);
 
-    private void checkAndDisableRestitutionIfLocked(Contact contact) {
-        Direction collDir = getCollisionDirection(contact);
-
-        PhysicalProjectile projectileA = extractProjectile(contact.getFixtureA());
-        if (projectileA != null && shouldLockMovement(projectileA, collDir)) {
-            contact.setRestitution(0);
-            return; // já basta um lado travar
+        if (projectileA != null) {
+            Direction collDir = getCollisionDirection(contact);
+            if (projectileA.getControllerC().getLockC().shouldLockMovement(collDir)) {
+                contact.setRestitution(0);
+                return; // Basta um lado
+            }
         }
 
-        PhysicalProjectile projectileB = extractProjectile(contact.getFixtureB());
-        if (projectileB != null && shouldLockMovement(projectileB, collDir)) {
-            contact.setRestitution(0);
+        Fixture fixtureB = contact.getFixtureB();
+        PhysicalProjectile projectileB = extractProjectile(fixtureB);
+
+        if (projectileB != null) {
+            Direction collDir = getCollisionDirection(contact);
+            if (projectileB.getControllerC().getLockC().shouldLockMovement(collDir)) {
+                contact.setRestitution(0);
+            }
         }
     }
-
-    private boolean shouldLockMovement(PhysicalProjectile projectile, Direction collDir) {
-        ProjectileMovementLockComponent lockC =
-            projectile.getControllerC().getLockC();
-        return lockC.shouldLockMovement(collDir);
-    }
-
-    /* ===========================
-       Begin / PreSolve
-       =========================== */
 
     private void processContact(
         Contact contact,
@@ -66,30 +63,38 @@ public class ProjectileContactListener implements MultiContactListener.SubContac
         GameObjectTag tagB,
         boolean isContinuous
     ) {
-        Direction collDir = getCollisionDirection(contact);
+        Fixture fixtureA = contact.getFixtureA();
+        Fixture fixtureB = contact.getFixtureB();
 
-        // A como projétil
-        PhysicalProjectile projectileA = extractProjectile(contact.getFixtureA());
+        Direction collDir = getCollisionDirection(contact);
+        Body bodyA = fixtureA.getBody();
+        Body bodyB = fixtureB.getBody();
+
+        // Cache de projéteis
+        PhysicalProjectile projectileA = extractProjectile(fixtureA);
         if (projectileA != null) {
-            if (isContinuous == projectileA.getControllerC().isContinuousDetection()) {
+            ProjectileControllerComponent controllerA = projectileA.getControllerC();
+            if (isContinuous == controllerA.isContinuousDetection()) {
                 handleBegin(
                     projectileA,
+                    controllerA,
                     collDir,
-                    contact.getFixtureB().getBody(),
+                    bodyB,
                     tagB,
                     contact
                 );
             }
         }
 
-        // B como projétil
-        PhysicalProjectile projectileB = extractProjectile(contact.getFixtureB());
+        PhysicalProjectile projectileB = extractProjectile(fixtureB);
         if (projectileB != null) {
-            if (isContinuous == projectileB.getControllerC().isContinuousDetection()) {
+            ProjectileControllerComponent controllerB = projectileB.getControllerC();
+            if (isContinuous == controllerB.isContinuousDetection()) {
                 handleBegin(
                     projectileB,
+                    controllerB,
                     collDir,
-                    contact.getFixtureA().getBody(),
+                    bodyA,
                     tagA,
                     contact
                 );
@@ -97,85 +102,82 @@ public class ProjectileContactListener implements MultiContactListener.SubContac
         }
     }
 
-    /* ===========================
-       EndContact
-       =========================== */
-
     private void processContactEnd(
         Contact contact,
         GameObjectTag tagA,
         GameObjectTag tagB
     ) {
-        Direction collDir = getCollisionDirection(contact);
+        Fixture fixtureA = contact.getFixtureA();
+        Fixture fixtureB = contact.getFixtureB();
 
-        PhysicalProjectile projectileA = extractProjectile(contact.getFixtureA());
+        Direction collDir = getCollisionDirection(contact);
+        Body bodyA = fixtureA.getBody();
+        Body bodyB = fixtureB.getBody();
+
+        PhysicalProjectile projectileA = extractProjectile(fixtureA);
         if (projectileA != null) {
             handleEnd(
                 projectileA,
+                projectileA.getControllerC(),
                 collDir,
-                contact.getFixtureB().getBody(),
+                bodyB,
                 tagB,
                 contact
             );
         }
 
-        PhysicalProjectile projectileB = extractProjectile(contact.getFixtureB());
+        PhysicalProjectile projectileB = extractProjectile(fixtureB);
         if (projectileB != null) {
             handleEnd(
                 projectileB,
+                projectileB.getControllerC(),
                 collDir,
-                contact.getFixtureA().getBody(),
+                bodyA,
                 tagA,
                 contact
             );
         }
     }
 
-    /* ===========================
-       Handlers
-       =========================== */
-
     private void handleBegin(
         PhysicalProjectile projectile,
+        ProjectileControllerComponent controller,
         Direction collDir,
         Body targetBody,
         GameObjectTag targetTag,
         Contact contact
     ) {
-        ProjectileControllerComponent controller =
-            projectile.getControllerC();
+        // Cache de normal
+        tmpNormal.set(contact.getWorldManifold().getNormal());
 
         controller.markStartOfCollision(
             targetTag,
             collDir,
             projectile.getBody().getPosition(),
             targetBody.getPosition(),
-            contact.getWorldManifold().getNormal()
+            tmpNormal
         );
     }
 
     private void handleEnd(
         PhysicalProjectile projectile,
+        ProjectileControllerComponent controller,
         Direction collDir,
         Body targetBody,
         GameObjectTag targetTag,
         Contact contact
     ) {
-        ProjectileControllerComponent controller =
-            projectile.getControllerC();
+        // Cache de normal
+        tmpNormal.set(contact.getWorldManifold().getNormal());
 
         controller.markEndOfCollision(
             targetTag,
             collDir,
             projectile.getBody().getPosition(),
             targetBody.getPosition(),
-            contact.getWorldManifold().getNormal()
+            tmpNormal
         );
     }
-
-    /* ===========================
-       Utils
-       =========================== */
 
     private PhysicalProjectile extractProjectile(Fixture fixture) {
         Object userData = fixture.getBody().getUserData();
@@ -186,5 +188,9 @@ public class ProjectileContactListener implements MultiContactListener.SubContac
             }
         }
         return null;
+    }
+
+    private Direction getCollisionDirection(Contact contact) {
+        return ContactActions.getCollisionDirection(contact);
     }
 }

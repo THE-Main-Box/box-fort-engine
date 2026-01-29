@@ -181,6 +181,8 @@ public class PlayScreen extends BaseScreen {
         )) {
             Bullet bullet = (Bullet) testEmitter.obtain();
 
+            if(bullet == null) return;
+
             MovementComponent moveC = bullet.getMoveC();
             moveC.gravityAffected = true;
             moveC.canMoveY = true;

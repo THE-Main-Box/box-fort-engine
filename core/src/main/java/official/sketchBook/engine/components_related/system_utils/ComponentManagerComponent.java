@@ -18,15 +18,15 @@ public class ComponentManagerComponent implements Component{
         toPostUpdate = new ArrayList<>();
     }
 
-    public void update(float delta){
-        for (Component component : toUpdate) {
-            component.update(delta);
+    public void update(float delta) {
+        // Loop simples sem iterador
+        for (int i = 0; i < toUpdate.size(); i++) {
+            toUpdate.get(i).update(delta);
         }
     }
-
     public void postUpdate(){
-        for (Component component : toPostUpdate) {
-            component.postUpdate();
+        for (int i = 0; i < toUpdate.size(); i++) {
+            toUpdate.get(i).postUpdate();
         }
     }
 
