@@ -10,8 +10,6 @@ import static official.sketchBook.game.util_related.constants.PhysicsConstants.P
 
 public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataManager{
 
-    /// Constante de atualização do box2d
-    protected final float timeStep;
     /// Constante de iterações por velocidade do box2d
     protected final int velIterations;
     /// Constante de iterações por posição do box2d
@@ -30,7 +28,7 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
     /// Se existe um mundo foi gerado
     protected boolean physicsWorldExists;
 
-    public PhysicalGameObjectDataManager(World physicsWorld, float timeStep, int velIterations, int posIterations) {
+    public PhysicalGameObjectDataManager(World physicsWorld, int velIterations, int posIterations) {
         this.physicsWorld = physicsWorld;                   //Inicia um world
         this.physicsWorldExists = physicsWorld != null;     //Se temos um mundo físico podemos usar a física
 
@@ -46,7 +44,6 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
             this.renderDebugMatrix = new Matrix4();
         }
 
-        this.timeStep = timeStep;
         this.velIterations = velIterations;
         this.posIterations = posIterations;
 
@@ -63,15 +60,15 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
     @Override
     public void update(float delta) {
         super.update(delta);
-        worldStep();
+        worldStep(delta);
     }
 
     /// Tenta realizar um step do world caso ele exista
-    protected void worldStep() {
+    protected void worldStep(float delta) {
         if (!physicsWorldExists) return;
 
         physicsWorld.step(
-            timeStep,
+            delta,
             velIterations,
             posIterations
         );
@@ -130,10 +127,6 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
 
     public MultiContactListener getContactListeners() {
         return contactListeners;
-    }
-
-    public float getTimeStep() {
-        return timeStep;
     }
 
     public int getVelIterations() {

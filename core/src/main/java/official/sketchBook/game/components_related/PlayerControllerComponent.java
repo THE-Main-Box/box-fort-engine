@@ -1,9 +1,14 @@
 package official.sketchBook.game.components_related;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import official.sketchBook.engine.components_related.base_components.KeyBoundControllerComponent;
 import official.sketchBook.engine.util_related.enumerators.Direction;
 import official.sketchBook.game.gameObject_related.Player;
+import official.sketchBook.game.util_related.constants.PhysicsConstants;
 import official.sketchBook.game.util_related.values.ControlKeys;
+
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.UPS_TARGET;
 
 public class PlayerControllerComponent extends KeyBoundControllerComponent {
 
@@ -31,13 +36,21 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     }
 
     public void up(boolean pressed) {
+        if (!pressed) return;
+
+        if (UPS_TARGET == 30) {
+            PhysicsConstants.updateUps(60);
+        } else {
+            PhysicsConstants.updateUps(30);
+        }
+
     }
 
     public void down(boolean pressed) {
 
     }
 
-    public void jump(boolean pressed){
+    public void jump(boolean pressed) {
         player.jump(!pressed);
     }
 

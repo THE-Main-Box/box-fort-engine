@@ -181,7 +181,10 @@ public class MovementComponent implements Component {
         if (canAccelerate && accel != 0) {
             speed += accel;
         } else if (canDeAccelerate && speed != 0) {
-            speed = applyDeceleration(speed, deceleration * delta);
+            speed = applyDeceleration(
+                speed,
+                deceleration * delta
+            );
         }
 
         return clamp(speed, maxSpeed);

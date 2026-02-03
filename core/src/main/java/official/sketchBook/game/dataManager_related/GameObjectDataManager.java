@@ -39,11 +39,10 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
     public GameObjectDataManager(
         World physicsWorld,
-        float timeStep,
         int velIterations,
         int posIterations
     ) {
-        super(physicsWorld, timeStep, velIterations, posIterations);
+        super(physicsWorld, velIterations, posIterations);
     }
 
     private void initPoolFactories() {

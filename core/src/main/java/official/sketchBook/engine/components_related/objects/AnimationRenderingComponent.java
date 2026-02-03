@@ -36,8 +36,10 @@ public class AnimationRenderingComponent {
         //Se a lista estiver vazia não tem porque executarmos o código, early exit.
         if (layers.isEmpty()) return;
 
+        AnimationLayer currentLayer;
         //Percorremos as camadas de animação
-        for (AnimationLayer currentLayer : layers) {
+        for (int i = 0; i < layers.size(); i++) {
+            currentLayer = layers.get(i);
 
             //Usamos buffers globais para micro-otimização
             currentRenderingSheetHandler = currentLayer.sheetHandler;
@@ -78,18 +80,20 @@ public class AnimationRenderingComponent {
         //Early exit caso lista vazia
         if (layers.isEmpty()) return;
 
+        AnimationLayer currentLayer;
         //renderizamos primeiro tudo o que tivermos para renderizar do objeto do jogador
-        for (AnimationLayer aniLayer : layers) {
+        for (int i = 0; i < layers.size(); i++) {
+            currentLayer = layers.get(i);
 
-            currentRenderingSheetHandler = aniLayer.sheetHandler;
-            currentRenderingAniPlayer = aniLayer.aniPlayer;
+            currentRenderingSheetHandler = currentLayer.sheetHandler;
+            currentRenderingAniPlayer = currentLayer.aniPlayer;
 
             //Obtemos o nosso handler e chamamos para renderizar
             currentRenderingSheetHandler.renderSprite(
                 batch,
                 currentRenderingAniPlayer != null ?
                     currentRenderingAniPlayer.getCurrentSprite() :
-                    aniLayer.defaultSprite
+                    currentLayer.defaultSprite
             );
 
         }

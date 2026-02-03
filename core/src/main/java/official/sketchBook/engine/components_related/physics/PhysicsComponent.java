@@ -82,16 +82,31 @@ public class PhysicsComponent implements Component {
 
         updateVelBuffer();
 
-        float desiredX = limitAndConvertSpeedToMeters(xSpeed, maxXSpeed, tmpVel.x);
-        float desiredY = limitAndConvertSpeedToMeters(ySpeed, maxYSpeed, tmpVel.y);
+        float desiredX = limitAndConvertSpeedToMeters(
+            xSpeed,
+            maxXSpeed,
+            tmpVel.x
+        );
+
+        float desiredY = limitAndConvertSpeedToMeters(
+            ySpeed,
+            maxYSpeed,
+            tmpVel.y
+        );
 
         tmpVel.set(
-            desiredX != 0 ? desiredX - tmpVel.x : 0,
-            desiredY != 0 ? desiredY - tmpVel.y : 0
+            desiredX != 0
+                ? desiredX - tmpVel.x
+                : 0,
+            desiredY != 0
+                ? desiredY - tmpVel.y
+                : 0
         );
 
         applyImpulse(
-            tmpVel.scl(object.getBody().getMass())
+            tmpVel.scl(
+                object.getBody().getMass()
+            )
         );
     }
 

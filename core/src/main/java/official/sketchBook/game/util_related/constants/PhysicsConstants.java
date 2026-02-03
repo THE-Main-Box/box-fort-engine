@@ -15,14 +15,18 @@ public class PhysicsConstants {
     public static float FIXED_TIMESTAMP;
 
 
-
     /// Acumulador máximo para evitar travamento acidental
     public static final float MAX_ACCUMULATOR = 0.25f;// Evita travar o PC se o frame demorar muito
 
     static {
         VELOCITY_ITERATIONS = 6;
         POSITION_ITERATIONS = 2;
-        UPS_TARGET = 60;
+        updateUps(60);
+    }
+
+    public static void updateUps(float ups) {
+        if (ups <= 0) return;
+        UPS_TARGET = ups;
         FIXED_TIMESTAMP = 1 / UPS_TARGET;
     }
 
