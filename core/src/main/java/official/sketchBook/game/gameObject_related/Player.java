@@ -156,9 +156,10 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     private void initControllerComponent() {
-        if (controllerC == null) {
+        if (controllerC == null || controllerC.player == null) {
             controllerC = new PlayerControllerComponent(this);
         } else {
+
             //Fazemos com que o antigo player perca o acesso ao controller
             controllerC.player.managerC.remove(
                 PlayerControllerComponent.class,

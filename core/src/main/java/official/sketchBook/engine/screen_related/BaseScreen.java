@@ -3,10 +3,14 @@ package official.sketchBook.engine.screen_related;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.Disposable;
 import official.sketchBook.engine.AppMain;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.RenderSystem;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.UpdateSystem;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static official.sketchBook.game.util_related.constants.RenderingConstants.FPS_TARGET;
 
@@ -15,7 +19,7 @@ public abstract class BaseScreen implements Screen {
     /// Dimensões atuais da tela em pixels
     protected float screenWidthInPx, screenHeightInPx;
 
-    ///Métrica de desempenho
+    /// Métrica de desempenho
     private float metricsTimer = 0;
 
     private int
@@ -30,6 +34,8 @@ public abstract class BaseScreen implements Screen {
     /// Sistema de gestão de renderização
     protected RenderSystem renderSystem;
 
+    private static List<Disposable> toDisposeList = new ArrayList<>();
+
     public BaseScreen(AppMain app) {
         this.app = app;
 
@@ -42,9 +48,26 @@ public abstract class BaseScreen implements Screen {
         Gdx.graphics.setForegroundFPS((int) FPS_TARGET);
     }
 
+    /// Limpamos todos os objetos marcados aqui dentro
+    public void disposeObjectsAtRuntime() {
+        if(toDisposeList.isEmpty()) return;
+
+        for (int i = toDisposeList.size() - 1; i >= 0; i--) {
+            Disposable obj =toDisposeList.get(i);
+            if(obj == null) continue;
+            obj.dispose();
+            toDisposeList.set(i, null);
+        }
+    }
+
+    public static void addToDisposePipeline(Disposable obj){
+        toDisposeList.add(obj);
+    }
 
     /// Função para atualização geral
-    public abstract void updateScreen(float delta);
+    public void updateScreen(float delta){
+        disposeObjectsAtRuntime();
+    }
 
     /// Atualiza os visuais antes de renderizar
     public abstract void updateVisuals(float delta);
@@ -127,6 +150,7 @@ public abstract class BaseScreen implements Screen {
     @Override
     public void dispose() {
         updateSystem.dispose();
+        renderSystem.dispose();
     }
 
     public int getFps() {

@@ -94,7 +94,7 @@ public class Bullet extends PhysicalProjectile {
         this.physicsC = new MovableObjectPhysicsComponent(
             this,
             PROJECTILES.bit(),
-            ENVIRONMENT.bit(),
+            ENVIRONMENT.bit() | ENTITIES.bit(),
             0.5f,
             1f,
             1f

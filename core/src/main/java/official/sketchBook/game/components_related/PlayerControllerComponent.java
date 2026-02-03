@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import official.sketchBook.engine.components_related.base_components.KeyBoundControllerComponent;
 import official.sketchBook.engine.util_related.enumerators.Direction;
 import official.sketchBook.game.gameObject_related.Player;
+import official.sketchBook.game.screen_related.PlayScreen;
 import official.sketchBook.game.util_related.constants.PhysicsConstants;
 import official.sketchBook.game.util_related.values.ControlKeys;
 
@@ -47,7 +48,6 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     }
 
     public void down(boolean pressed) {
-
     }
 
     public void jump(boolean pressed) {

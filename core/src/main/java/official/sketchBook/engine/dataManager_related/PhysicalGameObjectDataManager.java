@@ -94,10 +94,7 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
 
     @Override
     protected void disposeGeneralData() {
-        if(physicsWorldExists){
-            debugRenderer.dispose();
-            debugRenderer = null;
-        }
+        disposeDebugRenderer();
     }
 
     @Override
@@ -116,6 +113,12 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
 
     }
 
+    private void disposeDebugRenderer(){
+        if(physicsWorldExists){
+            debugRenderer.dispose();
+            debugRenderer = null;
+        }
+    }
 
     public boolean isPhysicsWorldExists() {
         return physicsWorldExists;

@@ -122,6 +122,7 @@ public class PlayScreen extends BaseScreen {
 
     @Override
     public void updateScreen(float delta) {
+        super.updateScreen(delta);
         if (Gdx.input.isKeyPressed(
             Input.Keys.ESCAPE
         )) {
@@ -136,6 +137,7 @@ public class PlayScreen extends BaseScreen {
 //                room
 //            );
 
+//            worldManager.removeGameObject(worldManager.mainPlayer);
             worldManager.destroyManager();
 //            worldManager.removeGameObject(worldManager.mainPlayer);
         }
@@ -155,25 +157,22 @@ public class PlayScreen extends BaseScreen {
             }
         }
 
-        Player player = worldManager.mainPlayer;
-
         if (Gdx.input.isKeyPressed(
             Input.Keys.F
         )) {
-            new Player(
+            worldManager.mainPlayer = new Player(
                 worldManager,
                 worldManager.getCurrentRoom(),
-                player.getTransformC().x + 50,
-                player.getTransformC().y,
-                player.getTransformC().z + 1,
+                250,
+                40,
                 0,
-                player.getTransformC().width,
-                player.getTransformC().height,
-                player.getTransformC().getScaleX(),
-                player.getTransformC().getScaleY(),
-                player.getTransformC().mirrorX,
-                player.getTransformC().mirrorY
-
+                0,
+                WIDTH,
+                HEIGHT,
+                1f,
+                1f,
+                false,
+                false
             );
         }
 

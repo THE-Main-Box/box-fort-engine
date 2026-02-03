@@ -105,7 +105,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     /// Chamado durante o update do mundo
     protected void updateCameraTracking() {
         //Se não temos câmera ou jogador, não fazemos nada
-        if (gameCamera == null || mainPlayer == null) return;
+        if (gameCamera == null || mainPlayer == null || mainPlayer.getTransformC() == null) return;
 
         //Rastreia a câmera para a posição do jogador
         gameCamera.trackObjectByOffset(
