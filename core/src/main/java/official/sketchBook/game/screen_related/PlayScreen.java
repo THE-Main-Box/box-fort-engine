@@ -11,7 +11,6 @@ import official.sketchBook.engine.AppMain;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
-import official.sketchBook.engine.components_related.system_utils.MultiThreadUpdateSystem;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadRenderSystem;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadUpdateSystem;
 import official.sketchBook.engine.projectile_related.util.Emitter;
@@ -19,7 +18,6 @@ import official.sketchBook.engine.screen_related.BaseScreen;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;
 import official.sketchBook.game.gameObject_related.Player;
 import official.sketchBook.game.projectile_related.model.Bullet;
-import official.sketchBook.game.util_related.constants.PhysicsConstants;
 
 import static official.sketchBook.game.util_related.constants.DebugConstants.*;
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.*;
@@ -94,7 +92,7 @@ public class PlayScreen extends BaseScreen {
             this.uiCameraManager.getCamera()
         );
 
-        this.updateSystem = new MultiThreadUpdateSystem(
+        this.updateSystem = new SingleThreadUpdateSystem(
             worldManager,
             this
         );
@@ -120,8 +118,24 @@ public class PlayScreen extends BaseScreen {
     }
 
     @Override
-    public void safeThreadUpdate() {
-        super.safeThreadUpdate();
+    public void updateScreen(float delta) {
+        super.updateScreen(delta);
+
+        if (change_of_zoom_allowed) {
+            if (Gdx.input.isKeyPressed(
+                Input.Keys.U
+            )) {
+                updateZoom(zoom - 0.1f);
+                this.gameCameraManager.setZoom(zoom);
+            }
+            if (Gdx.input.isKeyPressed(
+                Input.Keys.J
+            )) {
+                updateZoom(zoom + 0.1f);
+                this.gameCameraManager.setZoom(zoom);
+            }
+        }
+
         if (Gdx.input.isKeyPressed(
             Input.Keys.ESCAPE
         )) {
@@ -139,28 +153,6 @@ public class PlayScreen extends BaseScreen {
             worldManager.removeGameObject(worldManager.mainPlayer);
 //            worldManager.destroyManager();
 //            worldManager.disposeGraphics();
-        }
-
-
-    }
-
-    @Override
-    public void updateScreen(float delta) {
-        super.updateScreen(delta);
-
-        if (change_of_zoom_allowed) {
-            if (Gdx.input.isKeyPressed(
-                Input.Keys.U
-            )) {
-                updateZoom(zoom - 0.1f);
-                this.gameCameraManager.setZoom(zoom);
-            }
-            if (Gdx.input.isKeyPressed(
-                Input.Keys.J
-            )) {
-                updateZoom(zoom + 0.1f);
-                this.gameCameraManager.setZoom(zoom);
-            }
         }
 
         if (Gdx.input.isKeyPressed(
@@ -206,6 +198,7 @@ public class PlayScreen extends BaseScreen {
                 45
             );
         }
+
     }
 
     @Override

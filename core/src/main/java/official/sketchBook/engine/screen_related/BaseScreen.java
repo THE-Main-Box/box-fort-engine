@@ -8,9 +8,6 @@ import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.RenderSystem;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.UpdateSystem;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static official.sketchBook.game.util_related.constants.RenderingConstants.FPS_TARGET;
 
 public abstract class BaseScreen implements Screen {
@@ -43,11 +40,6 @@ public abstract class BaseScreen implements Screen {
     protected void initSystems() {
         //Determina o fps
         Gdx.graphics.setForegroundFPS((int) FPS_TARGET);
-    }
-
-    /// Função de atualização em thread simples, garantida
-    public void safeThreadUpdate() {
-
     }
 
     /**
@@ -143,7 +135,6 @@ public abstract class BaseScreen implements Screen {
     @Override
     public void dispose() {
         updateSystem.dispose();
-        renderSystem.dispose();
     }
 
     public int getFps() {

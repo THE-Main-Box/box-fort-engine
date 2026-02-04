@@ -12,7 +12,7 @@ import java.util.*;
 
 public abstract class BaseGameObjectDataManager implements Disposable {
 
-    /// Lista de objects que precisam de rendering - DEPOIS
+    /// Lista de objects que precisam de rendering
     protected final RenderableObjectManager renderTree = new RenderableObjectManager();
 
     /// Lista de gameObjects base ativos
@@ -21,8 +21,6 @@ public abstract class BaseGameObjectDataManager implements Disposable {
     protected final List<BaseGameObject> gameObjectToAddList = new ArrayList<>();
     /// Rastreamento de todas as classes que passaram pelo manager
     protected final Set<Class<? extends BaseGameObject>> registeredClasses = new HashSet<>();
-
-    protected List<Disposable> runTimeDisposeList = new ArrayList<>();
 
     /// Flags de identificação de limpeza
     protected boolean
@@ -36,39 +34,6 @@ public abstract class BaseGameObjectDataManager implements Disposable {
     public void update(float delta) {
         this.insertGameObjectsInSys();                          //Tenta adicionar os novos objetos
         this.updateGameObjects(delta);                          //Realiza a atualização interna dos objetos
-    }
-
-    /// Função update auxiliar para lidar com multithreading,
-    ///  devemos usar esse daqui para dispose de dados dinamicamente
-    public void threadSafeUpdate(){
-        executeRunTimeThreadSafeDispose();
-    }
-
-    public void addToDisposeList(Disposable object){
-        runTimeDisposeList.add(object);
-    }
-
-    /// Realiza uma limpeza caso a lista esteja com objetos
-    protected void executeRunTimeThreadSafeDispose(){
-        if(runTimeDisposeList.isEmpty()) return;
-        Disposable current;
-        RenderAbleObjectII currentRenderable;
-        for(int i = 0; i < runTimeDisposeList.size(); i ++){
-            current = runTimeDisposeList.get(i);
-
-            if(!current.isDisposed()) {
-                current.dispose();
-            }
-
-            if(!(current instanceof RenderAbleObjectII)) return;
-
-            currentRenderable = (RenderAbleObjectII) current;
-            if(!currentRenderable.isGraphicsDisposed()){
-                currentRenderable.disposeGraphics();
-            }
-        }
-
-        runTimeDisposeList.clear();
     }
 
     public void postUpdate() {
@@ -111,7 +76,6 @@ public abstract class BaseGameObjectDataManager implements Disposable {
         }
 
         object.destroy();       //Executa a pipeline contendo a sequencia de destruição
-        addToDisposeList(object);
     }
 
     /// Tenta inserir os objetos pendentes na lista para atualização antes de começar a atualização geral
@@ -217,7 +181,6 @@ public abstract class BaseGameObjectDataManager implements Disposable {
         gameObjectList.clear();
         gameObjectToAddList.clear();
         registeredClasses.clear();
-        runTimeDisposeList.clear();
     }
 
     /// Dispose dos gráficos

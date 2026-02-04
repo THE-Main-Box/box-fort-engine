@@ -5,5 +5,4 @@ public interface RenderSystem {
 
     void updateVisuals(float delta);
 
-    void dispose();
 }

@@ -130,10 +130,4 @@ public class SingleThreadRenderSystem implements RenderSystem {
         screen.drawUI(batch);
         batch.end();
     }
-
-    public void dispose(){
-        if(gameObjectManager != null){
-            gameObjectManager.disposeGraphics();
-        }
-    }
 }

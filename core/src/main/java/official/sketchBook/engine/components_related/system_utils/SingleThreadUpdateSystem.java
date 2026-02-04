@@ -58,6 +58,7 @@ public class SingleThreadUpdateSystem implements UpdateSystem {
     public void dispose() {
         if(gameObjectManager != null){
             gameObjectManager.dispose();
+            gameObjectManager.disposeGraphics();
         }
     }
 

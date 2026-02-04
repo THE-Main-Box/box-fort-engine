@@ -43,6 +43,7 @@ public abstract class BaseGameObject implements Disposable {
     public final void destroy() {
         if (disposed) return;           //se já limpamos não podemos prosseguir nessa sequencia de eventos
         this.onObjectDestruction();     //Código personalizado antes de eliminarmos o objeto
+        this.dispose();                 //Realiza a limpeza dos dados
     }
 
     /// Callback para lógica customizada de destruição
