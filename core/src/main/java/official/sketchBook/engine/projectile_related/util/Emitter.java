@@ -1,6 +1,6 @@
 package official.sketchBook.engine.projectile_related.util;
 
-import com.badlogic.gdx.utils.Disposable;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.Disposable;
 import official.sketchBook.engine.projectile_related.models.BaseProjectile;
 import official.sketchBook.engine.projectile_related.pool.GlobalProjectilePool;
 
@@ -39,5 +39,10 @@ public class Emitter implements Disposable {
         projectileType = null;
 
         disposed = true;
+    }
+
+    @Override
+    public boolean isDisposed() {
+        return disposed;
     }
 }

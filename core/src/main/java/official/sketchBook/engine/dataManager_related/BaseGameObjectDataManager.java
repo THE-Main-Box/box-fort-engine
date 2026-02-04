@@ -1,7 +1,7 @@
 package official.sketchBook.engine.dataManager_related;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.Disposable;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.Disposable;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.dataManager_related.util.RenderableObjectManager;
@@ -22,7 +22,12 @@ public abstract class BaseGameObjectDataManager implements Disposable {
     /// Rastreamento de todas as classes que passaram pelo manager
     protected final Set<Class<? extends BaseGameObject>> registeredClasses = new HashSet<>();
 
-    protected boolean disposed = false;
+    protected List<Disposable> runTimeDisposeList = new ArrayList<>();
+
+    /// Flags de identificação de limpeza
+    protected boolean
+        disposed = false,
+        graphicsDisposed = false;
 
     /// Inicia todos os sistemas nativos dos managers filho
     protected abstract void setupSystems();
@@ -33,24 +38,59 @@ public abstract class BaseGameObjectDataManager implements Disposable {
         this.updateGameObjects(delta);                          //Realiza a atualização interna dos objetos
     }
 
-    public void postUpdate(){
+    /// Função update auxiliar para lidar com multithreading,
+    ///  devemos usar esse daqui para dispose de dados dinamicamente
+    public void threadSafeUpdate(){
+        executeRunTimeThreadSafeDispose();
+    }
+
+    public void addToDisposeList(Disposable object){
+        runTimeDisposeList.add(object);
+    }
+
+    /// Realiza uma limpeza caso a lista esteja com objetos
+    protected void executeRunTimeThreadSafeDispose(){
+        if(runTimeDisposeList.isEmpty()) return;
+        Disposable current;
+        RenderAbleObjectII currentRenderable;
+        for(int i = 0; i < runTimeDisposeList.size(); i ++){
+            current = runTimeDisposeList.get(i);
+
+            if(!current.isDisposed()) {
+                current.dispose();
+            }
+
+            if(!(current instanceof RenderAbleObjectII)) return;
+
+            currentRenderable = (RenderAbleObjectII) current;
+            if(!currentRenderable.isGraphicsDisposed()){
+                currentRenderable.disposeGraphics();
+            }
+        }
+
+        runTimeDisposeList.clear();
+    }
+
+    public void postUpdate() {
         this.postUpdateGameObjects();                           //pós atualização dos objetos
     }
 
     /// Executa a sequencia de atualização
     protected void updateGameObjects(float delta) {
+        BaseGameObject currentObject;
+
         //Itera de cima pra baixo
         for (int i = gameObjectList.size() - 1; i >= 0; i--) {
             //Obtém uma referencia
-            BaseGameObject object = gameObjectList.get(i);
+            currentObject = gameObjectList.get(i);
 
             //Se estiver pendente para remoção
-            if (object.isPendingRemoval()) {
-                removePendingObject(i, object);                 //Executa a remoção da pipeline
+            if (currentObject.isPendingRemoval()) {
+                removePendingObject(i, currentObject);          //Executa a remoção da pipeline
                 continue;                                       //Passa pro próximo objeto
             }
 
-            object.update(delta);                               //Atualização padrão
+            currentObject.update(delta);                        //Atualização padrão
         }
     }
 
@@ -70,73 +110,79 @@ public abstract class BaseGameObjectDataManager implements Disposable {
             );
         }
 
-        object.destroy();                               //Executa a pipeline contendo a sequencia de destruição
+        object.destroy();       //Executa a pipeline contendo a sequencia de destruição
+        addToDisposeList(object);
     }
 
     /// Tenta inserir os objetos pendentes na lista para atualização antes de começar a atualização geral
     protected void insertGameObjectsInSys() {
-        //Tenta adicionar os objetos novos
-        if (!gameObjectToAddList.isEmpty()) {
-            gameObjectList.addAll(gameObjectToAddList);
+        if (gameObjectToAddList.isEmpty()) return;
 
-            //AGORA adiciona à árvore de renderização (depois de estar na gameObjectList)
-            for (BaseGameObject go : gameObjectToAddList) {
-                if (go instanceof RenderAbleObjectII) {
-                    renderTree.add((RenderAbleObjectII) go);
-                }
-            }
+        BaseGameObject currentObject;
+        for (int i = 0; i < gameObjectToAddList.size(); i++) {
+            currentObject = gameObjectToAddList.get(i);
 
-            gameObjectToAddList.clear();
+            gameObjectList.add(currentObject);
+
+            if (!(currentObject instanceof RenderAbleObjectII)) return;
+
+            renderTree.add((RenderAbleObjectII) currentObject);
+
         }
+
+        gameObjectToAddList.clear();
+
     }
 
     /// Atualização tardia dos objetos, geralmente aqueles que precisam ter dados atualizados após o step do mundo
     protected void postUpdateGameObjects() {
-        //Percorremos a lista e atualizamos os objetos na nova pipeline
-        for (BaseGameObject gameObject : gameObjectList) {
-            //Se o objeto ficou pendente para remoção desde o ultimo loop ignoramos ele
-            if (gameObject.isPendingRemoval()) continue;
-            //chamamos a pós-atualização
-            gameObject.postUpdate();
+        BaseGameObject currentObject;
+        for (int i = 0; i < gameObjectList.size(); i++) {
+            currentObject = gameObjectList.get(i);
+
+            if (currentObject.isPendingRemoval()) continue;
+            currentObject.postUpdate();
         }
     }
 
     /// Atualiza os visuais dos objetos renderizáveis
-    public void updateVisuals(float delta){
+    public void updateVisuals(float delta) {
         updateRenderableObjectVisuals(delta);
     }
 
     /// Percorre o renderManager para atualizar os visuais de cada objeto renderizável
-    protected void updateRenderableObjectVisuals(float delta){
+    protected void updateRenderableObjectVisuals(float delta) {
         renderTree.forEachObject(
             obj -> obj.updateVisuals(delta)
         );
     }
 
     /// Executa a renderização dos objetos
-    public void render(SpriteBatch batch){
+    public void render(SpriteBatch batch) {
         drawRenderableObjects(batch);
     }
 
-    ///Percorre o renderManager e renderiza todos os objetos que podem ser renderizados
-    protected void drawRenderableObjects(SpriteBatch batch){
+    /// Percorre o renderManager e renderiza todos os objetos que podem ser renderizados
+    protected void drawRenderableObjects(SpriteBatch batch) {
         renderTree.forEachObject(
             obj -> obj.render(batch)
         );
     }
 
-    ///Executa a sequencia de destruição do manager
+    /// Executa a sequencia de destruição do manager
     public final void destroyManager() {
         if (disposed) return;
         this.onManagerDestruction();
+
         this.dispose();
+        this.disposeGraphics();
     }
 
     /// Sequencia de destruição customizável por instancia
     protected abstract void onManagerDestruction();
 
     /// Dispose completo do manager
-    public void dispose() {
+    public final void dispose() {
         if (disposed) return;
 
         //Dispose dos dados de cada instancia do manager, para evitar ter que manipular o dispose o tempo
@@ -171,7 +217,27 @@ public abstract class BaseGameObjectDataManager implements Disposable {
         gameObjectList.clear();
         gameObjectToAddList.clear();
         registeredClasses.clear();
-        renderTree.clear();
+        runTimeDisposeList.clear();
+    }
+
+    /// Dispose dos gráficos
+    public final void disposeGraphics() {
+        if (graphicsDisposed) return;
+        //Realiza uma limpeza de dados gráficos gerais,
+        // como as textures dos objetos renderizaveis e outros que precisam ser feitos em thread-safe
+        disposeGeneralGraphics();
+        //Dispose crítico que precisa ser feito por último
+        disposeCriticalGraphics();
+
+        graphicsDisposed = true;
+    }
+
+    /// Dispose geral dos gráficos
+    protected void disposeGeneralGraphics() {
+        renderTree.dispose();
+    }
+
+    protected void disposeCriticalGraphics() {
     }
 
     /**

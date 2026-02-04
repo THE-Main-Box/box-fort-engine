@@ -11,4 +11,6 @@ public interface RenderAbleObjectII {
 
     TransformComponent getTransformC();
 
+    boolean isGraphicsDisposed();
+    void disposeGraphics();
 }

@@ -15,8 +15,8 @@ public class MultiThreadUpdateSystem implements UpdateSystem {
     private final BaseScreen screen;
 
     public MultiThreadUpdateSystem(
-            BaseGameObjectDataManager gameObjectManager,
-            BaseScreen screen
+        BaseGameObjectDataManager gameObjectManager,
+        BaseScreen screen
     ) {
         this.gameObjectManager = gameObjectManager;
         this.screen = screen;
@@ -30,7 +30,10 @@ public class MultiThreadUpdateSystem implements UpdateSystem {
     public void update(float delta) {
         this.threadModule.executeUpdate(delta);
         if (screen != null) {
-            screen.updateScreen(delta);
+            screen.safeThreadUpdate();
+        }
+        if (gameObjectManager != null) {
+            gameObjectManager.threadSafeUpdate();
         }
     }
 
@@ -53,7 +56,7 @@ public class MultiThreadUpdateSystem implements UpdateSystem {
     @Override
     public void dispose() {
         this.threadModule.stopWorker();
-        if(isWorldManagerAccessible()){
+        if (isWorldManagerAccessible()) {
             this.gameObjectManager.dispose();
         }
     }

@@ -48,6 +48,8 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     }
 
     public void down(boolean pressed) {
+        if(!pressed) return;
+
     }
 
     public void jump(boolean pressed) {

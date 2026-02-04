@@ -39,6 +39,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     RoomGroundInteractableObject,
     JumpCapableObjectII {
 
+    public static boolean sheetDisposed = false;
     public static Texture playerSheet;
 
     /// Controlador estatico do player
@@ -376,15 +377,28 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     public static void disposeStaticResources() {
         System.out.println("Player limpando dados estaticos");
-        playerSheet.dispose();
         controllerC.dispose();
 
-        playerSheet = null;
         controllerC = null;
+        disposeSheet();
     }
 
     @Override
     protected void disposeGeneralData() {
+
+    }
+
+    @Override
+    protected void executeDisposeGraphics() {
+    }
+
+    private static void disposeSheet(){
+        if (sheetDisposed) return;
+        playerSheet.dispose();
+
+        playerSheet = null;
+
+        sheetDisposed = true;
 
     }
 }

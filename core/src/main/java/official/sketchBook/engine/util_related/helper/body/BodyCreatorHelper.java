@@ -33,6 +33,8 @@ public class BodyCreatorHelper {
         short category,
         short mask
     ) {
+        if(world == null) return null;
+
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = type;
         bodyDef.position.set(                   //Define posição no mundo
@@ -92,6 +94,8 @@ public class BodyCreatorHelper {
         short category,
         short mask
     ) {
+        if(world == null) return null;
+
         BodyDef bodyDef = new BodyDef();        //Criamos os valores padrão para o corpo
         bodyDef.type = type;                    //Definimos o tipo do corpo
         bodyDef.position.set(                   //Definimos a posição dentro do world
@@ -179,6 +183,8 @@ public class BodyCreatorHelper {
         short category,
         short mask
     ) {
+        if(world == null) return null;
+
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = type;
 

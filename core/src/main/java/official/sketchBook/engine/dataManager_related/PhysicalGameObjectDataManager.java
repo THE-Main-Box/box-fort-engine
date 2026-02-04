@@ -77,6 +77,8 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
 
     /// Usa o debugRenderer para visualizar as hitboxes
     public void renderWorldHitboxes(Camera gameCamera) {
+        if(debugRenderer == null) return;
+
         renderDebugMatrix.set(
             gameCamera.combined
         ).scl(PPM);
@@ -94,7 +96,6 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
 
     @Override
     protected void disposeGeneralData() {
-        disposeDebugRenderer();
     }
 
     @Override
@@ -111,6 +112,12 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
             physicsWorldExists = false;
         }
 
+    }
+
+    @Override
+    protected void disposeGeneralGraphics() {
+        super.disposeGeneralGraphics();
+        disposeDebugRenderer();
     }
 
     private void disposeDebugRenderer(){

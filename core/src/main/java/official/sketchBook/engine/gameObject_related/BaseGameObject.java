@@ -1,6 +1,6 @@
 package official.sketchBook.engine.gameObject_related;
 
-import com.badlogic.gdx.utils.Disposable;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.Disposable;
 import official.sketchBook.engine.components_related.system_utils.ComponentManagerComponent;
 import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
 
@@ -43,7 +43,6 @@ public abstract class BaseGameObject implements Disposable {
     public final void destroy() {
         if (disposed) return;           //se já limpamos não podemos prosseguir nessa sequencia de eventos
         this.onObjectDestruction();     //Código personalizado antes de eliminarmos o objeto
-        this.dispose();                 //Limpeza de recursos
     }
 
     /// Callback para lógica customizada de destruição

@@ -119,10 +119,9 @@ public class PlayScreen extends BaseScreen {
         testEmitter.configure(Bullet.class);
     }
 
-
     @Override
-    public void updateScreen(float delta) {
-        super.updateScreen(delta);
+    public void safeThreadUpdate() {
+        super.safeThreadUpdate();
         if (Gdx.input.isKeyPressed(
             Input.Keys.ESCAPE
         )) {
@@ -137,10 +136,17 @@ public class PlayScreen extends BaseScreen {
 //                room
 //            );
 
-//            worldManager.removeGameObject(worldManager.mainPlayer);
-            worldManager.destroyManager();
-//            worldManager.removeGameObject(worldManager.mainPlayer);
+            worldManager.removeGameObject(worldManager.mainPlayer);
+//            worldManager.destroyManager();
+//            worldManager.disposeGraphics();
         }
+
+
+    }
+
+    @Override
+    public void updateScreen(float delta) {
+        super.updateScreen(delta);
 
         if (change_of_zoom_allowed) {
             if (Gdx.input.isKeyPressed(
@@ -200,7 +206,6 @@ public class PlayScreen extends BaseScreen {
                 45
             );
         }
-
     }
 
     @Override

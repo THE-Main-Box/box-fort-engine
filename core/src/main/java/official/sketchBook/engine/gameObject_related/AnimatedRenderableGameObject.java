@@ -11,6 +11,8 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
     protected TransformComponent transformC;
     protected AnimationRenderingComponent animationRenderC;
 
+    private boolean graphicsDisposed = false;
+
     public AnimatedRenderableGameObject(
         BaseGameObjectDataManager worldDataManager,
         float x,
@@ -85,6 +87,19 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
 
         animationRenderC = null;
         transformC = null;
+    }
+
+    public final void disposeGraphics(){
+        if(graphicsDisposed) return;
+        executeDisposeGraphics();
+        graphicsDisposed = true;
+    }
+
+    protected abstract void executeDisposeGraphics();
+
+    @Override
+    public boolean isGraphicsDisposed() {
+        return graphicsDisposed;
     }
 
 }

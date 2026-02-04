@@ -11,6 +11,8 @@ public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObjec
 
     protected AnimationRenderingComponent animationRenderC;
 
+    private boolean graphicsDisposed = false;
+
     public AnimatedRenderableRoomGameObject(
         BaseGameObjectDataManager worldDataManager,
         PlayableRoom ownerRoom,
@@ -58,6 +60,14 @@ public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObjec
         animationRenderC.render(batch);
     }
 
+    public final void disposeGraphics(){
+        if(graphicsDisposed) return;
+        executeDisposeGraphics();
+        graphicsDisposed = true;
+    }
+
+    protected abstract void executeDisposeGraphics();
+
     @Override
     protected void disposeCriticalData() {
         super.disposeCriticalData();
@@ -72,5 +82,10 @@ public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObjec
     @Override
     public int getRenderIndex() {
         return (int) transformC.z;
+    }
+
+    @Override
+    public boolean isGraphicsDisposed() {
+        return graphicsDisposed;
     }
 }

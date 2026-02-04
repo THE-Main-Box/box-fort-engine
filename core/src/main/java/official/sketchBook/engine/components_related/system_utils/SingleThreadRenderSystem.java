@@ -132,5 +132,8 @@ public class SingleThreadRenderSystem implements RenderSystem {
     }
 
     public void dispose(){
+        if(gameObjectManager != null){
+            gameObjectManager.disposeGraphics();
+        }
     }
 }

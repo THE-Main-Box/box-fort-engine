@@ -24,6 +24,8 @@ public class RenderableObjectManager {
     private final TreeMap<Integer, ObjectBucket> renderTree;
     private final CullBounds cachedBounds;
 
+    private boolean disposed = false;
+
     public RenderableObjectManager() {
         this.renderTree = new TreeMap<>();
         this.cachedBounds = new CullBounds();
@@ -123,6 +125,16 @@ public class RenderableObjectManager {
     /// Buffer de bounds de tela
     private static class CullBounds {
         float minX, maxX, minY, maxY;
+    }
+
+    /// Realiza um dispose dos dados gráficos gerais
+    public void dispose(){
+        if(disposed) return;
+        //Realiza a limpeza dos gráficos
+        forEachObject(RenderAbleObjectII::disposeGraphics);
+        //Limpa a lista existente
+        clear();
+        disposed = true;
     }
 
     /// Classe interna que gerencia um array de objetos com tamanho dinâmico

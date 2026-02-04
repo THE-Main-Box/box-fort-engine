@@ -155,6 +155,9 @@ public class MultiThreadUpdateModule implements Runnable {
                 gameObjectManager.postUpdate();
             }
 
+            if (screen != null) {
+                screen.updateScreen(delta);
+            }
 
             accumulator -= FIXED_TIMESTAMP;
             updates++;
