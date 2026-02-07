@@ -25,6 +25,13 @@ import static official.sketchBook.game.util_related.constants.RenderingConstants
 
 public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
+    /// Buffers para camera
+    private float
+        cachedCamX,
+        cachedCamY,
+        cachedCamWidth,
+        cachedCamHeight;
+
     private GlobalProjectilePool globalProjectilePool;
 
     /// Gerenciador de salas do mundo
@@ -117,10 +124,13 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     /// Override do update para adicionar lógica de câmera
     @Override
     public void update(float delta) {
+        //Atualiza o buffer antes de entrar na pipeline de update
+        updateCameraBoundsCache();
+
         //Chama o update padrão
         super.update(delta);
 
-        //Depois de tudo atualizado, move a câmera
+        //Depois de tudo atualizado, move a camera
         updateCameraTracking();
     }
 
@@ -157,6 +167,36 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             (gameCamera.getCamera().position.y),
             (gameCamera.getCamera().viewportWidth * gameCamera.getCamera().zoom),
             (gameCamera.getCamera().viewportHeight * gameCamera.getCamera().zoom)
+        );
+    }
+
+    /**
+     * Atualiza cache de bounds da câmera.
+     */
+    private void updateCameraBoundsCache() {
+        cachedCamX = gameCamera.getCamera().position.x;
+        cachedCamY = gameCamera.getCamera().position.y;
+        cachedCamWidth = gameCamera.getCamera().viewportWidth * gameCamera.getCamera().zoom;
+        cachedCamHeight = gameCamera.getCamera().viewportHeight * gameCamera.getCamera().zoom;
+    }
+
+    public void updateVisuals(float delta) {
+        renderTree.forEachObject(
+            obj -> obj.updateVisuals(delta),
+            cachedCamX,
+            cachedCamY,
+            cachedCamWidth,
+            cachedCamHeight
+        );
+    }
+
+    public void render(SpriteBatch batch) {
+        renderTree.forEachObject(
+            obj -> obj.render(batch),
+            cachedCamX,
+            cachedCamY,
+            cachedCamWidth,
+            cachedCamHeight
         );
     }
 

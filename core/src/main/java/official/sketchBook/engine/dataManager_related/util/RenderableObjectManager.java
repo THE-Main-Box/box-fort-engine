@@ -128,13 +128,36 @@ public class RenderableObjectManager {
     }
 
     /// Realiza um dispose dos dados gráficos gerais
-    public void dispose(){
-        if(disposed) return;
+    public void dispose() {
+        if (disposed) return;
         //Realiza a limpeza dos gráficos
         forEachObject(RenderAbleObjectII::disposeGraphics);
         //Limpa a lista existente
         clear();
         disposed = true;
+    }
+
+    public static void tryRemoveFromRender(
+        RenderableObjectManager manager,
+        Object toAdd
+    ) {
+        if (toAdd instanceof RenderAbleObjectII) {
+            manager.remove(
+                (RenderAbleObjectII) toAdd
+            );
+        }
+    }
+
+    public static void tryAddToRender(
+        RenderableObjectManager manager,
+        Object toAdd
+    ) {
+        if (toAdd instanceof RenderAbleObjectII) {
+            manager.add(
+                (RenderAbleObjectII) toAdd
+            );
+        }
+
     }
 
     /// Classe interna que gerencia um array de objetos com tamanho dinâmico

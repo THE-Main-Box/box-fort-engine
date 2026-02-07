@@ -2,12 +2,13 @@ package official.sketchBook.game.projectile_related.pool;
 
 import com.badlogic.gdx.utils.Array;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.Disposable;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObjectII;
 import official.sketchBook.engine.dataManager_related.util.RenderableObjectManager;
 import official.sketchBook.engine.projectile_related.models.BaseProjectile;
 import official.sketchBook.engine.util_related.custom_utils.CustomPool;
 import official.sketchBook.game.projectile_related.factories.ProjectileFactory;
 
+import static official.sketchBook.engine.dataManager_related.util.RenderableObjectManager.tryAddToRender;
+import static official.sketchBook.engine.dataManager_related.util.RenderableObjectManager.tryRemoveFromRender;
 import static official.sketchBook.game.util_related.constants.WorldConstants.ProjectilePoolConstants.MAX_PROJECTILE_DESTRUCTION_PER_POOL;
 import static official.sketchBook.game.util_related.constants.WorldConstants.ProjectilePoolConstants.MAX_PROJECTILE_PER_POOL;
 
@@ -72,7 +73,10 @@ public class ProjectilePool<T extends BaseProjectile> extends CustomPool<T> impl
         super.free((T) projectile);
         activeProjectiles.removeValue((T) projectile, true);
         //Caso possamos renderizar o projétil removemos ele
-        tryRemoveFromRenderingPipeLine(projectile);
+        tryRemoveFromRender(
+            renderTree,
+            projectile
+        );
 
     }
 
@@ -91,28 +95,6 @@ public class ProjectilePool<T extends BaseProjectile> extends CustomPool<T> impl
         for(int i = 0; i < activeProjectiles.size; i++){
             activeProjectiles.get(i).postUpdate();
         }
-    }
-
-    protected void tryRemoveFromRenderingPipeLine(BaseProjectile projectile) {
-        if (
-            !(projectile instanceof RenderAbleObjectII)
-        ) return;
-
-        renderTree.remove(
-            (RenderAbleObjectII) projectile
-        );
-
-    }
-
-    protected void tryAddToRenderingPipeLine(BaseProjectile projectile) {
-        if (
-            !(projectile instanceof RenderAbleObjectII)
-        ) return;
-
-        renderTree.add(
-            (RenderAbleObjectII) projectile
-        );
-
     }
 
     @Override
@@ -151,7 +133,10 @@ public class ProjectilePool<T extends BaseProjectile> extends CustomPool<T> impl
         if(proj.isReset()) return;
         this.activeProjectiles.add((T) proj);
         this.freeObjects.removeValue((T) proj, true);
-        tryAddToRenderingPipeLine(proj);
+        tryAddToRender(
+            renderTree,
+            proj
+        );
     }
 
     public boolean canSpawnNewProjectile() {

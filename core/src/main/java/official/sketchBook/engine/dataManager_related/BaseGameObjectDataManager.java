@@ -10,6 +10,9 @@ import official.sketchBook.engine.gameObject_related.BaseGameObject;
 import java.lang.reflect.Method;
 import java.util.*;
 
+import static official.sketchBook.engine.dataManager_related.util.RenderableObjectManager.tryAddToRender;
+import static official.sketchBook.engine.dataManager_related.util.RenderableObjectManager.tryRemoveFromRender;
+
 public abstract class BaseGameObjectDataManager implements Disposable {
 
     /// Lista de objects que precisam de rendering
@@ -75,6 +78,11 @@ public abstract class BaseGameObjectDataManager implements Disposable {
             );
         }
 
+        tryRemoveFromRender(
+            renderTree,
+            object
+        );
+
         object.destroy();       //Executa a pipeline contendo a sequencia de destruição
     }
 
@@ -88,10 +96,10 @@ public abstract class BaseGameObjectDataManager implements Disposable {
 
             gameObjectList.add(currentObject);
 
-            if (!(currentObject instanceof RenderAbleObjectII)) return;
-
-            renderTree.add((RenderAbleObjectII) currentObject);
-
+            tryAddToRender(
+                renderTree,
+                currentObject
+            );
         }
 
         gameObjectToAddList.clear();
@@ -171,8 +179,8 @@ public abstract class BaseGameObjectDataManager implements Disposable {
 
     /// Realiza um dispose dos dados pro instancia dos GameObjects existentes dentro do manager
     protected void disposeGameObjectInstances() {
-        for (BaseGameObject gameObject : gameObjectList) {
-            gameObject.dispose();
+        for (int i = 0; i < gameObjectList.size(); i++) {
+            gameObjectList.get(i).dispose();
         }
     }
 
