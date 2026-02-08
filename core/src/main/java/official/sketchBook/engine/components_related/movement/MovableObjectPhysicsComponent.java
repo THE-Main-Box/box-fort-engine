@@ -8,8 +8,9 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
 
     private MovableObjectII mob;
 
-    private float defaultGravityScale = -1;
+    private float defaultGravityScale = 0;
     private boolean gravityWasAffected = true;
+
     public boolean autoApplyMovement = true;
 
     public MovableObjectPhysicsComponent(
@@ -93,21 +94,29 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
         }
     }
 
-    /// Impede o efeito da gravidade no objeto caso não possamos nos mover no eixo y
     private void constraintGravity() {
         boolean shouldAffectGravity = mob.getMoveC().gravityAffected;
 
-        // Só executa se mudou de estado
-        if (gravityWasAffected != shouldAffectGravity) {
-            if (!shouldAffectGravity) {
-                defaultGravityScale = object.getBody().getGravityScale();
+        if (!shouldAffectGravity) {
+            if (gravityWasAffected) {
+                defaultGravityScale = mob.getMoveC().gravityScale; // backup lógico
                 object.getBody().setGravityScale(0);
-            } else {
-                object.getBody().setGravityScale(defaultGravityScale);
-                defaultGravityScale = -1;
+                gravityWasAffected = false;
             }
-            gravityWasAffected = shouldAffectGravity;
+            return;
+        }
+
+        // Gravidade ligada
+        if (!gravityWasAffected) {
+            object.getBody().setGravityScale(defaultGravityScale);
+            gravityWasAffected = true;
+        }
+
+        float targetGravity = mob.getMoveC().gravityScale;
+        if (object.getBody().getGravityScale() != targetGravity) {
+            object.getBody().setGravityScale(targetGravity);
         }
     }
+
 
 }

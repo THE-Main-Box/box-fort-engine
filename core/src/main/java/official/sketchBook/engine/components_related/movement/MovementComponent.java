@@ -51,6 +51,9 @@ public class MovementComponent implements Component {
         canDeAccelerateY,           //Se podemos desacelerar no eixo y
         canDeAccelerateR;           //Se podemos desacelerar a rotação
 
+    /// Valor de escala de gravidade padrão
+    public float gravityScale = 1;
+
     /// Esta variavel determina se a velocidade é aplicada no objeto de forma direta
     public final boolean autoApplySpeed;
 

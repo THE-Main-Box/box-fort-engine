@@ -7,21 +7,23 @@ public enum CollisionLayers {
     ALLY_PROJECTILE(1 << 3),
     ENEMY_PROJECTILE(1 << 4),
     SENSOR(1 << 5),
+    LIQUID(1 << 6),
+    LIQUID_SUBMERGEABLE(1 << 7),
     NONE(0),
     ENTITIES(
         ALLY_ENTITY.bit() |
-        ENEMY_ENTITY.bit()
-        ),
+            ENEMY_ENTITY.bit()
+    ),
     PROJECTILES(
         ALLY_PROJECTILE.bit() |
-        ENEMY_PROJECTILE.bit()
-        ),
+            ENEMY_PROJECTILE.bit()
+    ),
     ALL(
         ENTITIES.bit() |
-        PROJECTILES.bit()|
-        SENSOR.bit() |
-        ENVIRONMENT.bit()
-        );
+            PROJECTILES.bit() |
+            SENSOR.bit() |
+            ENVIRONMENT.bit()
+    );
 
     private final short bit;
 

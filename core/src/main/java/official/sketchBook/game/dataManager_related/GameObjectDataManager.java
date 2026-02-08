@@ -4,10 +4,14 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
+import official.sketchBook.engine.liquid_related.model.PhysicalRoomLiquid;
+import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 import official.sketchBook.engine.projectile_related.pool.GlobalProjectilePool;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.listeners.MovableObjectContactListener;
 import official.sketchBook.engine.util_related.contact_listener.listeners.ProjectileContactListener;
+import official.sketchBook.engine.util_related.helper.GameObjectTag;
+import official.sketchBook.engine.util_related.helper.body.BodyTagHelper;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.gameObject_related.Player;
@@ -84,6 +88,39 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             initBaseTileMap()
         );
 
+        List<LiquidRegion> regionList = new ArrayList<>();
+
+        regionList.add(
+            new LiquidRegion(
+                50,
+                50,
+                50,
+                50
+            )
+        );
+
+        regionList.add(
+            new LiquidRegion(
+                100,
+                50,
+                50,
+                50
+            )
+        );
+
+        PhysicalRoomLiquid water = new PhysicalRoomLiquid(
+            this,
+            currentRoom,
+            "water",
+            0,
+            0,
+            0,
+            0,
+            0,
+            regionList
+        );
+
+        System.out.println(water);
     }
 
 

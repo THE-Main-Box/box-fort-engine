@@ -5,5 +5,6 @@ public enum ObjectType {
     ENTITY,
     ENVIRONMENT,
     NONE,
-    HURTBOX
+    HURTBOX,
+    LIQUID
 }

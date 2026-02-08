@@ -255,7 +255,8 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         this.animationRenderC.addNewLayer(
             sheetHandler,
-            aniPlayer
+            aniPlayer,
+            transformC
         );
     }
 

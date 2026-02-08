@@ -40,7 +40,7 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
             yAxisInverted
         );
 
-        animationRenderC = new AnimationRenderingComponent(transformC);
+        animationRenderC = new AnimationRenderingComponent();
 
         initObject();
     }

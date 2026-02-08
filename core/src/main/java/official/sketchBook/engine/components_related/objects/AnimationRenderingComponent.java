@@ -12,10 +12,7 @@ import java.util.List;
 public class AnimationRenderingComponent {
 
     /// Lista de camadas de animação
-    private final List<AnimationLayer> layers;
-
-    /// Referência ao componente conteiner de dados móveis
-    private TransformComponent transformC;
+    private final List<AnimationLayer> layers = new ArrayList<>();;
 
     public boolean isRenderDimensionEqualsToObject = true;
 
@@ -23,13 +20,7 @@ public class AnimationRenderingComponent {
 
     private SpriteSheetDataHandler currentRenderingSheetHandler;
     private ObjectAnimationPlayer currentRenderingAniPlayer;
-
-
-    public AnimationRenderingComponent(TransformComponent transformC) {
-        this.layers = new ArrayList<>();
-
-        this.transformC = transformC;
-    }
+    private TransformComponent currentTransformC;
 
     /// Atualiza os componentes responsáveis pela renderização em camadas de imagens e animações
     public void updateVisuals(float delta) {
@@ -44,27 +35,28 @@ public class AnimationRenderingComponent {
             //Usamos buffers globais para micro-otimização
             currentRenderingSheetHandler = currentLayer.sheetHandler;
             currentRenderingAniPlayer = currentLayer.aniPlayer;
+            currentTransformC = currentLayer.transformC;
 
             //Atualizamos a posição da sprite usando o componente de transform
             currentRenderingSheetHandler.updatePosition(
-                transformC.x,
-                transformC.y
+                currentTransformC.x,
+                currentTransformC.y
             );
 
             //Atualizamos a rotação da imagem
             currentRenderingSheetHandler.setRotation(
-                transformC.rotation
+                currentTransformC.rotation
             );
 
             //Determinamos se podemos inverter a imagem em algum eixo
-            currentRenderingSheetHandler.mirrorX = transformC.mirrorX;
-            currentRenderingSheetHandler.mirrorY = transformC.mirrorY;
+            currentRenderingSheetHandler.mirrorX = currentTransformC.mirrorX;
+            currentRenderingSheetHandler.mirrorY = currentTransformC.mirrorY;
 
             //Se o tamanho de renderização de um objeto corresponde a seu tamanho lógico
             if (isRenderDimensionEqualsToObject) {
                 //Fazemos com que as dimensões de renderização sejam as mesmas da largura e altura passadas
-                currentRenderingSheetHandler.renderWidth = transformC.width;
-                currentRenderingSheetHandler.renderHeight = transformC.height;
+                currentRenderingSheetHandler.renderWidth = currentTransformC.width;
+                currentRenderingSheetHandler.renderHeight = currentTransformC.height;
             }
 
             //Se tivermos algum tocador de animações nessa camada atualizamos ele
@@ -107,12 +99,14 @@ public class AnimationRenderingComponent {
      */
     public void addNewLayer(
         SpriteSheetDataHandler spriteDataHandler,
-        ObjectAnimationPlayer aniPlayer
+        ObjectAnimationPlayer aniPlayer,
+        TransformComponent transformC
     ) {
         layers.add(
             new AnimationLayer(
                 spriteDataHandler,
-                aniPlayer
+                aniPlayer,
+                transformC
             )
         );
     }
@@ -126,12 +120,14 @@ public class AnimationRenderingComponent {
      */
     public void addNewLayer(
         SpriteSheetDataHandler spriteDataHandler,
-        Sprite defaultSprite
+        Sprite defaultSprite,
+        TransformComponent transformC
     ) {
         layers.add(
             new AnimationLayer(
                 spriteDataHandler,
-                defaultSprite
+                defaultSprite,
+                transformC
             )
         );
     }
@@ -141,10 +137,10 @@ public class AnimationRenderingComponent {
         if (disposed) return;
 
         layers.clear();
-        transformC = null;
 
         currentRenderingAniPlayer = null;
         currentRenderingSheetHandler = null;
+        currentTransformC = null;
 
         disposed = true;
     }
@@ -154,28 +150,38 @@ public class AnimationRenderingComponent {
     }
 
     public static class AnimationLayer {
+        /// Referência a componente que armazena propriedades de dimensões e coordenadas
+        public TransformComponent transformC;
+
         /// Gerenciador de dados de sprite sheet
         public SpriteSheetDataHandler sheetHandler;
+
         /// Gerenciador de animações
         public ObjectAnimationPlayer aniPlayer;
+
         /// Sprite a ser renderizada caso não passemos um gerenciador de animações
         public Sprite defaultSprite;
 
+
         AnimationLayer(
             SpriteSheetDataHandler sheetHandler,
-            ObjectAnimationPlayer aniPlayer
+            ObjectAnimationPlayer aniPlayer,
+            TransformComponent transformC
         ) {
             this.sheetHandler = sheetHandler;
             this.aniPlayer = aniPlayer;
+            this.transformC = transformC;
             this.defaultSprite = null;
         }
 
         public AnimationLayer(
             SpriteSheetDataHandler sheetHandler,
-            Sprite defaultSprite
+            Sprite defaultSprite,
+            TransformComponent transformC
         ) {
             this.sheetHandler = sheetHandler;
             this.defaultSprite = defaultSprite;
+            this.transformC = transformC;
             this.aniPlayer = null;
         }
     }

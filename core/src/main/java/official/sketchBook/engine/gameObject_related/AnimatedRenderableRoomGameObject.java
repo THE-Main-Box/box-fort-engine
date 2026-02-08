@@ -49,7 +49,7 @@ public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObjec
             yAxisInverted
         );
 
-        this.animationRenderC = new AnimationRenderingComponent(this.transformC);
+        this.animationRenderC = new AnimationRenderingComponent();
 
     }
 
