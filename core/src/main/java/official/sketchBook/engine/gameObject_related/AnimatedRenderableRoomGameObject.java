@@ -3,6 +3,7 @@ package official.sketchBook.engine.gameObject_related;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObjectII;
 import official.sketchBook.engine.components_related.objects.AnimationRenderingComponent;
+import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
@@ -10,6 +11,7 @@ import official.sketchBook.engine.world_gen.model.PlayableRoom;
 public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObject implements RenderAbleObjectII {
 
     protected AnimationRenderingComponent animationRenderC;
+    protected TransformComponent transformC;
 
     private boolean graphicsDisposed = false;
 
@@ -31,7 +33,10 @@ public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObjec
         super(
             worldDataManager,
             ownerRoom,
-            roomScope,
+            roomScope
+        );
+
+        this.transformC = TransformComponent.initNewTransformComponent(
             x,
             y,
             z,
@@ -43,11 +48,9 @@ public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObjec
             xAxisInverted,
             yAxisInverted
         );
-    }
 
-    @Override
-    protected void initObject() {
         this.animationRenderC = new AnimationRenderingComponent(this.transformC);
+
     }
 
     @Override
@@ -73,6 +76,7 @@ public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObjec
         super.disposeCriticalData();
         this.animationRenderC.dispose();
         this.animationRenderC = null;
+        this.transformC = null;
     }
 
     public AnimationRenderingComponent getAnimationRenderC() {
@@ -88,4 +92,8 @@ public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObjec
     public boolean isGraphicsDisposed() {
         return graphicsDisposed;
     }
+    public TransformComponent getTransformC() {
+        return transformC;
+    }
+
 }

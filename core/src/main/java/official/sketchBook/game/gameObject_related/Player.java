@@ -87,11 +87,12 @@ public class Player extends AnimatedRenderableRoomGameObject
         );
 
         this.animationRenderC.isRenderDimensionEqualsToObject = false;
+
+        this.initObject();
     }
 
     @Override
     protected void initObject() {
-        super.initObject();
 
         //Controlador
         initControllerComponent();

@@ -7,7 +7,6 @@ import official.sketchBook.engine.world_gen.model.PlayableRoom;
 
 public abstract class BaseRoomGameObject extends BaseGameObject {
 
-    protected TransformComponent transformC;
 
     protected PlayableRoom ownerRoom;
     public final RoomObjectScope roomScope;
@@ -15,38 +14,13 @@ public abstract class BaseRoomGameObject extends BaseGameObject {
     public BaseRoomGameObject(
         BaseGameObjectDataManager worldDataManager,
         PlayableRoom ownerRoom,
-        RoomObjectScope roomScope,
-        float x,
-        float y,
-        float z,
-        float rotation,
-        float width,
-        float height,
-        float scaleX,
-        float scaleY,
-        boolean xAxisInverted,
-        boolean yAxisInverted
+        RoomObjectScope roomScope
     ) {
         super(worldDataManager);
 
         this.roomScope = roomScope;
 
-        this.transformC = TransformComponent.initNewTransformComponent(
-            x,
-            y,
-            z,
-            rotation,
-            width,
-            height,
-            scaleX,
-            scaleY,
-            xAxisInverted,
-            yAxisInverted
-        );
-
-        initObject();
         setOwnerRoom(ownerRoom);
-
     }
 
     @Override
@@ -69,7 +43,6 @@ public abstract class BaseRoomGameObject extends BaseGameObject {
     @Override
     protected void disposeCriticalData() {
         super.disposeCriticalData();
-        transformC = null;
     }
 
     public void onRoomSwitch(PlayableRoom oldRoom, PlayableRoom newRoom){
@@ -87,7 +60,4 @@ public abstract class BaseRoomGameObject extends BaseGameObject {
         }
     }
 
-    public TransformComponent getTransformC() {
-        return transformC;
-    }
 }
