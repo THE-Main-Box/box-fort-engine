@@ -229,6 +229,21 @@ public class MovementComponent implements Component {
         this.rSpeed *= -1;
     }
 
+    public void setxSpeed(float xSpeed) {
+        this.xSpeed = xSpeed;
+        this.xAccel = xSpeed;
+    }
+
+    public void setySpeed(float ySpeed) {
+        this.ySpeed = ySpeed;
+        this.yAccel = ySpeed;
+    }
+
+    public void setrSpeed(float rSpeed) {
+        this.rSpeed = rSpeed;
+        this.rAccel = rSpeed;
+    }
+
     public void cleanAccelToDeAccelManually(){
         if (canDeAccelerateX)
             xAccel = 0;

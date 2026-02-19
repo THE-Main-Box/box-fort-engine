@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
+import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.engine.liquid_related.model.PhysicalRoomLiquid;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 import official.sketchBook.engine.projectile_related.pool.GlobalProjectilePool;
@@ -111,16 +112,11 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         PhysicalRoomLiquid water = new PhysicalRoomLiquid(
             this,
             currentRoom,
-            "water",
-            0,
-            0,
-            0,
-            0,
-            0,
+            new LiquidData(),
             regionList
         );
 
-        System.out.println(water);
+        System.out.println(water.getLiquidData());
     }
 
 

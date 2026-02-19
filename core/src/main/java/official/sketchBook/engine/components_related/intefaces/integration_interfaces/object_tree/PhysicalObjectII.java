@@ -15,7 +15,6 @@ public interface PhysicalObjectII {
     /// Garante que teremos um componente de física
     PhysicsComponent getPhysicsC();
 
-
     /// Garante que tenhamos uma body
     Body getBody();
 }
