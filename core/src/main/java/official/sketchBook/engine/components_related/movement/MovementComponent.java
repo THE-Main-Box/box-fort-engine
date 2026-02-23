@@ -32,6 +32,12 @@ public class MovementComponent implements Component {
         yDeceleration,          //Desaceleração do eixo x (m|px/s)
         rDeceleration;          //Desaceleração de rotação (rad/s)
 
+    /// Peso de resistência por eixo (0 = sem efeito, maior = mais difícil iniciar, mais fácil parar)
+    public float
+        xResistanceWeight,
+        yResistanceWeight,
+        rResistanceWeight;
+
     /// Flags que determinam se podemos nos mover nos eixos respectivos
     public boolean
         canMoveX,           //Se podemos nos mover no eixo x
@@ -113,6 +119,7 @@ public class MovementComponent implements Component {
             xAccel,
             xMaxSpeed,
             xDeceleration,
+            xResistanceWeight,
             canMoveX,
             canAccelerateX,
             canDeAccelerateX,
@@ -124,6 +131,7 @@ public class MovementComponent implements Component {
             yAccel,
             yMaxSpeed,
             yDeceleration,
+            yResistanceWeight,
             canMoveY,
             canAccelerateY,
             canDeAccelerateY,
@@ -135,6 +143,7 @@ public class MovementComponent implements Component {
             rAccel,
             rMaxSpeed,
             rDeceleration,
+            rResistanceWeight,
             canRotate,
             canAccelerateR,
             canDeAccelerateR,
@@ -174,6 +183,7 @@ public class MovementComponent implements Component {
         float accel,
         float maxSpeed,
         float deceleration,
+        float resistanceWeight,
         boolean canMove,
         boolean canAccelerate,
         boolean canDeAccelerate,
@@ -182,12 +192,13 @@ public class MovementComponent implements Component {
         if (!canMove) return 0;
 
         if (canAccelerate && accel != 0) {
-            speed += accel;
+            // Resistência dificulta iniciar movimento
+            float effectiveAccel = accel / (1f + resistanceWeight);
+            speed += effectiveAccel;
         } else if (canDeAccelerate && speed != 0) {
-            speed = applyDeceleration(
-                speed,
-                deceleration * delta
-            );
+            // Resistência facilita parar
+            float effectiveDeAccel = deceleration / (1f + resistanceWeight * delta);
+            speed = applyDeceleration(speed, effectiveDeAccel * delta);
         }
 
         return clamp(speed, maxSpeed);
