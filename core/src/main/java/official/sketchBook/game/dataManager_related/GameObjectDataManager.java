@@ -10,6 +10,7 @@ import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 import official.sketchBook.engine.projectile_related.pool.GlobalProjectilePool;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.listeners.MovableObjectContactListener;
+import official.sketchBook.engine.util_related.contact_listener.listeners.PhysicalLiquidContactListener;
 import official.sketchBook.engine.util_related.contact_listener.listeners.ProjectileContactListener;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.engine.util_related.helper.body.BodyTagHelper;
@@ -90,6 +91,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         );
 
         List<LiquidRegion> regionList = new ArrayList<>();
+        LiquidData data;
 
         regionList.add(
             new LiquidRegion(
@@ -109,10 +111,20 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             )
         );
 
+        data = new LiquidData(
+            "water",
+            1,
+            10f,
+            20f,
+            999f,
+            999f,
+            9999f
+        );
+
         PhysicalRoomLiquid water = new PhysicalRoomLiquid(
             this,
             currentRoom,
-            new LiquidData(),
+            data,
             regionList
         );
 
@@ -135,6 +147,14 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             ContactUtils.keys.PROJECTILE_LISTENER,
             new ProjectileContactListener()
         );
+
+        ContactUtils.handleContactListener(
+            this.contactListeners,
+            false,
+            ContactUtils.keys.LIQUID_LISTENER,
+            new PhysicalLiquidContactListener()
+        );
+
     }
 
     /// Atualiza o tracking da câmera baseado no jogador

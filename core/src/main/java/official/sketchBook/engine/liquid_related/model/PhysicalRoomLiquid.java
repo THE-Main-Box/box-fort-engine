@@ -13,7 +13,7 @@ import java.util.List;
 
 import static official.sketchBook.engine.util_related.helper.body.LiquidBodyCreatorHelper.createLiquidFixture;
 
-public class PhysicalRoomLiquid extends BaseRoomGameObject implements ILiquid {
+public class PhysicalRoomLiquid extends BaseRoomGameObject implements Liquid {
 
     private World world;
 

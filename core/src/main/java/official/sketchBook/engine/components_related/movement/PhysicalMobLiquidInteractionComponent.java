@@ -75,11 +75,15 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     public void addLiquid(LiquidData liquid) {
         if (liquid == null) return;
 
-        // Não adiciona duplicado
-        for (LiquidData existing : liquidBuffer) {
-            if (existing.id == liquid.id) {
-                return;
-            }
+        // Percorre todos os objetos da lista
+        for (int i = 0; i < liquidBuffer.size(); i++) {
+            //Se o id do atual for igual ao id do objeto que foi passado
+            if (liquidBuffer.get(i).id
+                ==
+                liquid.id
+                //Retornamos para não adicionar na lista
+            ) return;
+
         }
 
         liquidBuffer.add(liquid);

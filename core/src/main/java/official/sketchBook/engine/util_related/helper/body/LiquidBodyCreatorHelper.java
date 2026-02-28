@@ -4,7 +4,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
-import official.sketchBook.engine.liquid_related.model.ILiquid;
+import official.sketchBook.engine.liquid_related.model.Liquid;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 import official.sketchBook.engine.util_related.enumerators.CollisionLayers;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
@@ -14,7 +14,7 @@ import static official.sketchBook.engine.util_related.helper.CollisionBitImplant
 
 public class LiquidBodyCreatorHelper {
 
-    public static void createLiquidFixture(LiquidRegion region, Body body, ILiquid liquid) {
+    public static void createLiquidFixture(LiquidRegion region, Body body, Liquid liquid) {
         //Seta a posição da body no centro da criação de mundo,
         // para que a posição relativa das fixtures seja relativa a geração de mundo
         body.setTransform(0, 0, 0);

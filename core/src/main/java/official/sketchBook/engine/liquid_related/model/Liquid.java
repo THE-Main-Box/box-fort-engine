@@ -1,5 +1,5 @@
 package official.sketchBook.engine.liquid_related.model;
 
-public interface ILiquid {
+public interface Liquid {
     LiquidData getLiquidData();
 }
