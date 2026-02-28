@@ -424,6 +424,16 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     @Override
+    public void onLiquidExit() {
+
+    }
+
+    @Override
+    public void onLiquidEnter() {
+
+    }
+
+    @Override
     public PhysicalMobLiquidInteractionComponent getLiquidInteractionC() {
         return liquidInteractionC;
     }

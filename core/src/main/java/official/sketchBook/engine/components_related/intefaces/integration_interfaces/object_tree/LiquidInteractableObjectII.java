@@ -4,5 +4,8 @@ import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.movement.PhysicalMobLiquidInteractionComponent;
 
 public interface LiquidInteractableObjectII extends MovableObjectII{
-        PhysicalMobLiquidInteractionComponent getLiquidInteractionC();
+
+    void onLiquidExit();
+    void onLiquidEnter();
+    PhysicalMobLiquidInteractionComponent getLiquidInteractionC();
 }
