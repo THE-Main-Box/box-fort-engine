@@ -14,6 +14,7 @@ public class PhysicsConstants {
     /// Faixa de tempo que o sistema de física irá tentar seguir
     public static float FIXED_TIMESTAMP;
 
+    public static float BOYANCY_THRESHOLD = 1.0f;
 
     /// Acumulador máximo para evitar travamento acidental
     public static final float MAX_ACCUMULATOR = 0.25f;// Evita travar o PC se o frame demorar muito

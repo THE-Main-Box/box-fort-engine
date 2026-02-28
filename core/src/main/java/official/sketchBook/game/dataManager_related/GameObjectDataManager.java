@@ -95,18 +95,9 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         regionList.add(
             new LiquidRegion(
+                200,
                 50,
-                50,
-                50,
-                50
-            )
-        );
-
-        regionList.add(
-            new LiquidRegion(
-                100,
-                50,
-                50,
+                150,
                 50
             )
         );
@@ -114,7 +105,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         data = new LiquidData(
             "water",
             1,
-            10f,
+            1f,
             20f,
             999f,
             999f,
@@ -128,7 +119,6 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             regionList
         );
 
-        System.out.println(water.getLiquidData());
     }
 
 

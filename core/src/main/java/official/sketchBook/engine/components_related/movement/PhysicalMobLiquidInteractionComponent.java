@@ -7,6 +7,8 @@ import official.sketchBook.engine.liquid_related.model.LiquidData;
 import java.util.ArrayList;
 import java.util.List;
 
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.BOYANCY_THRESHOLD;
+
 /// Aplicar após a atualização do componente de movimentação
 public class PhysicalMobLiquidInteractionComponent implements Component {
     /// Componente de movimentação
@@ -17,6 +19,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     /// flag de estado auxiliar
     private boolean
+        neutralBuoyancy = false,
         inLiquid,
         needsRecalculation;
 
@@ -65,8 +68,26 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     }
 
+    private float totalBoyancyFx;
+
     private void applyLiquidEffects() {
-        moveC.yAccel += boyancyFactor + boyancyModifier;
+        if (neutralBuoyancy) {
+            moveC.gravityAffected = false;
+            return;
+        }
+
+        totalBoyancyFx += boyancyFactor + boyancyModifier;
+        totalBoyancyFx = Math.max(
+            -moveC.yMaxSpeed,
+            Math.min(
+                moveC.yMaxSpeed,
+                totalBoyancyFx
+            )
+        );
+
+        if (Math.abs(totalBoyancyFx) < BOYANCY_THRESHOLD) return;
+
+        moveC.setySpeed(totalBoyancyFx);
     }
 
     /**
@@ -88,8 +109,9 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         liquidBuffer.add(liquid);
 
-        storeOriginalMovementValues();
-
+        if (liquidBuffer.size() == 1) {
+            storeOriginalMovementValues();
+        }
         inLiquid = true;
         needsRecalculation = true;
     }
@@ -100,16 +122,18 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     public void removeLiquid(LiquidData liquid) {
         if (liquid == null) return;
 
-        liquidBuffer.removeIf(
-            l -> l.id == liquid.id
-        );
+        liquidBuffer.removeIf(l -> l.id == liquid.id);
 
         if (liquidBuffer.isEmpty()) {
             inLiquid = false;
-        }
-        needsRecalculation = true;
+            restartOriginalMovementValues();
 
-        restartOriginalMovementValues();
+            moveC.resetYMovement();
+            totalBoyancyFx = 0;
+        } else {
+            // Ainda em líquido, só recalcula com o que sobrou
+            needsRecalculation = true;
+        }
     }
 
     /**
@@ -117,9 +141,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
      * Chamado na primeira entrada em um líquido.
      */
     private void storeOriginalMovementValues() {
-        //Se não for o primeiro liquido ignoramos
-        if (liquidBuffer.size() > 1) return;
-
         this.originalYMaxSpeed = moveC.yMaxSpeed;
         this.originalXMaxSpeed = moveC.xMaxSpeed;
         this.originalRMaxSpeed = moveC.rMaxSpeed;
@@ -134,12 +155,9 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         this.originalXResistanceWeight = moveC.xResistanceWeight;
         this.originalYResistanceWeight = moveC.yResistanceWeight;
         this.originalRResistanceWeight = moveC.rResistanceWeight;
-
     }
 
     private void restartOriginalMovementValues() {
-        if (!(liquidBuffer.isEmpty())) return;
-
         this.moveC.yMaxSpeed = originalYMaxSpeed;
         this.moveC.xMaxSpeed = originalXMaxSpeed;
         this.moveC.rMaxSpeed = originalRMaxSpeed;
@@ -254,6 +272,11 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         needsRecalculation = true;
     }
 
+    public void setNeutralBuoyancy(boolean neutral) {
+        this.neutralBuoyancy = neutral;
+        needsRecalculation = true;
+    }
+
     public void setResistanceMultiplier(float resistanceMultiplier) {
         this.resistanceMultiplier = resistanceMultiplier;
         needsRecalculation = true;
@@ -261,6 +284,74 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     public void setNeedsRecalculation(boolean needsRecalculation) {
         this.needsRecalculation = needsRecalculation;
+    }
+
+    public float getMass() {
+        return mass;
+    }
+
+    public float getVolume() {
+        return volume;
+    }
+
+    public float getBoyancyFactor() {
+        return boyancyFactor;
+    }
+
+    public float getBoyancyModifier() {
+        return boyancyModifier;
+    }
+
+    public float getResistanceMultiplier() {
+        return resistanceMultiplier;
+    }
+
+    public boolean isInLiquid() {
+        return inLiquid;
+    }
+
+    public float getOriginalXResistanceWeight() {
+        return originalXResistanceWeight;
+    }
+
+    public float getOriginalYResistanceWeight() {
+        return originalYResistanceWeight;
+    }
+
+    public float getOriginalRResistanceWeight() {
+        return originalRResistanceWeight;
+    }
+
+    public float getOriginalGravityScale() {
+        return originalGravityScale;
+    }
+
+    public float getOriginalXMaxSpeed() {
+        return originalXMaxSpeed;
+    }
+
+    public float getOriginalYMaxSpeed() {
+        return originalYMaxSpeed;
+    }
+
+    public float getOriginalRMaxSpeed() {
+        return originalRMaxSpeed;
+    }
+
+    public float getOriginalXDeceleration() {
+        return originalXDeceleration;
+    }
+
+    public float getOriginalYDeceleration() {
+        return originalYDeceleration;
+    }
+
+    public float getOriginalRDeceleration() {
+        return originalRDeceleration;
+    }
+
+    public boolean isOriginallyGravityAffected() {
+        return originallyGravityAffected;
     }
 
     @Override

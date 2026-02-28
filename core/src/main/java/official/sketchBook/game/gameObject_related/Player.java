@@ -6,12 +6,10 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import official.sketchBook.engine.animation_rendering_related.ObjectAnimationPlayer;
 import official.sketchBook.engine.animation_rendering_related.SpriteSheetDataHandler;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.JumpCapableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalGameObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.RoomGroundInteractableObject;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.*;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.components_related.movement.JumpComponent;
+import official.sketchBook.engine.components_related.movement.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.RoomTileGroundDetection;
 import official.sketchBook.engine.components_related.movement.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
@@ -37,7 +35,8 @@ public class Player extends AnimatedRenderableRoomGameObject
     MovableObjectII,
     PhysicalGameObjectII,
     RoomGroundInteractableObject,
-    JumpCapableObjectII {
+    JumpCapableObjectII,
+    LiquidInteractableObjectII {
 
     public static boolean sheetDisposed = false;
     public static Texture playerSheet;
@@ -52,6 +51,8 @@ public class Player extends AnimatedRenderableRoomGameObject
     private RoomTileGroundDetection roomGroundDetectC;
     /// Componente de pulo
     private JumpComponent jumpC;
+
+    private PhysicalMobLiquidInteractionComponent liquidInteractionC;
 
     /// Corpo físico
     private Body body;
@@ -113,6 +114,16 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         //Renderizador
         initRenderingComponent();
+
+        this.liquidInteractionC.setVolume(
+            transformC.width * transformC.height
+        );
+
+        this.liquidInteractionC.setMass(240f);
+
+        this.liquidInteractionC.setNeutralBuoyancy(true);
+
+
     }
 
     private void initAnimationControllerComponent() {
@@ -211,16 +222,24 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     private void initPhysicsComponent() {
+        this.liquidInteractionC = new PhysicalMobLiquidInteractionComponent(this);
+
         this.physicsC = new MovableObjectPhysicsComponent(
             this,
-            ALLY_ENTITY.bit(),
-            SENSOR.bit() | ENVIRONMENT.bit() | PROJECTILES.bit(),
+            ALLY_ENTITY.bit() | LIQUID_SUBMERGEABLE.bit(),
+            SENSOR.bit() | ENVIRONMENT.bit() | PROJECTILES.bit() | LIQUID.bit(),
             0.5f,
             1f,
             0f
         );
 
         this.createBody();
+
+        this.managerC.add(
+            liquidInteractionC,
+            true,
+            false
+        );
 
         this.managerC.add(
             physicsC,
@@ -402,5 +421,10 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         sheetDisposed = true;
 
+    }
+
+    @Override
+    public PhysicalMobLiquidInteractionComponent getLiquidInteractionC() {
+        return liquidInteractionC;
     }
 }

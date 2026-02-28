@@ -17,6 +17,10 @@ public class PhysicalLiquidContactListener implements MultiContactListener.SubCo
 
     @Override
     public void endContact(Contact contact, GameObjectTag tagA, GameObjectTag tagB) {
+        // Sensores podem disparar endContact de modo inconsistente
+        // só removemos se realmente não estiver mais tocando
+        if (contact.isTouching()) return;
+
         handle(tagA, tagB, false);
     }
 
@@ -46,8 +50,13 @@ public class PhysicalLiquidContactListener implements MultiContactListener.SubCo
         boolean entering
     ) {
         if (objectTag == null || liquidTag == null) return false;
-        if (!(objectTag.owner instanceof LiquidInteractableObjectII)) return false;
-        if (!(liquidTag.owner instanceof Liquid)) return false;
+
+        if (!(objectTag.owner instanceof LiquidInteractableObjectII)) {
+            return false;
+        }
+        if (!(liquidTag.owner instanceof Liquid)) {
+            return false;
+        }
 
         LiquidInteractableObjectII obj = (LiquidInteractableObjectII) objectTag.owner;
         Liquid liquid = (Liquid) liquidTag.owner;

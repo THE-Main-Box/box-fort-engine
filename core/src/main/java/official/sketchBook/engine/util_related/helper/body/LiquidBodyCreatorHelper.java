@@ -43,10 +43,10 @@ public class LiquidBodyCreatorHelper {
         );
 
         //Criamos a fixture em si
-        Fixture fixture = body.createFixture(fixtureDef);
+        body.createFixture(fixtureDef);
 
         // Aplicamos a userData na fixture para que possamos detectar os dados
-        fixture.setUserData(
+        body.setUserData(
             new GameObjectTag(
                 ObjectType.LIQUID,
                 liquid
