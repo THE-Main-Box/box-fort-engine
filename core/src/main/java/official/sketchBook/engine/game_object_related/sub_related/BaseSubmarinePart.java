@@ -8,7 +8,7 @@ import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BaseSubmarineParts implements Disposable {
+public class BaseSubmarinePart implements Disposable {
 
     /// Id de identificação
     public final int id;
@@ -19,7 +19,7 @@ public class BaseSubmarineParts implements Disposable {
 
     private boolean disposed = false;
 
-    public BaseSubmarineParts(int id, String tag) {
+    public BaseSubmarinePart(int id, String tag) {
         this.id = id;
         this.tag = tag;
         this.fixtureDataList = new ArrayList<>();

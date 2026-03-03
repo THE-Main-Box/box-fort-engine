@@ -7,6 +7,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.LiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalGameObjectII;
+import official.sketchBook.engine.components_related.movement.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.movement.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
@@ -14,12 +15,12 @@ import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.data_manager_related.BaseGameObjectDataManager;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseGameObject;
+import official.sketchBook.engine.util_related.enumerators.ObjectType;
+import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
 public class BaseSubmarine extends BaseGameObject
@@ -44,12 +45,13 @@ public class BaseSubmarine extends BaseGameObject
     private Body body;
 
     /// Lista de partes de submarino
-    private final List<BaseSubmarineParts> subParts = new ArrayList<>();
+    private final List<BaseSubmarinePart> subParts;
 
 
     /// Importante ter em mente que a posição passada deverá ser o centro do sub, passado em pixels
     public BaseSubmarine(
         BaseGameObjectDataManager worldDataManager,
+        List<BaseSubmarinePart> subParts,
         float x,
         float y,
         float z,
@@ -58,6 +60,8 @@ public class BaseSubmarine extends BaseGameObject
         boolean mirrorY
     ) {
         super(worldDataManager);
+
+        this.subParts = subParts;
 
         transformC = new TransformComponent(
             x,
@@ -81,7 +85,7 @@ public class BaseSubmarine extends BaseGameObject
         generateBody(subParts);
     }
 
-    private void generateBody(List<BaseSubmarineParts> parts) {
+    private void generateBody(List<BaseSubmarinePart> parts) {
         // cria a body vazia na posição do sub
         BodyDef bodyDef = new BodyDef();
 
@@ -99,17 +103,23 @@ public class BaseSubmarine extends BaseGameObject
             .createBody(bodyDef);
 
         // itera as partes e adiciona as fixtures
-        for (BaseSubmarineParts part : parts) {
+        for (BaseSubmarinePart part : parts) {
             for (FixtureDef def : part.fixtureDataList) {
-                Fixture f = body.createFixture(def);
-                f.setUserData(part); // referência à parte para identificar no contato
+                body.createFixture(def);
                 def.shape.dispose();
             }
         }
+
+        body.setUserData(
+            new GameObjectTag(
+                ObjectType.VEHICLE,
+                this
+            )
+        );
     }
 
     private void initComponents() {
-        physicsC = new PhysicsComponent(
+        physicsC = new MovableObjectPhysicsComponent(
             this,
             0,
             0,
@@ -163,11 +173,16 @@ public class BaseSubmarine extends BaseGameObject
     @Override
     public void update(float delta) {
         updateComponents(delta);
+
     }
 
     @Override
     public void postUpdate() {
-
+        postUpdateComponents();
+        body.setLinearVelocity(
+            moveC.xSpeed / PPM,
+            moveC.ySpeed / PPM
+        );
     }
 
     @Override
@@ -192,12 +207,11 @@ public class BaseSubmarine extends BaseGameObject
 
     @Override
     public void inLiquidUpdate() {
-
     }
 
     @Override
     protected void disposeGeneralData() {
-        for(BaseSubmarineParts parts : subParts){
+        for(BaseSubmarinePart parts : subParts){
             parts.dispose();
         }
 
@@ -216,7 +230,7 @@ public class BaseSubmarine extends BaseGameObject
         this.liquidInteractionC = null;
     }
 
-    public List<BaseSubmarineParts> getSubParts() {
+    public List<BaseSubmarinePart> getSubParts() {
         return subParts;
     }
 

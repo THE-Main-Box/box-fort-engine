@@ -226,8 +226,8 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         this.physicsC = new MovableObjectPhysicsComponent(
             this,
-            ALLY_ENTITY.bit() | LIQUID_SUBMERGEABLE.bit(),
-            SENSOR.bit() | ENVIRONMENT.bit() | PROJECTILES.bit() | LIQUID.bit(),
+            ALLY_ENTITY.bit() | LIQUID_SUBMERGEABLE.bit() | VEHICLE_PASSENGER.bit(),
+            SENSOR.bit() | ENVIRONMENT.bit() | PROJECTILES.bit() | LIQUID.bit() | VEHICLE.bit(),
             0.5f,
             1f,
             0f
