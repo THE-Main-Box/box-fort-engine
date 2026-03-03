@@ -1,7 +1,7 @@
 package official.sketchBook.engine.world_gen;
 
-import official.sketchBook.engine.gameObject_related.BaseGameObject;
-import official.sketchBook.engine.gameObject_related.BaseRoomGameObject;
+import official.sketchBook.engine.game_object_related.base_game_object.BaseGameObject;
+import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.engine.world_gen.model.TileModel;

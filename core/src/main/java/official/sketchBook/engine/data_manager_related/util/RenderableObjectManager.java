@@ -1,4 +1,4 @@
-package official.sketchBook.engine.dataManager_related.util;
+package official.sketchBook.engine.data_manager_related.util;
 
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;

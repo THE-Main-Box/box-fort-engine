@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.RenderSystem;
-import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
+import official.sketchBook.engine.data_manager_related.BaseGameObjectDataManager;
 import official.sketchBook.engine.screen_related.BaseScreen;
 
 public class SingleThreadRenderSystem implements RenderSystem {

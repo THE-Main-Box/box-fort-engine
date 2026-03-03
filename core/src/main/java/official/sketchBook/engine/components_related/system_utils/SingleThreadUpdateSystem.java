@@ -1,7 +1,7 @@
 package official.sketchBook.engine.components_related.system_utils;
 
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.UpdateSystem;
-import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
+import official.sketchBook.engine.data_manager_related.BaseGameObjectDataManager;
 import official.sketchBook.engine.screen_related.BaseScreen;
 
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.FIXED_TIMESTAMP;

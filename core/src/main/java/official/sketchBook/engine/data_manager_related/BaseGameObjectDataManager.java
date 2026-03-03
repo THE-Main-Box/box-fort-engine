@@ -1,17 +1,17 @@
-package official.sketchBook.engine.dataManager_related;
+package official.sketchBook.engine.data_manager_related;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.Disposable;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
-import official.sketchBook.engine.dataManager_related.util.RenderableObjectManager;
-import official.sketchBook.engine.gameObject_related.BaseGameObject;
+import official.sketchBook.engine.data_manager_related.util.RenderableObjectManager;
+import official.sketchBook.engine.game_object_related.base_game_object.BaseGameObject;
 
 import java.lang.reflect.Method;
 import java.util.*;
 
-import static official.sketchBook.engine.dataManager_related.util.RenderableObjectManager.tryAddToRender;
-import static official.sketchBook.engine.dataManager_related.util.RenderableObjectManager.tryRemoveFromRender;
+import static official.sketchBook.engine.data_manager_related.util.RenderableObjectManager.tryAddToRender;
+import static official.sketchBook.engine.data_manager_related.util.RenderableObjectManager.tryRemoveFromRender;
 
 public abstract class BaseGameObjectDataManager implements Disposable {
 

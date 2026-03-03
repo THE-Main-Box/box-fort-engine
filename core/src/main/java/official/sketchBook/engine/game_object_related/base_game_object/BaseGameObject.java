@@ -1,8 +1,8 @@
-package official.sketchBook.engine.gameObject_related;
+package official.sketchBook.engine.game_object_related.base_game_object;
 
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.Disposable;
 import official.sketchBook.engine.components_related.system_utils.ComponentManagerComponent;
-import official.sketchBook.engine.dataManager_related.BaseGameObjectDataManager;
+import official.sketchBook.engine.data_manager_related.BaseGameObjectDataManager;
 
 public abstract class BaseGameObject implements Disposable {
 
