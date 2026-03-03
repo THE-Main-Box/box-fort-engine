@@ -68,8 +68,8 @@ public class Player extends AnimatedRenderableRoomGameObject
         float height,
         float scaleX,
         float scaleY,
-        boolean xAxisInverted,
-        boolean yAxisInverted
+        boolean mirrorX,
+        boolean mirrorY
     ) {
         super(
             worldDataManager,
@@ -83,8 +83,8 @@ public class Player extends AnimatedRenderableRoomGameObject
             height,
             scaleX,
             scaleY,
-            xAxisInverted,
-            yAxisInverted
+            mirrorX,
+            mirrorY
         );
 
         this.animationRenderC.isRenderDimensionEqualsToObject = false;
