@@ -7,5 +7,7 @@ public interface LiquidInteractableObjectII extends MovableObjectII{
 
     void onLiquidExit();
     void onLiquidEnter();
+
+    void inLiquidUpdate();
     PhysicalMobLiquidInteractionComponent getLiquidInteractionC();
 }

@@ -9,6 +9,8 @@ public enum CollisionLayers {
     SENSOR(1 << 5),
     LIQUID(1 << 6),
     LIQUID_SUBMERGEABLE(1 << 7),
+    VEHICLE(1 << 8),
+    VEHICLE_PASSENGER(1 << 9),
     NONE(0),
     ENTITIES(
         ALLY_ENTITY.bit() |

@@ -1,4 +1,4 @@
-package official.sketchBook.engine.dataManager_related;
+package official.sketchBook.engine.data_manager_related;
 
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Matrix4;

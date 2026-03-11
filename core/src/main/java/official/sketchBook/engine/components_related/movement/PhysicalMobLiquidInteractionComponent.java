@@ -67,6 +67,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         }
 
         applyLiquidEffects();
+
+        object.inLiquidUpdate();
     }
 
     @Override

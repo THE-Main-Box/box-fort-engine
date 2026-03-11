@@ -2,7 +2,7 @@ package official.sketchBook.engine.world_gen.model;
 
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
-import official.sketchBook.engine.gameObject_related.BaseRoomGameObject;
+import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;

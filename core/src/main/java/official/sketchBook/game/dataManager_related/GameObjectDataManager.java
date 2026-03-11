@@ -3,7 +3,9 @@ package official.sketchBook.game.dataManager_related;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
-import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
+import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
+import official.sketchBook.engine.game_object_related.sub_related.BaseSubmarine;
+import official.sketchBook.engine.game_object_related.sub_related.BaseSubmarinePart;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.engine.liquid_related.model.PhysicalRoomLiquid;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
@@ -12,8 +14,6 @@ import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.listeners.MovableObjectContactListener;
 import official.sketchBook.engine.util_related.contact_listener.listeners.PhysicalLiquidContactListener;
 import official.sketchBook.engine.util_related.contact_listener.listeners.ProjectileContactListener;
-import official.sketchBook.engine.util_related.helper.GameObjectTag;
-import official.sketchBook.engine.util_related.helper.body.BodyTagHelper;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.gameObject_related.Player;
@@ -22,6 +22,7 @@ import official.sketchBook.game.projectile_related.factories.PoolFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
 import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_HEIGHT;
 import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_WIDTH;
 
@@ -119,6 +120,69 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             regionList
         );
 
+        float
+            subX = 60,
+            subY = 20;
+
+        List<BaseSubmarinePart> subParts = getBaseSubmarineParts(
+            subX,
+            subY
+        );
+
+        BaseSubmarine baseSubmarine = new BaseSubmarine(
+            this,
+            subParts,
+            subX,
+            subY,
+            1,
+            0,
+            false,
+            false
+        );
+
+    }
+
+    private static List<BaseSubmarinePart> getBaseSubmarineParts(float subX, float subY) {
+        List<BaseSubmarinePart> subParts = new ArrayList<>();
+
+        short
+            categoryBit = (short) (VEHICLE.bit() | LIQUID_SUBMERGEABLE.bit()),
+            maskBit = (short) (VEHICLE_PASSENGER.bit() | LIQUID.bit());
+
+        BaseSubmarinePart corridor = new BaseSubmarinePart(1, "corridor_test");
+
+        corridor.addBoxFixture(
+            subX,
+            subY,
+            0,
+            0,
+            60,
+            10,
+            0,
+            0,
+            0,
+            false,
+            categoryBit,
+            maskBit
+        );
+
+        corridor.addBoxFixture(
+            subX,
+            subY,
+            0,
+            50,
+            60,
+            10,
+            0,
+            0,
+            0,
+            false,
+            categoryBit,
+            maskBit
+        );
+
+        subParts.add(corridor);
+        return subParts;
     }
 
 
@@ -198,16 +262,16 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         );
     }
 
-    @Override
-    protected void drawRenderableObjects(SpriteBatch batch) {
-        renderTree.forEachObject(
-            obj -> obj.render(batch),
-            (gameCamera.getCamera().position.x),
-            (gameCamera.getCamera().position.y),
-            (gameCamera.getCamera().viewportWidth * gameCamera.getCamera().zoom),
-            (gameCamera.getCamera().viewportHeight * gameCamera.getCamera().zoom)
-        );
-    }
+//    @Override
+//    protected void drawRenderableObjects(SpriteBatch batch) {
+//        renderTree.forEachObject(
+//            obj -> obj.render(batch),
+//            (gameCamera.getCamera().position.x),
+//            (gameCamera.getCamera().position.y),
+//            (gameCamera.getCamera().viewportWidth * gameCamera.getCamera().zoom),
+//            (gameCamera.getCamera().viewportHeight * gameCamera.getCamera().zoom)
+//        );
+//    }
 
     /**
      * Atualiza cache de bounds da câmera.

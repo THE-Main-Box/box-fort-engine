@@ -5,7 +5,7 @@ public class WorldConstants {
     public static final int TILE_SIZE_PX = 8;
 
     public static class ProjectilePoolConstants {
-//        public static final int MAX_PROJECTILE_PER_POOL = 900;
+        //        public static final int MAX_PROJECTILE_PER_POOL = 900;
         public static final int MAX_PROJECTILE_PER_POOL = 999999999;
         public static final int MAX_PROJECTILE_DESTRUCTION_PER_POOL = 900;
 
@@ -53,5 +53,15 @@ public class WorldConstants {
             MAX_SPEED_Y = 500,
             X_DECELERATION = 999,
             Y_DECELERATION = 0;
+    }
+
+    public static class SubmarineConstants {
+
+        public static final float
+            DEF_MAX_SPEED_X = 999,
+            DEF_MAX_SPEED_Y = 999,
+            X_DEACCELERATION = 90,
+            Y_DEACCELERATION = 90;
+
     }
 }

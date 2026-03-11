@@ -14,8 +14,8 @@ import official.sketchBook.engine.components_related.physics.RoomTileGroundDetec
 import official.sketchBook.engine.components_related.movement.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
-import official.sketchBook.engine.dataManager_related.PhysicalGameObjectDataManager;
-import official.sketchBook.engine.gameObject_related.AnimatedRenderableRoomGameObject;
+import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
+import official.sketchBook.engine.game_object_related.animated_renderable_game_object.AnimatedRenderableRoomGameObject;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
@@ -37,6 +37,8 @@ public class Player extends AnimatedRenderableRoomGameObject
     RoomGroundInteractableObject,
     JumpCapableObjectII,
     LiquidInteractableObjectII {
+
+    private boolean inScreen = true;
 
     public static boolean sheetDisposed = false;
     public static Texture playerSheet;
@@ -68,8 +70,8 @@ public class Player extends AnimatedRenderableRoomGameObject
         float height,
         float scaleX,
         float scaleY,
-        boolean xAxisInverted,
-        boolean yAxisInverted
+        boolean mirrorX,
+        boolean mirrorY
     ) {
         super(
             worldDataManager,
@@ -83,8 +85,8 @@ public class Player extends AnimatedRenderableRoomGameObject
             height,
             scaleX,
             scaleY,
-            xAxisInverted,
-            yAxisInverted
+            mirrorX,
+            mirrorY
         );
 
         this.animationRenderC.isRenderDimensionEqualsToObject = false;
@@ -226,8 +228,8 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         this.physicsC = new MovableObjectPhysicsComponent(
             this,
-            ALLY_ENTITY.bit() | LIQUID_SUBMERGEABLE.bit(),
-            SENSOR.bit() | ENVIRONMENT.bit() | PROJECTILES.bit() | LIQUID.bit(),
+            ALLY_ENTITY.bit() | LIQUID_SUBMERGEABLE.bit() | VEHICLE_PASSENGER.bit(),
+            SENSOR.bit() | ENVIRONMENT.bit() | PROJECTILES.bit() | LIQUID.bit() | VEHICLE.bit(),
             0.5f,
             1f,
             0f
@@ -387,6 +389,15 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     @Override
+    public boolean isInScreen() {
+        return inScreen;
+    }
+
+    public void setInScreen(boolean inScreen) {
+        this.inScreen = inScreen;
+    }
+
+    @Override
     protected void disposeCriticalData() {
         super.disposeCriticalData();
         System.out.println("Player limpando dados de instancia");
@@ -430,6 +441,11 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     @Override
     public void onLiquidEnter() {
+
+    }
+
+    @Override
+    public void inLiquidUpdate() {
 
     }
 

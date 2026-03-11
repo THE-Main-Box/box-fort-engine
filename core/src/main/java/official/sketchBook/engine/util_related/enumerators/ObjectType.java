@@ -4,6 +4,7 @@ public enum ObjectType {
     PROJECTILE,
     ENTITY,
     ENVIRONMENT,
+    VEHICLE,
     NONE,
     HURTBOX,
     LIQUID
