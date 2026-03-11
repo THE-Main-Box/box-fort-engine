@@ -38,6 +38,8 @@ public class Player extends AnimatedRenderableRoomGameObject
     JumpCapableObjectII,
     LiquidInteractableObjectII {
 
+    private boolean inScreen = true;
+
     public static boolean sheetDisposed = false;
     public static Texture playerSheet;
 
@@ -384,6 +386,15 @@ public class Player extends AnimatedRenderableRoomGameObject
     @Override
     public boolean canRender() {
         return !this.isPendingRemoval();
+    }
+
+    @Override
+    public boolean isInScreen() {
+        return inScreen;
+    }
+
+    public void setInScreen(boolean inScreen) {
+        this.inScreen = inScreen;
     }
 
     @Override

@@ -89,10 +89,6 @@ public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObjec
         return (int) transformC.z;
     }
 
-    @Override
-    public boolean isGraphicsDisposed() {
-        return graphicsDisposed;
-    }
     public TransformComponent getTransformC() {
         return transformC;
     }

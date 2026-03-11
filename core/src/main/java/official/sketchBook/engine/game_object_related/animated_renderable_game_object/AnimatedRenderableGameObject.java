@@ -98,9 +98,4 @@ public abstract class AnimatedRenderableGameObject extends BaseGameObject implem
 
     protected abstract void executeDisposeGraphics();
 
-    @Override
-    public boolean isGraphicsDisposed() {
-        return graphicsDisposed;
-    }
-
 }

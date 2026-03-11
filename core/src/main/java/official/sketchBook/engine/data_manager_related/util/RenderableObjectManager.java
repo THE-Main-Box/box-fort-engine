@@ -196,8 +196,12 @@ public class RenderableObjectManager {
         void forEach(Consumer<RenderAbleObjectII> action) {
             for (int i = 0; i < size; i++) {
                 RenderAbleObjectII obj = items[i];
-                if (!obj.canRender()) continue;
-                action.accept(obj);
+
+                //Verificamos se podemos renderizar o objeto, por validar se está dentro da tela e se pode renderizar,
+                // de acordo com sua lógica interna
+                if (obj.isInScreen() && obj.canRender()) {
+                    action.accept(obj);
+                }
 
             }
         }
@@ -211,15 +215,26 @@ public class RenderableObjectManager {
         ) {
             for (int i = 0; i < size; i++) {
                 RenderAbleObjectII obj = items[i];
-                if (!obj.canRender() || !isInBounds(obj, bounds)) continue;
-                action.accept(obj);
+
+                //Seta o valor do objeto para mostrar que ele está dentro da tela
+                obj.setInScreen(
+                    isInBounds(
+                        obj,
+                        bounds
+                    )
+                );
+
+                //Se o objeto puder ser renderizado e estiver dentro da tela
+                if (obj.isInScreen() && obj.canRender()) {
+                    action.accept(obj);
+                }
 
             }
         }
 
         /// Verificamos se o objeto está dentro dos limites da tela
         private boolean isInBounds(RenderAbleObjectII obj, CullBounds bounds) {
-
+            
             TransformComponent transformC = obj.getTransformC();
 
             float x = transformC.x;
@@ -230,10 +245,12 @@ public class RenderableObjectManager {
             float paddingX = width * 1.5f;
             float paddingY = height * 1.5f;
 
-            return !(x + width + paddingX < bounds.minX ||
-                x - paddingX > bounds.maxX ||
-                y + height + paddingY < bounds.minY ||
-                y - paddingY > bounds.maxY);
+            return !(
+                x + width + paddingX < bounds.minX ||
+                    x - paddingX > bounds.maxX ||
+                    y + height + paddingY < bounds.minY ||
+                    y - paddingY > bounds.maxY
+            );
         }
 
         /// Limpa a bucket
