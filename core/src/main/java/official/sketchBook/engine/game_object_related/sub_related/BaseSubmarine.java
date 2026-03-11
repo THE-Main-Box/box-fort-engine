@@ -179,10 +179,6 @@ public class BaseSubmarine extends BaseGameObject
     @Override
     public void postUpdate() {
         postUpdateComponents();
-        body.setLinearVelocity(
-            moveC.xSpeed / PPM,
-            moveC.ySpeed / PPM
-        );
     }
 
     @Override

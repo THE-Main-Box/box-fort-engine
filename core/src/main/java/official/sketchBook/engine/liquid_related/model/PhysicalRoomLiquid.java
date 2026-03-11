@@ -55,7 +55,10 @@ public class PhysicalRoomLiquid extends BaseRoomGameObject implements Liquid {
     private void createBody() {
         //Criamos uma body estatica
         BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.StaticBody;
+        bodyDef.type = BodyDef.BodyType.DynamicBody;
+        bodyDef.fixedRotation = true;
+        bodyDef.allowSleep = true;
+        bodyDef.gravityScale = 0;
 
         this.body = world.createBody(bodyDef);
 
