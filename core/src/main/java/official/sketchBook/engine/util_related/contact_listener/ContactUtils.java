@@ -17,6 +17,7 @@ public class ContactUtils {
         String listenerKey,
         MultiContactListener.SubContactListener listener
     ) {
+        if(contactListener == null) return;
         if (!remove) {
 
             if (contactListener.existListener(listenerKey))

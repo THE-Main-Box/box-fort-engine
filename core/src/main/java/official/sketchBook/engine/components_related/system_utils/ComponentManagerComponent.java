@@ -25,8 +25,8 @@ public class ComponentManagerComponent implements Component{
         }
     }
     public void postUpdate(){
-        for (int i = 0; i < toUpdate.size(); i++) {
-            toUpdate.get(i).postUpdate();
+        for (int i = 0; i < toPostUpdate.size(); i++) {
+            toPostUpdate.get(i).postUpdate();
         }
     }
 
