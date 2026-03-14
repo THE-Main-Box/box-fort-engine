@@ -5,10 +5,11 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.util_related.contact_listener.MultiContactListener;
+import official.sketchBook.engine.util_related.pools.RayCastPool;
 
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
-public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataManager{
+public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataManager {
 
     /// Constante de iterações por velocidade do box2d
     protected final int velIterations;
@@ -23,6 +24,7 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
 
     /// Renderizador de debug
     protected Box2DDebugRenderer debugRenderer;
+
     /// Matriz de renderização para depuração
     protected Matrix4 renderDebugMatrix;
     /// Se existe um mundo foi gerado
@@ -77,7 +79,7 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
 
     /// Usa o debugRenderer para visualizar as hitboxes
     public void renderWorldHitboxes(Camera gameCamera) {
-        if(debugRenderer == null) return;
+        if (debugRenderer == null) return;
 
         renderDebugMatrix.set(
             gameCamera.combined
@@ -96,6 +98,7 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
 
     @Override
     protected void disposeGeneralData() {
+        if (RayCastPool.getInstance() != null) RayCastPool.getInstance().dispose();
     }
 
     @Override
@@ -120,8 +123,8 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
         disposeDebugRenderer();
     }
 
-    private void disposeDebugRenderer(){
-        if(physicsWorldExists){
+    private void disposeDebugRenderer() {
+        if (physicsWorldExists) {
             debugRenderer.dispose();
             debugRenderer = null;
         }

@@ -10,7 +10,7 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.components_related.movement.JumpComponent;
 import official.sketchBook.engine.components_related.movement.PhysicalMobLiquidInteractionComponent;
-import official.sketchBook.engine.components_related.physics.RoomTileGroundDetection;
+import official.sketchBook.engine.components_related.physics.RayCastGroundDetectionComponent;
 import official.sketchBook.engine.components_related.movement.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
@@ -20,6 +20,7 @@ import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
+import official.sketchBook.engine.util_related.pools.RayCastPool;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.components_related.PlayerAnimationControllerComponent;
 import official.sketchBook.game.components_related.PlayerControllerComponent;
@@ -49,10 +50,12 @@ public class Player extends AnimatedRenderableRoomGameObject
     private MovementComponent moveC;
     /// Componente de aplicação de movimento ao corpo físico
     private MovableObjectPhysicsComponent physicsC;
-    /// Componente de detecção de colisão com tiles de room
-    private RoomTileGroundDetection roomGroundDetectC;
+    /// Componente de detecção de colisão com rayCast
+    private RayCastGroundDetectionComponent groundDetection;
     /// Componente de pulo
     private JumpComponent jumpC;
+
+    private RayCastPool rayCastPoolInstance;
 
     private PhysicalMobLiquidInteractionComponent liquidInteractionC;
 
@@ -89,6 +92,7 @@ public class Player extends AnimatedRenderableRoomGameObject
             mirrorY
         );
 
+        this.rayCastPoolInstance = RayCastPool.getInstance(worldDataManager.getPhysicsWorld());
         this.animationRenderC.isRenderDimensionEqualsToObject = false;
 
         this.initObject();
@@ -102,9 +106,6 @@ public class Player extends AnimatedRenderableRoomGameObject
         //Gerenciador de animações
         initAnimationControllerComponent();
 
-        //Detecção de colisão
-        initGroundDetectionComponent();
-
         //Aplicador de movimento
         initMovementComponent();
 
@@ -116,6 +117,9 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         //Renderizador
         initRenderingComponent();
+
+        //Detecção de colisão
+        initGroundDetectionComponent();
 
         this.liquidInteractionC.setVolume(
             transformC.width * transformC.height
@@ -157,15 +161,18 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     private void initGroundDetectionComponent() {
-        this.roomGroundDetectC = new RoomTileGroundDetection(
+        this.groundDetection = new RayCastGroundDetectionComponent(
             this,
-            0,
-            -1
+            rayCastPoolInstance,
+            ObjectType.ENVIRONMENT,
+            ObjectType.VEHICLE
         );
 
+        groundDetection.rayLength = 10;
+
         this.managerC.add(
-            roomGroundDetectC,
-            true,
+            groundDetection,
+            false,
             true
         );
     }
@@ -375,12 +382,11 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     @Override
     public boolean isOnGround() {
-        return roomGroundDetectC.isOnGround();
+        return groundDetection.isOnGround();
     }
 
-    @Override
-    public RoomTileGroundDetection getRoomGroundDetectC() {
-        return roomGroundDetectC;
+    public RayCastGroundDetectionComponent getGroundDetectionC() {
+        return groundDetection;
     }
 
     @Override
@@ -404,7 +410,7 @@ public class Player extends AnimatedRenderableRoomGameObject
         body = null;
         moveC = null;
         jumpC = null;
-        roomGroundDetectC = null;
+        groundDetection = null;
     }
 
     public static void disposeStaticResources() {

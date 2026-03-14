@@ -38,8 +38,6 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
     private GlobalProjectilePool globalProjectilePool;
 
-    private RayCastPool rayCastPool;
-
     /// Gerenciador de salas do mundo
     private PlayableRoom currentRoom;
     private PlayableRoomManager roomManager;
@@ -58,11 +56,9 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         super(physicsWorld, velIterations, posIterations);
     }
 
-    private void initPools(){
+    private void initPools() {
         globalProjectilePool = new GlobalProjectilePool();
         this.initPoolFactories();
-
-        this.rayCastPool = RayCastPool.getInstance(physicsWorld);
     }
 
     private void initPoolFactories() {
@@ -346,8 +342,9 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     protected void disposeGeneralData() {
         super.disposeGeneralData();
         currentRoom.dispose();
-        globalProjectilePool.dispose();
-        rayCastPool.dispose();
+
+        if (globalProjectilePool != null)   globalProjectilePool.dispose();
+
     }
 
     public PlayableRoom getCurrentRoom() {

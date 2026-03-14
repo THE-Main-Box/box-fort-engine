@@ -220,10 +220,14 @@ public class PlayScreen extends BaseScreen {
             );
         }
 
-        if(show_ray_cast && RayCastPool.getInstance() != null){
-            RayCastPool.getInstance().renderDebug(
-                gameCameraManager.getCamera().combined
+        RayCastPool rcPool = RayCastPool.getInstance();
+        if(show_ray_cast && rcPool != null){
+
+            rcPool.renderDebug(
+                gameCameraManager.getCamera().combined.scl(PPM)
             );
+
+            rcPool.freeAllActive();
         }
     }
 

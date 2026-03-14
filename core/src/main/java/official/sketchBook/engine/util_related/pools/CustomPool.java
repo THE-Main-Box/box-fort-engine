@@ -76,6 +76,12 @@ public abstract class CustomPool<T extends CustomPool.Poolable> {
         peak = Math.max(peak, freeObjects.size);
     }
 
+    public void freeAllActive() {
+        for (int i = activeObjects.size - 1; i >= 0; i--) {
+            free(activeObjects.get(i));
+        }
+    }
+
     public void freeAll(Array<T> objects) {
         if (objects == null) {
             throw new IllegalArgumentException("objects cannot be null.");
