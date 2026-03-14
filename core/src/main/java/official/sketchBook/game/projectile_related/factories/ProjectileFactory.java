@@ -2,7 +2,7 @@ package official.sketchBook.game.projectile_related.factories;
 
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.projectile_related.models.BaseProjectile;
-import official.sketchBook.game.projectile_related.pool.ProjectilePool;
+import official.sketchBook.game.util_related.pools.ProjectilePool;
 
 public class ProjectileFactory {
 

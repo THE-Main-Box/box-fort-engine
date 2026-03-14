@@ -1,8 +1,8 @@
-package official.sketchBook.engine.projectile_related.pool;
+package official.sketchBook.engine.util_related.pools;
 
 import official.sketchBook.engine.components_related.objects.TimerComponent;
 import official.sketchBook.engine.projectile_related.models.BaseProjectile;
-import official.sketchBook.game.projectile_related.pool.ProjectilePool;
+import official.sketchBook.game.util_related.pools.ProjectilePool;
 
 import java.util.HashMap;
 import java.util.Map;

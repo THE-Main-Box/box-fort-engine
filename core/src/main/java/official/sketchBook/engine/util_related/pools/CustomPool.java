@@ -1,4 +1,4 @@
-package official.sketchBook.engine.util_related.custom_utils;
+package official.sketchBook.engine.util_related.pools;
 
 import com.badlogic.gdx.utils.Array;
 
@@ -6,7 +6,10 @@ public abstract class CustomPool<T extends CustomPool.Poolable> {
 
     public final int max;
     public int peak;
-    protected final Array<T> freeObjects;
+    protected final Array<T>
+        freeObjects,
+        activeObjects;
+
 
     public CustomPool() {
         this(16, Integer.MAX_VALUE);
@@ -18,6 +21,7 @@ public abstract class CustomPool<T extends CustomPool.Poolable> {
 
     public CustomPool(int initialCapacity, int max) {
         this.freeObjects = new Array<>(false, initialCapacity);
+        this.activeObjects = new Array<>(false, initialCapacity);
         this.max = max;
     }
 
@@ -26,7 +30,9 @@ public abstract class CustomPool<T extends CustomPool.Poolable> {
 
     /// retorna um novo objeto ou um objeto da lista livre
     public final T obtain() {
-        return freeObjects.isEmpty() ? newObject() : freeObjects.pop();
+        T obj = freeObjects.isEmpty() ? newObject() : freeObjects.pop();
+        activeObjects.add(obj);
+        return obj;
     }
 
     /// Destrói o objeto
@@ -49,6 +55,8 @@ public abstract class CustomPool<T extends CustomPool.Poolable> {
     public void free(T object) {
         if (object == null)
             throw new IllegalArgumentException("object cannot be null.");
+
+        activeObjects.removeValue(object, true);
 
         if (freeObjects.size < max) {
             freeObjects.add(object);
@@ -106,6 +114,14 @@ public abstract class CustomPool<T extends CustomPool.Poolable> {
 
     public int getFreeCount() {
         return freeObjects.size;
+    }
+
+    public Array<T> getActiveObjects() {
+        return activeObjects;
+    }
+
+    public int getActiveCount() {
+        return activeObjects.size;
     }
 
     public interface Poolable {

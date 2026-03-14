@@ -11,7 +11,7 @@ import official.sketchBook.engine.projectile_related.models.PhysicalProjectile;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
-import official.sketchBook.game.projectile_related.pool.ProjectilePool;
+import official.sketchBook.game.util_related.pools.ProjectilePool;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;

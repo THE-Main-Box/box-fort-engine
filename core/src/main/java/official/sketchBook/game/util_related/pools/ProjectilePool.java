@@ -1,10 +1,10 @@
-package official.sketchBook.game.projectile_related.pool;
+package official.sketchBook.game.util_related.pools;
 
 import com.badlogic.gdx.utils.Array;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.Disposable;
 import official.sketchBook.engine.data_manager_related.util.RenderableObjectManager;
 import official.sketchBook.engine.projectile_related.models.BaseProjectile;
-import official.sketchBook.engine.util_related.custom_utils.CustomPool;
+import official.sketchBook.engine.util_related.pools.CustomPool;
 import official.sketchBook.game.projectile_related.factories.ProjectileFactory;
 
 import static official.sketchBook.engine.data_manager_related.util.RenderableObjectManager.tryAddToRender;

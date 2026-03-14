@@ -2,7 +2,7 @@ package official.sketchBook.engine.projectile_related.util;
 
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.Disposable;
 import official.sketchBook.engine.projectile_related.models.BaseProjectile;
-import official.sketchBook.engine.projectile_related.pool.GlobalProjectilePool;
+import official.sketchBook.engine.util_related.pools.GlobalProjectilePool;
 
 public class Emitter implements Disposable {
 

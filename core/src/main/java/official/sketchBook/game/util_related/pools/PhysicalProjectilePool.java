@@ -1,4 +1,4 @@
-package official.sketchBook.game.projectile_related.pool;
+package official.sketchBook.game.util_related.pools;
 
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.data_manager_related.util.RenderableObjectManager;

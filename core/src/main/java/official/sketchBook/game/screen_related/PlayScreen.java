@@ -15,6 +15,7 @@ import official.sketchBook.engine.components_related.system_utils.SingleThreadRe
 import official.sketchBook.engine.components_related.system_utils.SingleThreadUpdateSystem;
 import official.sketchBook.engine.projectile_related.util.Emitter;
 import official.sketchBook.engine.screen_related.BaseScreen;
+import official.sketchBook.engine.util_related.pools.RayCastPool;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;
 import official.sketchBook.game.gameObject_related.Player;
 import official.sketchBook.game.projectile_related.model.Bullet;
@@ -209,10 +210,19 @@ public class PlayScreen extends BaseScreen {
 
     @Override
     public void drawGame(SpriteBatch batch) {
+        //Se não tivermos um mundo físico, nem adianta tentar lidar com isso
+        if(!worldManager.isPhysicsWorldExists()) return;
+
         //Tentamos desenhar as hitboxes
-        if (show_hit_boxes && worldManager.isPhysicsWorldExists()) {
+        if (show_hit_boxes) {
             worldManager.renderWorldHitboxes(
                 gameCameraManager.getCamera()
+            );
+        }
+
+        if(show_ray_cast && RayCastPool.getInstance() != null){
+            RayCastPool.getInstance().renderDebug(
+                gameCameraManager.getCamera().combined
             );
         }
     }

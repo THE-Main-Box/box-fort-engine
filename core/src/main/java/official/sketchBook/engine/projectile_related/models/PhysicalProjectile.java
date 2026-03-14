@@ -5,7 +5,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
 import official.sketchBook.engine.components_related.movement.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
-import official.sketchBook.game.projectile_related.pool.ProjectilePool;
+import official.sketchBook.game.util_related.pools.ProjectilePool;
 
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 

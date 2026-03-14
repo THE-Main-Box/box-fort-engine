@@ -6,8 +6,8 @@ import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
 import official.sketchBook.engine.components_related.system_utils.ComponentManagerComponent;
-import official.sketchBook.game.projectile_related.pool.ProjectilePool;
-import official.sketchBook.engine.util_related.custom_utils.CustomPool;
+import official.sketchBook.game.util_related.pools.ProjectilePool;
+import official.sketchBook.engine.util_related.pools.CustomPool;
 
 public abstract class BaseProjectile
     implements

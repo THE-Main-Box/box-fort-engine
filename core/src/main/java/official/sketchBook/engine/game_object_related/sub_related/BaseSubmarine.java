@@ -91,7 +91,7 @@ public class BaseSubmarine extends BaseGameObject
 
         bodyDef.type = BodyDef
             .BodyType
-            .DynamicBody;
+            .KinematicBody;
 
         bodyDef.position.set(
             transformC.x / PPM,
@@ -203,6 +203,7 @@ public class BaseSubmarine extends BaseGameObject
 
     @Override
     public void inLiquidUpdate() {
+
     }
 
     @Override

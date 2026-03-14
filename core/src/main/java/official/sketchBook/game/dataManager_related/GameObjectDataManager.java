@@ -9,15 +9,16 @@ import official.sketchBook.engine.game_object_related.sub_related.BaseSubmarineP
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.engine.liquid_related.model.PhysicalRoomLiquid;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
-import official.sketchBook.engine.projectile_related.pool.GlobalProjectilePool;
+import official.sketchBook.engine.util_related.pools.GlobalProjectilePool;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.listeners.MovableObjectContactListener;
 import official.sketchBook.engine.util_related.contact_listener.listeners.PhysicalLiquidContactListener;
 import official.sketchBook.engine.util_related.contact_listener.listeners.ProjectileContactListener;
+import official.sketchBook.engine.util_related.pools.RayCastPool;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.gameObject_related.Player;
-import official.sketchBook.game.projectile_related.factories.PoolFactory;
+import official.sketchBook.game.projectile_related.factories.ProjectilePoolFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
     private GlobalProjectilePool globalProjectilePool;
 
+    private RayCastPool rayCastPool;
+
     /// Gerenciador de salas do mundo
     private PlayableRoom currentRoom;
     private PlayableRoomManager roomManager;
@@ -55,17 +58,23 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         super(physicsWorld, velIterations, posIterations);
     }
 
+    private void initPools(){
+        globalProjectilePool = new GlobalProjectilePool();
+        this.initPoolFactories();
+
+        this.rayCastPool = RayCastPool.getInstance(physicsWorld);
+    }
+
     private void initPoolFactories() {
-        PoolFactory.initPoolFactories(renderTree, physicsWorld);
-        PoolFactory.applyFactories(globalProjectilePool);
+        ProjectilePoolFactory.initPoolFactories(renderTree, physicsWorld);
+        ProjectilePoolFactory.applyFactories(globalProjectilePool);
     }
 
     @Override
     protected void setupSystems() {
         super.setupSystems();
 
-        globalProjectilePool = new GlobalProjectilePool();
-        this.initPoolFactories();
+        initPools();
 
         //Inicializa o manager de salas
         roomManager = new PlayableRoomManager();
@@ -338,6 +347,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         super.disposeGeneralData();
         currentRoom.dispose();
         globalProjectilePool.dispose();
+        rayCastPool.dispose();
     }
 
     public PlayableRoom getCurrentRoom() {
