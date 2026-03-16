@@ -9,7 +9,7 @@ import official.sketchBook.engine.animation_rendering_related.SpriteSheetDataHan
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.*;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.components_related.movement.JumpComponent;
-import official.sketchBook.engine.components_related.movement.PhysicalMobLiquidInteractionComponent;
+import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.RayCastGroundDetectionComponent;
 import official.sketchBook.engine.components_related.movement.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.movement.MovementComponent;

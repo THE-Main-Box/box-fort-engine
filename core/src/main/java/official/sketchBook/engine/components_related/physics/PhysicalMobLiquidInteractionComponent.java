@@ -1,7 +1,8 @@
-package official.sketchBook.engine.components_related.movement;
+package official.sketchBook.engine.components_related.physics;
 
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.LiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 
 import java.util.ArrayList;
@@ -21,11 +22,12 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     /// Buffer de liquidos, irá determinar os liquidos que precisaremos iterar
     private List<LiquidData> liquidBuffer = new ArrayList<>();
 
-    /// flag de estado auxiliar
+    /// flags de constraints e auxiliares
     private boolean
-        neutralBuoyancy = false,
-        inLiquid,
-        needsRecalculation;
+        canInteractWithLiquid = true,       //Se podemos interagir com líquidos
+        neutralBuoyancy = false,            //Se estamos neutralmente boiantes
+        inLiquid = false,                   //Se estamos físicamente na área de um líquido
+        needsRecalculation = true;          //Se precisamos recalcular a simulação de física
 
     /// Valores de correspondência a dados de movimentação
     private float
@@ -80,7 +82,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         if (neutralBuoyancy) {
             moveC.gravityAffected = false;
             totalBoyancyEffect = 0;
-            return;
+            boyancyFactor = 0;
+//            return;
         }
 
         updateTotalBoyancyEffect();
