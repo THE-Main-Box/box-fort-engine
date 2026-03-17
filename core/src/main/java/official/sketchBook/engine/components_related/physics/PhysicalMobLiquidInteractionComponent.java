@@ -1,7 +1,8 @@
-package official.sketchBook.engine.components_related.movement;
+package official.sketchBook.engine.components_related.physics;
 
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.LiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 
 import java.util.ArrayList;
@@ -21,11 +22,14 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     /// Buffer de liquidos, irá determinar os liquidos que precisaremos iterar
     private List<LiquidData> liquidBuffer = new ArrayList<>();
 
-    /// flag de estado auxiliar
+
+    /// flags de constraints e auxiliares
     private boolean
-        neutralBuoyancy = false,
-        inLiquid,
-        needsRecalculation;
+        canInteractWithLiquid = true,       //Se podemos interagir com líquidos
+        neutralBuoyancy = false,            //Se estamos neutralmente boiantes
+        inLiquid = false,                   //Se estamos físicamente na área de um líquido
+        originalValuesStored = false,       //Se armazenamos os valores de movimentação
+        needsRecalculation = true;          //Se precisamos recalcular a simulação de física
 
     /// Valores de correspondência a dados de movimentação
     private float
@@ -60,7 +64,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     @Override
     public void update(float delta) {
-        if (!inLiquid) return;
+        if (!inLiquid || !canInteractWithLiquid) return;
 
         if (needsRecalculation) {
             recalculateLiquidEffects();
@@ -80,7 +84,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         if (neutralBuoyancy) {
             moveC.gravityAffected = false;
             totalBoyancyEffect = 0;
-            return;
+            boyancyFactor = 0;
+//            return;
         }
 
         updateTotalBoyancyEffect();
@@ -90,7 +95,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         moveC.setySpeed(totalBoyancyEffect);
     }
 
-    private void updateTotalBoyancyEffect(){
+    private void updateTotalBoyancyEffect() {
         totalBoyancyEffect += boyancyFactor + boyancyModifier;
         totalBoyancyEffect = Math.max(
             -moveC.yMaxSpeed,
@@ -119,6 +124,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         }
 
         liquidBuffer.add(liquid);
+
+        if (!canInteractWithLiquid) return;
 
         if (liquidBuffer.size() == 1) {
             storeOriginalMovementValues();
@@ -149,6 +156,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             }
 
         }
+
+        if (!canInteractWithLiquid) return;
 
         //Chama um callBack personalizado do dono
         object.onLiquidExit();
@@ -181,6 +190,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
      * Chamado na primeira entrada de um líquido.
      */
     private void storeOriginalMovementValues() {
+        if (originalValuesStored) return;
 
         //Armazena as velocidades máximas de cada eixo
         this.originalYMaxSpeed = moveC.yMaxSpeed;
@@ -200,6 +210,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         this.originalXResistanceWeight = moveC.xResistanceWeight;
         this.originalYResistanceWeight = moveC.yResistanceWeight;
         this.originalRResistanceWeight = moveC.rResistanceWeight;
+
+        originalValuesStored = true;
     }
 
     /**
@@ -208,6 +220,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
      * Chamado para restaurar a movimentação fora de liquido
      */
     private void restartOriginalMovementValues() {
+        if (!originalValuesStored) return;
 
         //Restaura a velocidade máxima de cada eixo
         this.moveC.yMaxSpeed = originalYMaxSpeed;
@@ -227,6 +240,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         this.moveC.xResistanceWeight = originalXResistanceWeight;
         this.moveC.yResistanceWeight = originalYResistanceWeight;
         this.moveC.rResistanceWeight = originalRResistanceWeight;
+
+        originalValuesStored = false;
     }
 
     /**
@@ -337,6 +352,31 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     public void setResistanceMultiplier(float resistanceMultiplier) {
         this.resistanceMultiplier = resistanceMultiplier;
         needsRecalculation = true;
+    }
+
+    public boolean isCanInteractWithLiquid() {
+        return canInteractWithLiquid;
+    }
+
+    public void setCanInteractWithLiquid(boolean canInteract) {
+        if (this.canInteractWithLiquid == canInteract) return;
+        this.canInteractWithLiquid = canInteract;
+
+        if (!canInteract) {
+            // Limpa simulação sem limpar o buffer
+            inLiquid = false;
+            restartOriginalMovementValues();
+            moveC.resetYMovement();
+            totalBoyancyEffect = 0;
+            boyancyFactor = 0;
+            object.onLiquidExit();
+        } else if (!liquidBuffer.isEmpty()) {
+            // Reativa com o que já está no buffer
+            storeOriginalMovementValues();
+            inLiquid = true;
+            needsRecalculation = true;
+            object.onLiquidEnter();
+        }
     }
 
     public void setNeedsRecalculation(boolean needsRecalculation) {

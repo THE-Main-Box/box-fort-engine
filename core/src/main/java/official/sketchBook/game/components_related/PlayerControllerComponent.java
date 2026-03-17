@@ -51,6 +51,10 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     public void down(boolean pressed) {
         if (!pressed) return;
 
+//        player.getLiquidInteractionC().setCanInteractWithLiquid(
+//            !player.getLiquidInteractionC().isCanInteractWithLiquid()
+//        );
+
         player.getMoveC().gravityScale *= -1;
     }
 
