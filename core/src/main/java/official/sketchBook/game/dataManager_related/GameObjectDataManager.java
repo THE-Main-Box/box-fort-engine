@@ -4,8 +4,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
-import official.sketchBook.engine.game_object_related.sub_related.BaseSubmarine;
-import official.sketchBook.engine.game_object_related.sub_related.BaseSubmarinePart;
+import official.sketchBook.engine.game_object_related.vehicle.BaseSubmarine;
+import official.sketchBook.engine.game_object_related.vehicle.BaseSubmarinePart;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.engine.liquid_related.model.PhysicalRoomLiquid;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
@@ -14,7 +14,6 @@ import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.listeners.MovableObjectContactListener;
 import official.sketchBook.engine.util_related.contact_listener.listeners.PhysicalLiquidContactListener;
 import official.sketchBook.engine.util_related.contact_listener.listeners.ProjectileContactListener;
-import official.sketchBook.engine.util_related.pools.RayCastPool;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.gameObject_related.Player;
@@ -151,8 +150,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         List<BaseSubmarinePart> subParts = new ArrayList<>();
 
         short
-            categoryBit = (short) (VEHICLE.bit() | LIQUID_SUBMERGEABLE.bit()),
-            maskBit = (short) (VEHICLE_PASSENGER.bit() | LIQUID.bit());
+            categoryBit = VEHICLE.bit(),
+            maskBit = VEHICLE_PASSENGER.bit();
 
         BaseSubmarinePart corridor = new BaseSubmarinePart(1, "corridor_test");
 
@@ -343,7 +342,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         super.disposeGeneralData();
         currentRoom.dispose();
 
-        if (globalProjectilePool != null)   globalProjectilePool.dispose();
+        if (globalProjectilePool != null) globalProjectilePool.dispose();
 
     }
 
