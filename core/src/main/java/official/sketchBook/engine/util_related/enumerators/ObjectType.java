@@ -5,6 +5,7 @@ public enum ObjectType {
     ENTITY,
     ENVIRONMENT,
     VEHICLE,
+    DYNAMIC_DRY_AREA,
     NONE,
     HURTBOX,
     LIQUID

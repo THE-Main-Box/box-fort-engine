@@ -1,32 +1,30 @@
-package official.sketchBook.engine.game_object_related.sub_related;
+package official.sketchBook.engine.game_object_related.vehicle;
 
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.LiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalGameObjectII;
 import official.sketchBook.engine.components_related.movement.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
-import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
+import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.data_manager_related.BaseGameObjectDataManager;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseGameObject;
-import official.sketchBook.engine.util_related.enumerators.ObjectType;
-import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 
 import java.util.List;
 
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
+import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createExternalBody;
+import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createInternalBody;
 
 public class BaseSubmarine extends BaseGameObject
     implements
     MovableObjectII,
     LiquidInteractableObjectII,
-    PhysicalGameObjectII {
+    PhysicalGameObjectII,
+    Vehicle {
 
     /// Componente para controle de movimentação do sub
     private MovementComponent moveC;
@@ -41,7 +39,9 @@ public class BaseSubmarine extends BaseGameObject
     private PhysicalMobLiquidInteractionComponent liquidInteractionC;
 
     /// Body do submarino completo
-    private Body body;
+    private Body
+        internalBody,
+        body;
 
     /// Lista de partes de submarino
     private final List<BaseSubmarinePart> subParts;
@@ -85,35 +85,18 @@ public class BaseSubmarine extends BaseGameObject
     }
 
     private void generateBody(List<BaseSubmarinePart> parts) {
-        // cria a body vazia na posição do sub
-        BodyDef bodyDef = new BodyDef();
-
-        bodyDef.type = BodyDef
-            .BodyType
-            .KinematicBody;
-
-        bodyDef.position.set(
-            transformC.x / PPM,
-            transformC.y / PPM
+        this.internalBody = createInternalBody(
+            this,
+            parts,
+            transformC,
+            getPhysicalManager().getPhysicsWorld()
         );
-
-        this.body = getPhysicalManager()
-            .getPhysicsWorld()
-            .createBody(bodyDef);
-
-        // itera as partes e adiciona as fixtures
-        for (BaseSubmarinePart part : parts) {
-            for (FixtureDef def : part.fixtureDataList) {
-                body.createFixture(def);
-                def.shape.dispose();
-            }
-        }
-
-        body.setUserData(
-            new GameObjectTag(
-                ObjectType.VEHICLE,
-                this
-            )
+        this.body = createExternalBody(
+            this,
+            parts,
+            transformC,
+            internalBody,
+            getPhysicalManager().getPhysicsWorld()
         );
     }
 
@@ -202,12 +185,11 @@ public class BaseSubmarine extends BaseGameObject
 
     @Override
     public void inLiquidUpdate() {
-
     }
 
     @Override
     protected void disposeGeneralData() {
-        for(BaseSubmarinePart parts : subParts){
+        for (BaseSubmarinePart parts : subParts) {
             parts.dispose();
         }
 
@@ -220,6 +202,8 @@ public class BaseSubmarine extends BaseGameObject
         super.disposeCriticalData();
 
         this.body = null;
+        this.internalBody = null;
+
         this.moveC = null;
         this.transformC = null;
         this.physicsC = null;
@@ -258,5 +242,10 @@ public class BaseSubmarine extends BaseGameObject
     @Override
     public Body getBody() {
         return body;
+    }
+
+    @Override
+    public Body getInternalBody() {
+        return internalBody;
     }
 }
