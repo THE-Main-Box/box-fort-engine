@@ -305,7 +305,7 @@ public class PhysicsComponent implements Component {
 
     @Override
     public void dispose() {
-        if (object.getBody() == null) return;
+        if (disposed || object.getBody() == null) return;
 
         this.object.getBody().getWorld().destroyBody(object.getBody());
         this.nullifyReferences();

@@ -10,7 +10,7 @@ import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BaseSubmarinePart implements Disposable {
+public class SubmarinePart implements Disposable {
 
     /// Id de identificação
     public final int id;
@@ -20,6 +20,7 @@ public class BaseSubmarinePart implements Disposable {
     public final List<FixtureDef> fixtureDataList;
 
     public float
+        density,
         internalMargin,
         internalMinX,
         internalMinY,
@@ -31,14 +32,14 @@ public class BaseSubmarinePart implements Disposable {
         boundsCalculated = false,   //Se calculamos as dimensões internas
         disposed = false;
 
-    public BaseSubmarinePart(int id, String tag) {
+    public SubmarinePart(int id, String tag) {
         this.id = id;
         this.tag = tag;
         this.fixtureDataList = new ArrayList<>();
     }
 
     /// Calcula a parte interna do sub, passamos uma pequena margem como limite simples
-    public static void calculateAndStoreBounds(BaseSubmarinePart part) {
+    public static void calculateAndStoreBounds(SubmarinePart part) {
         if (part.isBoundsCalculated()) return;
 
         float minX = Float.MAX_VALUE;

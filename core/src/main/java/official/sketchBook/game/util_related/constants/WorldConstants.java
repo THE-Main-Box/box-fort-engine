@@ -60,8 +60,10 @@ public class WorldConstants {
         public static final float
             DEF_MAX_SPEED_X = 999,
             DEF_MAX_SPEED_Y = 999,
+            DEF_MAX_SPEED_R = 3,
             X_DEACCELERATION = 90,
-            Y_DEACCELERATION = 90;
+            Y_DEACCELERATION = 90,
+            R_DEACCELERATION = 90;
 
     }
 }
