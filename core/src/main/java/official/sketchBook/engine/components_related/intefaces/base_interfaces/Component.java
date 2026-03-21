@@ -7,5 +7,4 @@ public interface Component {
     void dispose();
 
     void nullifyReferences();
-    boolean isDisposed();
 }

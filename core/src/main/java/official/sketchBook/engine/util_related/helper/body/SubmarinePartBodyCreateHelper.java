@@ -3,50 +3,86 @@ package official.sketchBook.engine.util_related.helper.body;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.physics.box2d.joints.WeldJointDef;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
-import official.sketchBook.engine.game_object_related.vehicle.BaseSubmarine;
-import official.sketchBook.engine.game_object_related.vehicle.BaseSubmarinePart;
+import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
+import official.sketchBook.engine.game_object_related.vehicle.Submarine;
+import official.sketchBook.engine.game_object_related.vehicle.SubmarineNode;
+import official.sketchBook.engine.game_object_related.vehicle.SubmarinePart;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
 
 import java.util.List;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.LIQUID;
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.PROJECTILES;
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.VEHICLE;
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.VEHICLE_PASSENGER;
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
 public class SubmarinePartBodyCreateHelper {
 
+    /// Calculamos os dados importantes para o sistema de física lidar com liquidos
+    public static void calculateAndApplyMassData(
+        List<SubmarinePart> physicalParts,
+        PhysicalMobLiquidInteractionComponent liquidInteractionC
+    ) {
+        //Massa e volume totais
+        float totalVolume = 0;
+        float totalMass = 0;
+
+        //Iteramos pelas partes físicas que possuimos
+        for (int i = 0; i < physicalParts.size(); i++) {
+            SubmarinePart part = physicalParts.get(i);
+            if (!part.isBoundsCalculated()) continue;
+
+            //Obtemos os dados do volume
+            float width = (part.internalMaxX - part.internalMinX) * PPM;
+            float height = (part.internalMaxY - part.internalMinY) * PPM;
+            //Descobrimos o volume
+            float volume = width * height;
+            //Descobrimos a massa
+            float mass = volume * part.density;
+
+            //Aplicamos
+            totalVolume += volume;
+            totalMass += mass;
+        }
+
+        //Ao final de tudo settamos no sistema de física dedicado a interação com líquidos
+        liquidInteractionC.setMass(totalMass);
+        liquidInteractionC.setVolume(totalVolume);
+    }
+
+    /// Criamos o corpo externo, o que irá interagir com o mundo físico
     public static Body createExternalBody(
-        BaseSubmarine submarine,
-        List<BaseSubmarinePart> parts,
+        SubmarineNode node,
+        List<SubmarinePart> parts,
         TransformComponent transformC,
-        Body internalBody,
         World world
     ) {
 
+        //Criamos a body
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
         bodyDef.position.set(transformC.x / PPM, transformC.y / PPM);
 
         Body external = world.createBody(bodyDef);
 
+        //Para cada parte existente
         for (int i = 0; i < parts.size(); i++) {
-            BaseSubmarinePart part = parts.get(i);
+            SubmarinePart part = parts.get(i);
             if (!part.isBoundsCalculated()) continue;
 
+            //A partir das dimensões internas definimos os dados da composição da body
             float width = part.internalMaxX - part.internalMinX;
             float height = part.internalMaxY - part.internalMinY;
             float centerX = (part.internalMinX + part.internalMaxX) / 2f;
             float centerY = (part.internalMinY + part.internalMaxY) / 2f;
 
             Shape externalShape = BodyCreatorHelper.createBoxShape(
-                width * PPM, height * PPM,
-                centerX * PPM, centerY * PPM
+                width * PPM,
+                height * PPM,
+                centerX * PPM,
+                centerY * PPM
             );
 
+            //Determinamo algumas coisas importantes para o bom funcionamento da body externa
             FixtureDef externalDef = new FixtureDef();
             externalDef.shape = externalShape;
             externalDef.isSensor = false;
@@ -57,20 +93,10 @@ public class SubmarinePartBodyCreateHelper {
             externalShape.dispose();
         }
 
-        // Prende o corpo externo ao interno com WeldJoint
-        WeldJointDef weldDef = new WeldJointDef();
-        weldDef.initialize(
-            internalBody,
-            external,
-            internalBody.getPosition()
-        );
-
-        world.createJoint(weldDef);
-
         external.setUserData(
             new GameObjectTag(
                 ObjectType.VEHICLE,
-                submarine
+                node
             )
         );
 
@@ -78,9 +104,10 @@ public class SubmarinePartBodyCreateHelper {
 
     }
 
+    /// Criamos as body internas
     public static Body createInternalBody(
-        BaseSubmarine submarine,
-        List<BaseSubmarinePart> parts,
+        SubmarineNode node,
+        List<SubmarinePart> parts,
         TransformComponent transformC,
         World world
     ) {
@@ -91,32 +118,31 @@ public class SubmarinePartBodyCreateHelper {
         Body internal = world.createBody(bodyDef);
 
         for (int i = 0; i < parts.size(); i++) {
-            BaseSubmarinePart part = parts.get(i);
+            SubmarinePart part = parts.get(i);
             for (int j = 0; j < part.fixtureDataList.size(); j++) {
                 FixtureDef def = part.fixtureDataList.get(j);
                 internal.createFixture(def);
                 def.shape.dispose();
             }
-        }
 
-        for (int i = 0; i < parts.size(); i++) {
-            BaseSubmarinePart part = parts.get(i);
-            BaseSubmarinePart.calculateAndStoreBounds(part);
+            SubmarinePart.calculateAndStoreBounds(part);
+
             if (!part.isBoundsCalculated()) continue;
 
             createDryAreaSensor(internal, part);
+
         }
 
         internal.setUserData(
             new GameObjectTag(
                 ObjectType.VEHICLE,
-                submarine
+                node
             )
         );
         return internal;
     }
 
-    public static void createDryAreaSensor(Body body, BaseSubmarinePart part) {
+    public static void createDryAreaSensor(Body body, SubmarinePart part) {
         float margin = part.internalMargin / PPM;
 
         float width = (part.internalMaxX - part.internalMinX) - margin * 2;

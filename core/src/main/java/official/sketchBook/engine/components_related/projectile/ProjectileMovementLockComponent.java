@@ -121,11 +121,6 @@ public class ProjectileMovementLockComponent implements Component {
         controllerC = null;
     }
 
-    @Override
-    public boolean isDisposed() {
-        return disposed;
-    }
-
     /// Verifica se devemos ou não travar os eixos do projétil com base nos valores passados
     public boolean shouldLockMovement(Direction colDir){
         return stickToAnyCollision

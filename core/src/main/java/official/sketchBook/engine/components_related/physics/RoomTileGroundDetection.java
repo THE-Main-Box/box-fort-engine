@@ -145,11 +145,6 @@ public class RoomTileGroundDetection implements Component {
         currentTileBodyType = null;
     }
 
-    @Override
-    public boolean isDisposed() {
-        return disposed;
-    }
-
     public TileBodyType getCurrentTileBodyType() {
         return currentTileBodyType;
     }

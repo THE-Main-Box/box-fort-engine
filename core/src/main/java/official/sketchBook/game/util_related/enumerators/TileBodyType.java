@@ -49,7 +49,8 @@ public enum TileBodyType {
         (
             ENTITIES.bit() |
                 PROJECTILES.bit() |
-                SENSOR.bit()
+                SENSOR.bit() |
+                VEHICLE.bit()
         ),
         true
     );

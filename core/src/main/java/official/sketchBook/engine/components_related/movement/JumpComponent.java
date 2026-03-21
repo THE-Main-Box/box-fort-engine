@@ -308,11 +308,6 @@ public class JumpComponent implements Component {
         jumpBufferTimer = null;
     }
 
-    @Override
-    public boolean isDisposed() {
-        return disposed;
-    }
-
     public boolean isJumping() {
         return jumping;
     }

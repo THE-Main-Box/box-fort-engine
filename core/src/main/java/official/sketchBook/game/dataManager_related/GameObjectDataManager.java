@@ -4,8 +4,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
-import official.sketchBook.engine.game_object_related.vehicle.BaseSubmarine;
-import official.sketchBook.engine.game_object_related.vehicle.BaseSubmarinePart;
+import official.sketchBook.engine.game_object_related.vehicle.Submarine;
+import official.sketchBook.engine.game_object_related.vehicle.SubmarineNode;
+import official.sketchBook.engine.game_object_related.vehicle.SubmarinePart;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.engine.liquid_related.model.PhysicalRoomLiquid;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
@@ -125,42 +126,53 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         );
 
         float
-            subX = 60,
-            subY = 20;
+            subX = 150,
+            subY = 60;
 
-        List<BaseSubmarinePart> subParts = getBaseSubmarineParts(
+        List<SubmarinePart> subParts = getBaseSubmarineParts(
             subX,
             subY
         );
 
-        BaseSubmarine baseSubmarine = new BaseSubmarine(
+        List<SubmarineNode> nodeList = new ArrayList<>();
+
+        nodeList.add(
+            new SubmarineNode(
+                physicsWorld,
+                subParts,
+                subX,
+                subY,
+                0,
+                0,
+                false,
+                false
+            )
+        );
+
+        Submarine baseSubmarine = new Submarine(
             this,
-            subParts,
-            subX,
-            subY,
-            1,
-            0,
-            false,
-            false
+            nodeList
         );
 
     }
 
-    private static List<BaseSubmarinePart> getBaseSubmarineParts(float subX, float subY) {
-        List<BaseSubmarinePart> subParts = new ArrayList<>();
+    private static List<SubmarinePart> getBaseSubmarineParts(float subX, float subY) {
+        List<SubmarinePart> subParts = new ArrayList<>();
 
         short
             categoryBit = VEHICLE.bit(),
             maskBit = VEHICLE_PASSENGER.bit();
 
-        BaseSubmarinePart corridor = new BaseSubmarinePart(1, "corridor_test");
+        SubmarinePart corridor = new SubmarinePart(1, "corridor_test");
+
+        corridor.density = 1f;
 
         corridor.addBoxFixture(
-            subX,
-            subY,
             0,
             0,
-            60,
+            0,
+            25,
+            120,
             10,
             0,
             0,
@@ -171,11 +183,11 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         );
 
         corridor.addBoxFixture(
-            subX,
-            subY,
             0,
-            50,
-            60,
+            0,
+            0,
+            -25,
+            120,
             10,
             0,
             0,

@@ -470,8 +470,4 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         object = null;
     }
 
-    @Override
-    public boolean isDisposed() {
-        return disposed;
-    }
 }

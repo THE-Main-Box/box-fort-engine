@@ -1,10 +1,9 @@
 package official.sketchBook.engine.game_object_related.base_game_object;
 
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.Disposable;
 import official.sketchBook.engine.components_related.system_utils.ComponentManagerComponent;
 import official.sketchBook.engine.data_manager_related.BaseGameObjectDataManager;
 
-public abstract class BaseGameObject implements Disposable {
+public abstract class BaseGameObject implements com.badlogic.gdx.utils.Disposable {
 
     /// Se deve eliminar por completo
     protected boolean pendingRemoval = false;
@@ -74,10 +73,6 @@ public abstract class BaseGameObject implements Disposable {
 
     public boolean isPendingRemoval() {
         return pendingRemoval;
-    }
-
-    public boolean isDisposed() {
-        return disposed;
     }
 
     public ComponentManagerComponent getManagerC() {

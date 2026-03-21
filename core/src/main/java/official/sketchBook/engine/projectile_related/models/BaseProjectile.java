@@ -1,7 +1,6 @@
 package official.sketchBook.engine.projectile_related.models;
 
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.Disposable;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
@@ -13,7 +12,7 @@ public abstract class BaseProjectile
     implements
     CustomPool.Poolable,
     MovableObjectII,
-    Disposable {
+    com.badlogic.gdx.utils.Disposable {
 
     protected ProjectilePool<?> ownerPool;
 
@@ -179,10 +178,6 @@ public abstract class BaseProjectile
 
     /// Realiza o dispose final de dados, geralmente aqueles que precisam ser limpos por último
     protected abstract void disposeCriticalData();
-
-    public boolean isDisposed() {
-        return disposed;
-    }
 
     public MovementComponent getMoveC() {
         return moveC;

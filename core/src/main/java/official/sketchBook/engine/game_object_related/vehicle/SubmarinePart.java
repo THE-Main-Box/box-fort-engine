@@ -4,13 +4,13 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.Shape;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.Disposable;
+import com.badlogic.gdx.utils.Disposable;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BaseSubmarinePart implements Disposable {
+public class SubmarinePart implements Disposable {
 
     /// Id de identificação
     public final int id;
@@ -20,6 +20,7 @@ public class BaseSubmarinePart implements Disposable {
     public final List<FixtureDef> fixtureDataList;
 
     public float
+        density,
         internalMargin,
         internalMinX,
         internalMinY,
@@ -31,14 +32,14 @@ public class BaseSubmarinePart implements Disposable {
         boundsCalculated = false,   //Se calculamos as dimensões internas
         disposed = false;
 
-    public BaseSubmarinePart(int id, String tag) {
+    public SubmarinePart(int id, String tag) {
         this.id = id;
         this.tag = tag;
         this.fixtureDataList = new ArrayList<>();
     }
 
     /// Calcula a parte interna do sub, passamos uma pequena margem como limite simples
-    public static void calculateAndStoreBounds(BaseSubmarinePart part) {
+    public static void calculateAndStoreBounds(SubmarinePart part) {
         if (part.isBoundsCalculated()) return;
 
         float minX = Float.MAX_VALUE;
@@ -126,11 +127,6 @@ public class BaseSubmarinePart implements Disposable {
 
     public boolean isBoundsCalculated() {
         return boundsCalculated;
-    }
-
-    @Override
-    public boolean isDisposed() {
-        return disposed;
     }
 
     @Override

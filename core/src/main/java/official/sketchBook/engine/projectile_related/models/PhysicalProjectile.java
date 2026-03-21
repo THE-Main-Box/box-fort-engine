@@ -3,7 +3,7 @@ package official.sketchBook.engine.projectile_related.models;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
-import official.sketchBook.engine.components_related.movement.MovableObjectPhysicsComponent;
+import official.sketchBook.engine.components_related.physics.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.game.util_related.pools.ProjectilePool;
 
