@@ -165,7 +165,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         SubmarinePart corridor = new SubmarinePart(1, "corridor_test");
 
-        corridor.density = 1f;
+        corridor.density = 0.99f;
 
         corridor.addBoxFixture(
             0,
@@ -174,7 +174,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             25,
             120,
             10,
-            0,
+            corridor.density,
             0,
             0,
             false,
@@ -189,7 +189,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             -25,
             120,
             10,
-            0,
+            corridor.density,
             0,
             0,
             false,

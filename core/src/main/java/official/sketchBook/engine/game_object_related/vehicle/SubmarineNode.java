@@ -92,11 +92,6 @@ public class SubmarineNode
     public void initObject() {
         initComponents();
         generateBody(physicalParts);
-
-        System.out.println("Centro de massa: " + body.getWorldCenter());
-        System.out.println("Posição da body: " + body.getPosition());
-
-        moveC.rAccel = (0.1f);
     }
 
     private void generateBody(List<SubmarinePart> parts) {
@@ -122,7 +117,7 @@ public class SubmarineNode
     private void initComponents() {
         this.managerC = new ComponentManagerComponent();
 
-        physicsC = new VehiclePhysicsComponent(
+        VehiclePhysicsComponent vPhysicsC = new VehiclePhysicsComponent(
             this,
             0,
             0,
@@ -130,6 +125,11 @@ public class SubmarineNode
             0,
             0
         );
+
+//        vPhysicsC.autoApplyMovement = false;
+        vPhysicsC.autoConstraintR = false;
+
+        physicsC = vPhysicsC;
 
         moveC = new MovementComponent(
             this,
@@ -144,12 +144,12 @@ public class SubmarineNode
             true,
             true,
             true,
-            true,
-            true,
-            true,
+            false,
+            false,
             true,
             false,
-            false
+            false,
+            true
         );
 
         liquidInteractionC = new PhysicalMobLiquidInteractionComponent(this);

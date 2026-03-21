@@ -10,7 +10,10 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
     private float defaultGravityScale = 0;
     private boolean gravityWasAffected = true;
 
-    public boolean autoApplyMovement = true;
+    /// Flag de constraint
+    public boolean
+        autoConstraintR = true,
+        autoApplyMovement = true;
 
     public MovableObjectPhysicsComponent(
         PhysicalObjectII object,
@@ -76,9 +79,10 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
         } else {
             object.getBody().setFixedRotation(false);
 
-            object.getBody().setAngularVelocity(
-                mob.getMoveC().rSpeed
-            );
+            if (autoConstraintR)
+                object.getBody().setAngularVelocity(
+                    mob.getMoveC().rSpeed
+                );
         }
     }
 
