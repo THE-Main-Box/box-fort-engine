@@ -3,16 +3,13 @@ package official.sketchBook.engine.util_related.pools;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
-import com.badlogic.gdx.utils.Array;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.Disposable;
 import official.sketchBook.engine.components_related.ray_cast.RayCastData;
 
 import static official.sketchBook.game.util_related.constants.DebugConstants.show_ray_cast;
 
 
-public class RayCastPool extends CustomPool<RayCastData> implements Disposable {
+public class RayCastPool extends CustomPool<RayCastData> implements com.badlogic.gdx.utils.Disposable {
     /// Instancia única
     private static RayCastPool instance;
 
@@ -119,8 +116,4 @@ public class RayCastPool extends CustomPool<RayCastData> implements Disposable {
         return instance;
     }
 
-    @Override
-    public boolean isDisposed() {
-        return disposed;
-    }
 }

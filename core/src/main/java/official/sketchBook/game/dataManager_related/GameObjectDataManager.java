@@ -133,16 +133,16 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             subY
         );
 
-        BaseSubmarine baseSubmarine = new BaseSubmarine(
-            this,
-            subParts,
-            subX,
-            subY,
-            1,
-            0,
-            false,
-            false
-        );
+//        BaseSubmarine baseSubmarine = new BaseSubmarine(
+//            this,
+//            subParts,
+//            subX,
+//            subY,
+//            1,
+//            0,
+//            false,
+//            false
+//        );
 
     }
 

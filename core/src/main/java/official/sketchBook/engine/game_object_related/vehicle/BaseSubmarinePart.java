@@ -4,7 +4,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.Shape;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.Disposable;
+import com.badlogic.gdx.utils.Disposable;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 
 import java.util.ArrayList;
@@ -126,11 +126,6 @@ public class BaseSubmarinePart implements Disposable {
 
     public boolean isBoundsCalculated() {
         return boundsCalculated;
-    }
-
-    @Override
-    public boolean isDisposed() {
-        return disposed;
     }
 
     @Override

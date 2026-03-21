@@ -1,7 +1,6 @@
 package official.sketchBook.game.util_related.pools;
 
 import com.badlogic.gdx.utils.Array;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.Disposable;
 import official.sketchBook.engine.data_manager_related.util.RenderableObjectManager;
 import official.sketchBook.engine.projectile_related.models.BaseProjectile;
 import official.sketchBook.engine.util_related.pools.CustomPool;
@@ -13,7 +12,7 @@ import static official.sketchBook.game.util_related.constants.WorldConstants.Pro
 import static official.sketchBook.game.util_related.constants.WorldConstants.ProjectilePoolConstants.MAX_PROJECTILE_PER_POOL;
 
 
-public class ProjectilePool<T extends BaseProjectile> extends CustomPool<T> implements Disposable {
+public class ProjectilePool<T extends BaseProjectile> extends CustomPool<T> implements com.badlogic.gdx.utils.Disposable {
 
     protected RenderableObjectManager renderTree;
     protected Array<T> activeProjectiles;
@@ -145,10 +144,6 @@ public class ProjectilePool<T extends BaseProjectile> extends CustomPool<T> impl
 
     public Array<T> getActiveProjectiles() {
         return activeProjectiles;
-    }
-
-    public boolean isDisposed() {
-        return disposed;
     }
 
     public Class<T> getProjectileType() {

@@ -1,7 +1,6 @@
 package official.sketchBook.engine.data_manager_related;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.Disposable;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.data_manager_related.util.RenderableObjectManager;
@@ -13,7 +12,7 @@ import java.util.*;
 import static official.sketchBook.engine.data_manager_related.util.RenderableObjectManager.tryAddToRender;
 import static official.sketchBook.engine.data_manager_related.util.RenderableObjectManager.tryRemoveFromRender;
 
-public abstract class BaseGameObjectDataManager implements Disposable {
+public abstract class BaseGameObjectDataManager implements com.badlogic.gdx.utils.Disposable {
 
     /// Lista de objects que precisam de rendering
     protected final RenderableObjectManager renderTree = new RenderableObjectManager();
@@ -272,7 +271,4 @@ public abstract class BaseGameObjectDataManager implements Disposable {
         return renderTree;
     }
 
-    public boolean isDisposed() {
-        return disposed;
-    }
 }

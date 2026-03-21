@@ -40,7 +40,7 @@ public class ComponentManagerComponent implements Component{
             for (int i = toUpdate.size() - 1; i >= 0; i--) {
                 Component c = toUpdate.get(i);
                 if (type.isInstance(c)) {
-                    if (!c.isDisposed() && autoDispose) c.dispose();
+                    if (autoDispose) c.dispose();
                     toUpdate.remove(i);
                 }
             }
@@ -50,7 +50,7 @@ public class ComponentManagerComponent implements Component{
             for (int i = toPostUpdate.size() - 1; i >= 0; i--) {
                 Component c = toPostUpdate.get(i);
                 if (type.isInstance(c)) {
-                    if (!c.isDisposed() && autoDispose) c.dispose();
+                    if (autoDispose) c.dispose();
                     toPostUpdate.remove(i);
                 }
             }
@@ -74,12 +74,10 @@ public class ComponentManagerComponent implements Component{
         if(disposed) return;
 
         for (Component component : toUpdate) {
-            if (component.isDisposed()) continue;
             component.dispose();
         }
 
         for (Component component : toPostUpdate) {
-            if (component.isDisposed()) continue;
             component.dispose();
         }
 
@@ -94,9 +92,5 @@ public class ComponentManagerComponent implements Component{
 
     }
 
-
-    public boolean isDisposed() {
-        return disposed;
-    }
 
 }

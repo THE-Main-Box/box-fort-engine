@@ -323,8 +323,5 @@ public class MovementComponent implements Component {
         this.mob = null;
     }
 
-    @Override
-    public boolean isDisposed() {
-        return disposed;
-    }
+
 }

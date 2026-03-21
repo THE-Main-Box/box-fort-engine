@@ -318,11 +318,6 @@ public class PhysicsComponent implements Component {
         this.transformC = null;
     }
 
-    @Override
-    public boolean isDisposed() {
-        return disposed;
-    }
-
     public short getMaskBit() {
         return maskBit;
     }

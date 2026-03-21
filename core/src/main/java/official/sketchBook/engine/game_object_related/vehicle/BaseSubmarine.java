@@ -1,10 +1,11 @@
 package official.sketchBook.engine.game_object_related.vehicle;
 
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.LiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalGameObjectII;
-import official.sketchBook.engine.components_related.movement.MovableObjectPhysicsComponent;
+import official.sketchBook.engine.components_related.physics.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
@@ -43,14 +44,20 @@ public class BaseSubmarine extends BaseGameObject
         internalBody,
         body;
 
-    /// Lista de partes de submarino
-    private final List<BaseSubmarinePart> subParts;
+    /// Lista de nós de massa
+    private final List<BaseSubmarinePart> submarineParts;
 
+    public float totalMass;
+
+    /// Eixos importantes para a física granular do sub e seus grupos de massa
+    public Vector2
+        massCenter,     //Centro de massa
+        axialCenter;    //Eixo que servirá como eixo de movimento axial
 
     /// Importante ter em mente que a posição passada deverá ser o centro do sub, passado em pixels
     public BaseSubmarine(
         BaseGameObjectDataManager worldDataManager,
-        List<BaseSubmarinePart> subParts,
+        List<BaseSubmarinePart> submarineParts,
         float x,
         float y,
         float z,
@@ -60,7 +67,7 @@ public class BaseSubmarine extends BaseGameObject
     ) {
         super(worldDataManager);
 
-        this.subParts = subParts;
+        this.submarineParts = submarineParts;
 
         transformC = new TransformComponent(
             x,
@@ -81,7 +88,7 @@ public class BaseSubmarine extends BaseGameObject
     @Override
     protected void initObject() {
         initComponents();
-        generateBody(subParts);
+        generateBody(submarineParts);
     }
 
     private void generateBody(List<BaseSubmarinePart> parts) {
@@ -189,11 +196,14 @@ public class BaseSubmarine extends BaseGameObject
 
     @Override
     protected void disposeGeneralData() {
-        for (BaseSubmarinePart parts : subParts) {
+
+        for (BaseSubmarinePart parts : submarineParts) {
             parts.dispose();
         }
 
-        subParts.clear();
+        submarineParts.clear();
+
+        getPhysicalManager().getPhysicsWorld().destroyBody(internalBody);
 
     }
 
@@ -208,10 +218,9 @@ public class BaseSubmarine extends BaseGameObject
         this.transformC = null;
         this.physicsC = null;
         this.liquidInteractionC = null;
-    }
 
-    public List<BaseSubmarinePart> getSubParts() {
-        return subParts;
+        this.axialCenter = null;
+        this.massCenter = null;
     }
 
     @Override

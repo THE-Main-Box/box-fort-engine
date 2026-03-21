@@ -74,9 +74,4 @@ public abstract class KeyBoundControllerComponent implements Component {
         this.keyBindings.clear();
         this.keyStates.clear();
     }
-
-    @Override
-    public boolean isDisposed() {
-        return disposed;
-    }
 }

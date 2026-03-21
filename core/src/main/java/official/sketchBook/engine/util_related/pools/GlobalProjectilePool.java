@@ -171,10 +171,6 @@ public class GlobalProjectilePool {
         return poolMap.size();
     }
 
-    public boolean isDisposed() {
-        return disposed;
-    }
-
     public void setFactories(Map<Class<? extends BaseProjectile>, ProjectilePoolFactory<?>> factories) {
         this.factories = factories;
     }

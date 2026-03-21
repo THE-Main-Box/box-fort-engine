@@ -133,8 +133,4 @@ public class PlayerAnimationControllerComponent implements Component {
         currentAniPlayer = null;
     }
 
-    @Override
-    public boolean isDisposed() {
-        return disposed;
-    }
 }

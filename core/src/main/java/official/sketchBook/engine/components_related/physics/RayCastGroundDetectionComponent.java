@@ -113,11 +113,6 @@ public class RayCastGroundDetectionComponent implements Component {
         object = null;
     }
 
-    @Override
-    public boolean isDisposed() {
-        return disposed;
-    }
-
     public boolean isOnGround() {
         return onGround;
     }

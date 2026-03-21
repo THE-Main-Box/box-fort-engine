@@ -11,10 +11,6 @@ import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import java.util.List;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.LIQUID;
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.PROJECTILES;
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.VEHICLE;
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.VEHICLE_PASSENGER;
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
 public class SubmarinePartBodyCreateHelper {
@@ -43,8 +39,10 @@ public class SubmarinePartBodyCreateHelper {
             float centerY = (part.internalMinY + part.internalMaxY) / 2f;
 
             Shape externalShape = BodyCreatorHelper.createBoxShape(
-                width * PPM, height * PPM,
-                centerX * PPM, centerY * PPM
+                width * PPM,
+                height * PPM,
+                centerX * PPM,
+                centerY * PPM
             );
 
             FixtureDef externalDef = new FixtureDef();
@@ -97,14 +95,13 @@ public class SubmarinePartBodyCreateHelper {
                 internal.createFixture(def);
                 def.shape.dispose();
             }
-        }
 
-        for (int i = 0; i < parts.size(); i++) {
-            BaseSubmarinePart part = parts.get(i);
             BaseSubmarinePart.calculateAndStoreBounds(part);
+
             if (!part.isBoundsCalculated()) continue;
 
             createDryAreaSensor(internal, part);
+
         }
 
         internal.setUserData(

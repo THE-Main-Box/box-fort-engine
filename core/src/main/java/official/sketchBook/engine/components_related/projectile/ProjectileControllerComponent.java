@@ -165,11 +165,6 @@ public class ProjectileControllerComponent implements Component {
         lastCollisionEndBuffer = null;
     }
 
-    @Override
-    public boolean isDisposed() {
-        return disposed;
-    }
-
     public boolean isColliding() {
         return colliding;
     }
