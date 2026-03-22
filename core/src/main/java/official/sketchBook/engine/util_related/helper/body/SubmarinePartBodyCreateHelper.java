@@ -1,10 +1,8 @@
 package official.sketchBook.engine.util_related.helper.body;
 
 import com.badlogic.gdx.physics.box2d.*;
-import com.badlogic.gdx.physics.box2d.joints.WeldJointDef;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
-import official.sketchBook.engine.game_object_related.vehicle.Submarine;
 import official.sketchBook.engine.game_object_related.vehicle.SubmarineNode;
 import official.sketchBook.engine.game_object_related.vehicle.SubmarinePart;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
@@ -16,38 +14,6 @@ import static official.sketchBook.engine.util_related.enumerators.CollisionLayer
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
 public class SubmarinePartBodyCreateHelper {
-
-    /// Calculamos os dados importantes para o sistema de física lidar com liquidos
-    public static void calculateAndApplyMassData(
-        List<SubmarinePart> physicalParts,
-        PhysicalMobLiquidInteractionComponent liquidInteractionC
-    ) {
-        //Massa e volume totais
-        float totalVolume = 0;
-        float totalMass = 0;
-
-        //Iteramos pelas partes físicas que possuimos
-        for (int i = 0; i < physicalParts.size(); i++) {
-            SubmarinePart part = physicalParts.get(i);
-            if (!part.isBoundsCalculated()) continue;
-
-            //Obtemos os dados do volume
-            float width = (part.internalMaxX - part.internalMinX) * PPM;
-            float height = (part.internalMaxY - part.internalMinY) * PPM;
-            //Descobrimos o volume
-            float volume = width * height;
-            //Descobrimos a massa
-            float mass = volume * part.density;
-
-            //Aplicamos
-            totalVolume += volume;
-            totalMass += mass;
-        }
-
-        //Ao final de tudo settamos no sistema de física dedicado a interação com líquidos
-        liquidInteractionC.setMass(totalMass);
-        liquidInteractionC.setVolume(totalVolume);
-    }
 
     /// Criamos o corpo externo, o que irá interagir com o mundo físico
     public static Body createExternalBody(
@@ -89,7 +55,9 @@ public class SubmarinePartBodyCreateHelper {
             externalDef.filter.categoryBits = (short) (VEHICLE.bit() | LIQUID_SUBMERGEABLE.bit());
             externalDef.filter.maskBits = (short) (ENVIRONMENT.bit() | PROJECTILES.bit() | LIQUID.bit());
 
+            //Adicionamos ao rastreamento de fixture externa a fixture que acabamos de criar
             external.createFixture(externalDef);
+
             externalShape.dispose();
         }
 
@@ -119,9 +87,11 @@ public class SubmarinePartBodyCreateHelper {
 
         for (int i = 0; i < parts.size(); i++) {
             SubmarinePart part = parts.get(i);
-            for (int j = 0; j < part.fixtureDataList.size(); j++) {
-                FixtureDef def = part.fixtureDataList.get(j);
+            for (int j = 0; j < part.fixtureDefList.size(); j++) {
+                FixtureDef def = part.fixtureDefList.get(j);
+
                 internal.createFixture(def);
+
                 def.shape.dispose();
             }
 

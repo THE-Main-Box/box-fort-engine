@@ -17,10 +17,11 @@ public class SubmarinePart implements Disposable {
     /// Tag para facilitar leitura e identificação
     public final String tag;
     /// Lista de fixtures para criar as sessões para a body do sub
-    public final List<FixtureDef> fixtureDataList;
+    public final List<FixtureDef> fixtureDefList;
 
     public float
-        density,
+        liquidMass,
+        baseMass,
         internalMargin,
         internalMinX,
         internalMinY,
@@ -35,7 +36,7 @@ public class SubmarinePart implements Disposable {
     public SubmarinePart(int id, String tag) {
         this.id = id;
         this.tag = tag;
-        this.fixtureDataList = new ArrayList<>();
+        this.fixtureDefList = new ArrayList<>();
     }
 
     /// Calcula a parte interna do sub, passamos uma pequena margem como limite simples
@@ -51,8 +52,8 @@ public class SubmarinePart implements Disposable {
 
         FixtureDef def;
         //Para cada fixture da parte atual
-        for (int j = 0; j < part.fixtureDataList.size(); j++) {
-            def = part.fixtureDataList.get(j);
+        for (int j = 0; j < part.fixtureDefList.size(); j++) {
+            def = part.fixtureDefList.get(j);
             if (def.isSensor) continue;
 
             PolygonShape shape = (PolygonShape) def.shape;
@@ -83,9 +84,6 @@ public class SubmarinePart implements Disposable {
      * @param offsetY             offset em relação a posição relativa da grid da body no eixo Y
      * @param width               largura a ser gerada futuramente, passa em pixels
      * @param height              altura a ser gerada futuramente, passa em pixels
-     * @param density             densidade da parte
-     * @param friction            fricção da parte
-     * @param restitution         restituição da parte
      * @param isSensor            se essa parte é um sensor
      * @param categoryBit         quem essa parte é no quesito de colisão
      * @param maskBit             com quem essa parte pode colidir
@@ -97,9 +95,6 @@ public class SubmarinePart implements Disposable {
         float offsetY,
         float width,
         float height,
-        float density,
-        float friction,
-        float restitution,
         boolean isSensor,
         short categoryBit,
         short maskBit
@@ -112,17 +107,18 @@ public class SubmarinePart implements Disposable {
             offsetY + partRelativeOffsetY
         );
 
+        //O corpo interno não precisa receber nenhum desses dados passados, como restituição, densidade e fricção
         FixtureDef def = BodyCreatorHelper.createFixture(
             boxShape,
-            density,
-            friction,
-            restitution,
+            0,
+            0,
+            0,
             categoryBit,
             maskBit
         );
 
         def.isSensor = isSensor;
-        fixtureDataList.add(def);
+        fixtureDefList.add(def);
     }
 
     public boolean isBoundsCalculated() {
@@ -133,8 +129,12 @@ public class SubmarinePart implements Disposable {
     public void dispose() {
         if (disposed) return;
 
-        fixtureDataList.clear();
+        fixtureDefList.clear();
 
         disposed = true;
+    }
+
+    public float getTotalMass() {
+        return baseMass + liquidMass;
     }
 }

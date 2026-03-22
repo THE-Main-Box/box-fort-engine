@@ -2,6 +2,7 @@ package official.sketchBook.engine.game_object_related.vehicle;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.MassData;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Disposable;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.LiquidInteractableObjectII;
@@ -14,11 +15,13 @@ import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidIn
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.components_related.physics.VehiclePhysicsComponent;
 import official.sketchBook.engine.components_related.system_utils.ComponentManagerComponent;
+import official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 
 import java.util.List;
 
 import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.*;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
 public class SubmarineNode
     implements
@@ -52,10 +55,8 @@ public class SubmarineNode
     /// Lista de nós de massa
     private final List<SubmarinePart> physicalParts;
 
-    /// Eixos importantes para a física granular do sub e seus grupos de massa
-    public Vector2
-        massCenter,     //Centro de massa
-        axialCenter;    //Eixo que servirá como eixo de movimento axial
+    /// Dado de massa atual
+    private final MassData massData = new MassData();
 
     /// Massa total do node
     private boolean disposed = false;
@@ -108,10 +109,7 @@ public class SubmarineNode
             physicsWorld
         );
 
-        calculateAndApplyMassData(
-            parts,
-            liquidInteractionC
-        );
+        recalculateMass();
     }
 
     private void initComponents() {
@@ -208,6 +206,50 @@ public class SubmarineNode
         internalBody.setLinearVelocity(body.getLinearVelocity());
     }
 
+    public void recalculateMass() {
+        float totalMass = 0;
+        float totalVolume = 0;
+        float weightedCenterX = 0;
+        float weightedCenterY = 0;
+
+        SubmarinePart part;
+        for (int i = 0; i < physicalParts.size(); i++) {
+            part = physicalParts.get(i);
+            if (!part.isBoundsCalculated()) continue;
+
+            // Centro geométrico da parte
+            float centerX = (part.internalMinX + part.internalMaxX) / 2f;
+            float centerY = (part.internalMinY + part.internalMaxY) / 2f;
+
+            // Volume e massa da parte
+            float width  = (part.internalMaxX - part.internalMinX) * PPM;
+            float height = (part.internalMaxY - part.internalMinY) * PPM;
+            float volume = width * height;
+            float mass   = part.getTotalMass();
+
+            // Acumulamos tudo
+            totalVolume        += volume;
+            totalMass          += mass;
+            weightedCenterX    += centerX * mass;
+            weightedCenterY    += centerY * mass;
+        }
+
+        if (totalMass <= 0) return;
+
+        // Aplicamos no box2d
+        massData.mass = totalMass;
+        massData.center.set(
+            weightedCenterX / totalMass,
+            weightedCenterY / totalMass
+        );
+        massData.I = body.getInertia();
+        body.setMassData(massData);
+
+        // Atualizamos o simulador de interação com líquidos
+        liquidInteractionC.setMass(totalMass);
+        liquidInteractionC.setVolume(totalVolume);
+    }
+
     @Override
     public Body getBody() {
         return body;
@@ -274,7 +316,5 @@ public class SubmarineNode
 
         this.managerC = null;
 
-        this.axialCenter = null;
-        this.massCenter = null;
     }
 }
