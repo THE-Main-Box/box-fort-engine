@@ -232,8 +232,6 @@ public class Player extends AnimatedRenderableRoomGameObject
     private void initPhysicsComponent() {
         this.liquidInteractionC = new PhysicalMobLiquidInteractionComponent(this);
 
-        liquidInteractionC.setCanInteractWithLiquid(false);
-
         this.physicsC = new MovableObjectPhysicsComponent(
             this,
             ALLY_ENTITY.bit() | LIQUID_SUBMERGEABLE.bit() | VEHICLE_PASSENGER.bit(),

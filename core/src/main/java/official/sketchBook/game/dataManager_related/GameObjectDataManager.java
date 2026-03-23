@@ -129,10 +129,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             subX = 150,
             subY = 60;
 
-        List<SubmarinePart> subParts = getBaseSubmarineParts(
-            subX,
-            subY
-        );
+        List<SubmarinePart> subParts = getBaseSubmarineParts();
 
         List<SubmarineNode> nodeList = new ArrayList<>();
 
@@ -156,7 +153,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
     }
 
-    private static List<SubmarinePart> getBaseSubmarineParts(float subX, float subY) {
+    private static List<SubmarinePart> getBaseSubmarineParts() {
         List<SubmarinePart> subParts = new ArrayList<>();
 
         short
@@ -164,7 +161,6 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             maskBit = VEHICLE_PASSENGER.bit();
 
         SubmarinePart corridor = new SubmarinePart(1, "corridor_test");
-
 
         corridor.addBoxFixture(
             0,

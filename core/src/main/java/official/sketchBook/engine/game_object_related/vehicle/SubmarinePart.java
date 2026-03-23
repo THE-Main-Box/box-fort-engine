@@ -22,7 +22,10 @@ public class SubmarinePart implements Disposable {
     public float
         liquidMass,
         baseMass,
-        internalMargin,
+        internalMarginLeft,
+        internalMarginRight,
+        internalMarginUp,
+        internalMarginDown,
         internalMinX,
         internalMinY,
         internalMaxX,
