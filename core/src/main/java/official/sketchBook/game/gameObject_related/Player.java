@@ -4,16 +4,14 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.Fixture;
 import official.sketchBook.engine.animation_rendering_related.ObjectAnimationPlayer;
 import official.sketchBook.engine.animation_rendering_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.*;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.components_related.movement.JumpComponent;
-import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
-import official.sketchBook.engine.components_related.physics.RayCastGroundDetectionComponent;
-import official.sketchBook.engine.components_related.physics.MovableObjectPhysicsComponent;
+import official.sketchBook.engine.components_related.physics.*;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
-import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.animated_renderable_game_object.AnimatedRenderableRoomGameObject;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
@@ -37,7 +35,8 @@ public class Player extends AnimatedRenderableRoomGameObject
     PhysicalGameObjectII,
     RoomGroundInteractableObject,
     JumpCapableObjectII,
-    LiquidInteractableObjectII {
+    LiquidInteractableObjectII,
+    VehiclePassenger {
 
     private boolean inScreen = true;
 
@@ -234,9 +233,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     private void initPhysicsComponent() {
         this.liquidInteractionC = new PhysicalMobLiquidInteractionComponent(this);
 
-        liquidInteractionC.setCanInteractWithLiquid(false);
-
-        this.physicsC = new MovableObjectPhysicsComponent(
+        this.physicsC = new VehiclePassengerPhysicsComponent(
             this,
             ALLY_ENTITY.bit() | LIQUID_SUBMERGEABLE.bit() | VEHICLE_PASSENGER.bit(),
             SENSOR.bit() | ENVIRONMENT.bit() | PROJECTILES.bit() | LIQUID.bit() | VEHICLE.bit(),
@@ -433,7 +430,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     protected void executeDisposeGraphics() {
     }
 
-    private static void disposeSheet(){
+    private static void disposeSheet() {
         if (sheetDisposed) return;
         playerSheet.dispose();
 
@@ -461,5 +458,10 @@ public class Player extends AnimatedRenderableRoomGameObject
     @Override
     public PhysicalMobLiquidInteractionComponent getLiquidInteractionC() {
         return liquidInteractionC;
+    }
+
+    @Override
+    public VehiclePassengerPhysicsComponent getVehiclePassengerPhysicsC() {
+        return (VehiclePassengerPhysicsComponent) physicsC;
     }
 }

@@ -10,6 +10,7 @@ import official.sketchBook.engine.game_object_related.vehicle.SubmarinePart;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.engine.liquid_related.model.PhysicalRoomLiquid;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
+import official.sketchBook.engine.util_related.contact_listener.listeners.VehicleContactListener;
 import official.sketchBook.engine.util_related.pools.GlobalProjectilePool;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.listeners.MovableObjectContactListener;
@@ -129,10 +130,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             subX = 150,
             subY = 60;
 
-        List<SubmarinePart> subParts = getBaseSubmarineParts(
-            subX,
-            subY
-        );
+        List<SubmarinePart> subParts = getBaseSubmarineParts();
 
         List<SubmarineNode> nodeList = new ArrayList<>();
 
@@ -156,7 +154,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
     }
 
-    private static List<SubmarinePart> getBaseSubmarineParts(float subX, float subY) {
+    private static List<SubmarinePart> getBaseSubmarineParts() {
         List<SubmarinePart> subParts = new ArrayList<>();
 
         short
@@ -164,7 +162,6 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             maskBit = VEHICLE_PASSENGER.bit();
 
         SubmarinePart corridor = new SubmarinePart(1, "corridor_test");
-
 
         corridor.addBoxFixture(
             0,
@@ -216,6 +213,13 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             false,
             ContactUtils.keys.LIQUID_LISTENER,
             new PhysicalLiquidContactListener()
+        );
+
+        ContactUtils.handleContactListener(
+            this.contactListeners,
+            false,
+            ContactUtils.keys.VEHICLE_LISTENER,
+            new VehicleContactListener()
         );
 
     }

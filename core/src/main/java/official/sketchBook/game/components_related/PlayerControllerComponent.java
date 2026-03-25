@@ -1,6 +1,7 @@
 package official.sketchBook.game.components_related;
 
 import official.sketchBook.engine.components_related.base_components.KeyBoundControllerComponent;
+import official.sketchBook.engine.components_related.physics.VehiclePassengerPhysicsComponent;
 import official.sketchBook.engine.util_related.enumerators.Direction;
 import official.sketchBook.game.gameObject_related.Player;
 import official.sketchBook.game.util_related.constants.PhysicsConstants;
@@ -51,7 +52,13 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
 //            !player.getLiquidInteractionC().isCanInteractWithLiquid()
 //        );
 
-        player.getMoveC().gravityScale *= -1;
+        VehiclePassengerPhysicsComponent VPPC = player.getVehiclePassengerPhysicsC();
+
+        if(!VPPC.isInsideVehicle()) return;
+
+        VPPC.getCurrentSection().getPhysicsC().setVelocity(2f, 0);
+
+//        player.getMoveC().gravityScale *= -1;
     }
 
     public void jump(boolean pressed) {

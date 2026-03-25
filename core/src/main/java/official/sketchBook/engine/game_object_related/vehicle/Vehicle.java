@@ -1,8 +1,7 @@
 package official.sketchBook.engine.game_object_related.vehicle;
 
-import com.badlogic.gdx.physics.box2d.Body;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
+import java.util.List;
 
-public interface Vehicle extends PhysicalObjectII {
-    Body getInternalBody();
+public interface Vehicle {
+    List<? extends VehicleSection> getSections();
 }

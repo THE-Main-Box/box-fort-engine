@@ -134,7 +134,7 @@ public class PhysicsComponent implements Component {
     }
 
     /// Coloca o objeto na posição da body
-    public final void syncObjectToBodyPos() {
+    public void syncObjectToBodyPos() {
         transformC.x = (
             (tmpPos.x * PPM) - halfWidth
         );

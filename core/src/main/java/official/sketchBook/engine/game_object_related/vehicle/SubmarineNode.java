@@ -1,6 +1,5 @@
 package official.sketchBook.engine.game_object_related.vehicle;
 
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.MassData;
 import com.badlogic.gdx.physics.box2d.World;
@@ -13,9 +12,7 @@ import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.physics.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
-import official.sketchBook.engine.components_related.physics.VehiclePhysicsComponent;
 import official.sketchBook.engine.components_related.system_utils.ComponentManagerComponent;
-import official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 
 import java.util.List;
@@ -28,7 +25,7 @@ public class SubmarineNode
     MovableObjectII,
     LiquidInteractableObjectII,
     PhysicalObjectII,
-    Vehicle,
+    VehicleSection,
     Disposable {
 
     private World physicsWorld;
@@ -44,6 +41,8 @@ public class SubmarineNode
 
     /// Componente para lidar com a interação com liquidos do submarino
     private PhysicalMobLiquidInteractionComponent liquidInteractionC;
+
+    private Vehicle vehicle;
 
     /// Body do submarino completo
     private Body
@@ -90,7 +89,8 @@ public class SubmarineNode
 
     }
 
-    public void initObject() {
+    public void initObject(Vehicle vehicle) {
+        this.vehicle = vehicle;
         initComponents();
         generateBody(physicalParts);
     }
@@ -115,7 +115,7 @@ public class SubmarineNode
     private void initComponents() {
         this.managerC = new ComponentManagerComponent();
 
-        VehiclePhysicsComponent vPhysicsC = new VehiclePhysicsComponent(
+        MovableObjectPhysicsComponent vPhysicsC = new MovableObjectPhysicsComponent(
             this,
             0,
             0,
@@ -278,6 +278,11 @@ public class SubmarineNode
     @Override
     public PhysicalMobLiquidInteractionComponent getLiquidInteractionC() {
         return liquidInteractionC;
+    }
+
+    @Override
+    public Vehicle getVehicle() {
+        return vehicle;
     }
 
     @Override

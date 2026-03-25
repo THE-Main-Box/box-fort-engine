@@ -3,7 +3,8 @@ package official.sketchBook.engine.util_related.contact_listener.listeners;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.Manifold;
-import official.sketchBook.engine.game_object_related.vehicle.Vehicle;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.VehiclePassenger;
+import official.sketchBook.engine.game_object_related.vehicle.VehicleSection;
 import official.sketchBook.engine.util_related.contact_listener.MultiContactListener;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
@@ -29,20 +30,52 @@ public class VehicleContactListener implements MultiContactListener.SubContactLi
     }
 
     private void handle(Contact contact, GameObjectTag tagA, GameObjectTag tagB, boolean entering) {
-        if (contact == null) return;
-
-        tryHandle(tagA, tagB, entering);
-        tryHandle(tagB, tagA, entering);
+        if (!tryHandle(contact, tagA, tagB, entering)) {
+            tryHandle(contact, tagB, tagA, entering);
+        }
     }
 
-    private void tryHandle(GameObjectTag vehicleTag, GameObjectTag otherTag, boolean entering) {
-        if (vehicleTag == null
-            ||
-            otherTag == null
-            ||
-            !(vehicleTag.owner instanceof Vehicle)
-        ) return;
+    private boolean tryHandle(Contact contact, GameObjectTag sectionTag, GameObjectTag passengerTag, boolean entering) {
+        if (sectionTag == null || passengerTag == null) return false;
 
-        // Pronto para iterar futuramente
+        // A body precisa ser um veículo
+        if (sectionTag.type != ObjectType.VEHICLE) return false;
+        if (!(sectionTag.owner instanceof VehicleSection)) return false;
+
+        // O passageiro precisa ser um VehiclePassenger
+        if (!(passengerTag.owner instanceof VehiclePassenger)) return false;
+
+        // Verificamos se a fixture que colidiu é o sensor de área seca
+        // Pegamos a fixture da section com base em qual body é a section
+        GameObjectTag fixtureTag = getFixtureTagFromContact(contact, sectionTag);
+        if (fixtureTag == null || fixtureTag.type != ObjectType.DYNAMIC_DRY_AREA) return false;
+
+        VehiclePassenger passenger = (VehiclePassenger) passengerTag.owner;
+        VehicleSection section = (VehicleSection) sectionTag.owner;
+
+        if (entering) {
+            passenger.getVehiclePassengerPhysicsC().setCurrentSection(section);
+            passenger.getLiquidInteractionC().setCanInteractWithLiquid(false);
+        } else {
+            passenger.getVehiclePassengerPhysicsC().setCurrentSection(null);
+            passenger.getLiquidInteractionC().setCanInteractWithLiquid(true);
+        }
+
+        return true;
+    }
+
+    private GameObjectTag getFixtureTagFromContact(Contact contact, GameObjectTag sectionTag) {
+        Object dataA = contact.getFixtureA().getUserData();
+        Object dataB = contact.getFixtureB().getUserData();
+
+        // Retorna a tag da fixture que pertence à section
+        if (dataA instanceof GameObjectTag && contact.getFixtureA().getBody().getUserData() == sectionTag) {
+            return (GameObjectTag) dataA;
+        }
+        if (dataB instanceof GameObjectTag && contact.getFixtureB().getBody().getUserData() == sectionTag) {
+            return (GameObjectTag) dataB;
+        }
+
+        return null;
     }
 }
