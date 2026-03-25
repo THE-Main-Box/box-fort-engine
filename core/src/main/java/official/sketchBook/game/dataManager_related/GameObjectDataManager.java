@@ -10,6 +10,7 @@ import official.sketchBook.engine.game_object_related.vehicle.SubmarinePart;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.engine.liquid_related.model.PhysicalRoomLiquid;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
+import official.sketchBook.engine.util_related.contact_listener.listeners.VehicleContactListener;
 import official.sketchBook.engine.util_related.pools.GlobalProjectilePool;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.listeners.MovableObjectContactListener;
@@ -212,6 +213,13 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             false,
             ContactUtils.keys.LIQUID_LISTENER,
             new PhysicalLiquidContactListener()
+        );
+
+        ContactUtils.handleContactListener(
+            this.contactListeners,
+            false,
+            ContactUtils.keys.VEHICLE_LISTENER,
+            new VehicleContactListener()
         );
 
     }

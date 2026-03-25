@@ -126,7 +126,14 @@ public class SubmarinePartBodyCreateHelper {
                 FixtureDef def = part.fixtureDefList.get(j);
 
                 //Criamos a fixture, passando a def atual como parâmetro
-                internal.createFixture(def);
+                Fixture internalFix =  internal.createFixture(def);
+
+                internalFix.setUserData(
+                    new GameObjectTag(
+                        ObjectType.VEHICLE,
+                        part
+                    )
+                );
 
                 //Liberamos a shape
                 def.shape.dispose();

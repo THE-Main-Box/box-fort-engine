@@ -1,12 +1,11 @@
 package official.sketchBook.engine.game_object_related.vehicle;
 
-import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseGameObject;
 
 import java.util.List;
 
-public class Submarine extends BaseGameObject {
+public class Submarine extends BaseGameObject implements Vehicle {
 
     private List<SubmarineNode> submarineNodes;
 
@@ -25,7 +24,7 @@ public class Submarine extends BaseGameObject {
     @Override
     protected void initObject() {
         for(int i = 0; i < submarineNodes.size(); i ++){
-            submarineNodes.get(i).initObject();
+            submarineNodes.get(i).initObject(this);
         }
     }
 
@@ -67,7 +66,8 @@ public class Submarine extends BaseGameObject {
         submarineNodes = null;
     }
 
-    public List<SubmarineNode> getSubmarineNodes() {
+    @Override
+    public List<SubmarineNode> getSections() {
         return submarineNodes;
     }
 }
