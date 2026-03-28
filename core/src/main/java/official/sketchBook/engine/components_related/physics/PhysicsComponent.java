@@ -29,7 +29,6 @@ public class PhysicsComponent implements Component {
     /// Buffer de diferença de altura
     private final float halfHeight;
 
-    private boolean disposed = false;
 
     /// Dita com quem podemos colidir
     private final short maskBit;
@@ -44,6 +43,8 @@ public class PhysicsComponent implements Component {
 
     /// Valor auxiliar de obtenção de dado de deltaTime
     protected float deltaTime;
+
+    private boolean disposed = false;
 
 
     public PhysicsComponent(

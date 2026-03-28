@@ -13,6 +13,7 @@ import official.sketchBook.engine.components_related.physics.MovableObjectPhysic
 import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.components_related.system_utils.ComponentManagerComponent;
+import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 
 import java.util.List;
@@ -186,11 +187,11 @@ public class SubmarineNode
     }
 
     @Override
-    public void onLiquidExit() {
+    public void onLiquidExit(LiquidData data) {
     }
 
     @Override
-    public void onLiquidEnter() {
+    public void onLiquidEnter(LiquidData data) {
 
     }
 
