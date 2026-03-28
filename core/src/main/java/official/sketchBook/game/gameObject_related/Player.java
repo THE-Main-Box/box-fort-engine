@@ -204,9 +204,12 @@ public class Player extends AnimatedRenderableRoomGameObject
     private void initMovementComponent() {
         this.moveC = new MovementComponent(
             this,
+            WorldConstants.PlayerConstants.MAX_MOVE_SPEED_X,
+            WorldConstants.PlayerConstants.MAX_MOVE_SPEED_Y,
+            WorldConstants.PlayerConstants.MAX_MOVE_SPEED_R,
             WorldConstants.PlayerConstants.MAX_SPEED_X,
             WorldConstants.PlayerConstants.MAX_SPEED_Y,
-            0,
+            WorldConstants.PlayerConstants.MAX_SPEED_R,
             WorldConstants.PlayerConstants.X_DECELERATION,
             WorldConstants.PlayerConstants.Y_DECELERATION,
             0,
@@ -329,6 +332,8 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     @Override
     public void update(float delta) {
+//        physicsC.autoApplyMovement = !getVehiclePassengerPhysicsC().isInsideVehicle();
+
         super.update(delta);
     }
 

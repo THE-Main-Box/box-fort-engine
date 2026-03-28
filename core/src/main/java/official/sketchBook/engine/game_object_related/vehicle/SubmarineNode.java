@@ -57,8 +57,17 @@ public class SubmarineNode
     /// Dado de massa atual
     private final MassData massData = new MassData();
 
+    /// Dados bufferizados de velocidade
+    private float
+        lastPosX = 0f,      //Antiga velocidade do eixo X
+        lastPosY = 0f,      //Antiga velocidade do eixo Y
+        velX = 0f,          //Atual velocidade do eixo X
+        velY = 0f;          //Atual velocidade do eixo Y
+
     /// Massa total do node
-    private boolean disposed = false;
+    private boolean
+        velInitialized = false,
+        disposed = false;
 
     public SubmarineNode(
         World physicsWorld,
@@ -131,6 +140,9 @@ public class SubmarineNode
 
         moveC = new MovementComponent(
             this,
+            WorldConstants.SubmarineConstants.DEF_MAX_MOVE_SPEED_X,
+            WorldConstants.SubmarineConstants.DEF_MAX_MOVE_SPEED_Y,
+            WorldConstants.SubmarineConstants.DEF_MAX_MOVE_SPEED_R,
             WorldConstants.SubmarineConstants.DEF_MAX_SPEED_X,
             WorldConstants.SubmarineConstants.DEF_MAX_SPEED_Y,
             WorldConstants.SubmarineConstants.DEF_MAX_SPEED_R,
@@ -204,6 +216,28 @@ public class SubmarineNode
             body.getAngle()
         );
         internalBody.setLinearVelocity(body.getLinearVelocity());
+
+        updateVelocity();
+    }
+
+    private void updateVelocity() {
+        float currentX = body.getPosition().x;
+        float currentY = body.getPosition().y;
+
+        if (!velInitialized) {
+            lastPosX = currentX;
+            lastPosY = currentY;
+            velX = 0f;
+            velY = 0f;
+            velInitialized = true;
+            return;
+        }
+
+        velX = (currentX - lastPosX) / physicsC.getDeltaTime();
+        velY = (currentY - lastPosY) / physicsC.getDeltaTime();
+
+        lastPosX = currentX;
+        lastPosY = currentY;
     }
 
     public void recalculateMass() {
@@ -283,6 +317,14 @@ public class SubmarineNode
     @Override
     public Vehicle getVehicle() {
         return vehicle;
+    }
+
+    public float getVelX() {
+        return velX;
+    }
+
+    public float getVelY() {
+        return velY;
     }
 
     @Override

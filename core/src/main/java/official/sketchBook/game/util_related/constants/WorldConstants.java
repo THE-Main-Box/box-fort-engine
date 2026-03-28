@@ -23,6 +23,9 @@ public class WorldConstants {
     public static class ProjectileConstants {
         /// Limite de velocidade máximo para projéteis
         public static final float
+            PROJECTILE_MAX_MOVE_SPEED_X = 333,
+            PROJECTILE_MAX_MOVE_SPEED_Y = 333,
+            PROJECTILE_MAX_MOVE_SPEED_R = 333,
             PROJECTILE_MAX_SPEED_X = 999,
             PROJECTILE_MAX_SPEED_Y = 999,
             PROJECTILE_MAX_SPEED_R = 360;
@@ -49,8 +52,12 @@ public class WorldConstants {
             JUMP_BUFF_T = 0.2f;
 
         public static final float
-            MAX_SPEED_X = 200,
+            MAX_MOVE_SPEED_X = 200,
+            MAX_MOVE_SPEED_Y = 200,
+            MAX_MOVE_SPEED_R = 0,
+            MAX_SPEED_X = 500,
             MAX_SPEED_Y = 500,
+            MAX_SPEED_R = 0,
             X_DECELERATION = 999,
             Y_DECELERATION = 0;
     }
@@ -58,6 +65,9 @@ public class WorldConstants {
     public static class SubmarineConstants {
 
         public static final float
+            DEF_MAX_MOVE_SPEED_X = 333,
+            DEF_MAX_MOVE_SPEED_Y = 333,
+            DEF_MAX_MOVE_SPEED_R = 333,
             DEF_MAX_SPEED_X = 999,
             DEF_MAX_SPEED_Y = 999,
             DEF_MAX_SPEED_R = 3,

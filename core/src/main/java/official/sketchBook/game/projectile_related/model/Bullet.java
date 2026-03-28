@@ -57,6 +57,9 @@ public class Bullet extends PhysicalProjectile {
     private void initMovementComponent() {
         this.moveC = new MovementComponent(
             this,
+            WorldConstants.ProjectileConstants.PROJECTILE_MAX_MOVE_SPEED_X,
+            WorldConstants.ProjectileConstants.PROJECTILE_MAX_MOVE_SPEED_Y,
+            WorldConstants.ProjectileConstants.PROJECTILE_MAX_MOVE_SPEED_R,
             WorldConstants.ProjectileConstants.PROJECTILE_MAX_SPEED_X,
             WorldConstants.ProjectileConstants.PROJECTILE_MAX_SPEED_Y,
             WorldConstants.ProjectileConstants.PROJECTILE_MAX_SPEED_R,

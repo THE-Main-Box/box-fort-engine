@@ -14,6 +14,12 @@ public class MovementComponent implements Component {
         ySpeed,             //Velocidade do eixo y (m|px/s)
         rSpeed;             //Velocidade de rotação (rad/s)
 
+    /// Limite de velocidade de movimentação
+    public float
+        xMaxMoveSpeed,          //Limite de velocidade do eixo X (m|px/s)
+        yMaxMoveSpeed,          //Limite de velocidade do eixo y (m|px/s)
+        rMaxMoveSpeed;          //Limite de velocidade de rotação (rad/s)
+
     /// Limite de velocidade
     public float
         xMaxSpeed,          //Limite de velocidade do eixo X (m|px/s)
@@ -67,6 +73,9 @@ public class MovementComponent implements Component {
 
     public MovementComponent(
         MovableObjectII mob,
+        float xMaxMoveSpeed,
+        float yMaxMoveSpeed,
+        float rMaxMoveSpeed,
         float xMaxSpeed,
         float yMaxSpeed,
         float rMaxSpeed,
@@ -90,6 +99,10 @@ public class MovementComponent implements Component {
         this.xMaxSpeed = xMaxSpeed;
         this.yMaxSpeed = yMaxSpeed;
         this.rMaxSpeed = rMaxSpeed;
+
+        this.xMaxMoveSpeed = xMaxMoveSpeed;
+        this.yMaxMoveSpeed = yMaxMoveSpeed;
+        this.rMaxMoveSpeed = rMaxMoveSpeed;
 
         this.xDeceleration = xDeceleration;
         this.yDeceleration = yDeceleration;
@@ -117,7 +130,7 @@ public class MovementComponent implements Component {
         xSpeed = updateAxis(
             xSpeed,
             xAccel,
-            xMaxSpeed,
+            xMaxMoveSpeed,
             xDeceleration,
             xResistanceWeight,
             canMoveX,
@@ -129,7 +142,7 @@ public class MovementComponent implements Component {
         ySpeed = updateAxis(
             ySpeed,
             yAccel,
-            yMaxSpeed,
+            yMaxMoveSpeed,
             yDeceleration,
             yResistanceWeight,
             canMoveY,
@@ -141,7 +154,7 @@ public class MovementComponent implements Component {
         rSpeed = updateAxis(
             rSpeed,
             rAccel,
-            rMaxSpeed,
+            rMaxMoveSpeed,
             rDeceleration,
             rResistanceWeight,
             canRotate,
