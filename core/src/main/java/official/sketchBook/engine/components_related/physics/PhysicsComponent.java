@@ -42,6 +42,10 @@ public class PhysicsComponent implements Component {
         frict,
         rest;
 
+    /// Valor auxiliar de obtenção de dado de deltaTime
+    protected float deltaTime;
+
+
     public PhysicsComponent(
         PhysicalObjectII object,
         int categoryBit,
@@ -292,6 +296,7 @@ public class PhysicsComponent implements Component {
 
     @Override
     public void update(float delta) {
+        deltaTime = delta;
     }
 
     @Override
@@ -336,5 +341,9 @@ public class PhysicsComponent implements Component {
 
     public float getRest() {
         return rest;
+    }
+
+    public float getDeltaTime() {
+        return deltaTime;
     }
 }

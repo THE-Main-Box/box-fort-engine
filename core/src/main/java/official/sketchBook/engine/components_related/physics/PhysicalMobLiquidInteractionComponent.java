@@ -98,9 +98,9 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     private void updateTotalBoyancyEffect() {
         totalBoyancyEffect += boyancyFactor + boyancyModifier;
         totalBoyancyEffect = Math.max(
-            -moveC.yMaxSpeed,
+            -moveC.yMaxMoveSpeed,
             Math.min(
-                moveC.yMaxSpeed,
+                moveC.yMaxMoveSpeed,
                 totalBoyancyEffect
             )
         );
@@ -193,9 +193,9 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         if (originalValuesStored) return;
 
         //Armazena as velocidades máximas de cada eixo
-        this.originalYMaxSpeed = moveC.yMaxSpeed;
-        this.originalXMaxSpeed = moveC.xMaxSpeed;
-        this.originalRMaxSpeed = moveC.rMaxSpeed;
+        this.originalYMaxSpeed = moveC.yMaxMoveSpeed;
+        this.originalXMaxSpeed = moveC.xMaxMoveSpeed;
+        this.originalRMaxSpeed = moveC.rMaxMoveSpeed;
 
         //Armazena as desacelerações de cada eixo
         this.originalXDeceleration = moveC.xDeceleration;
@@ -223,9 +223,9 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         if (!originalValuesStored) return;
 
         //Restaura a velocidade máxima de cada eixo
-        this.moveC.yMaxSpeed = originalYMaxSpeed;
-        this.moveC.xMaxSpeed = originalXMaxSpeed;
-        this.moveC.rMaxSpeed = originalRMaxSpeed;
+        this.moveC.yMaxMoveSpeed = originalYMaxSpeed;
+        this.moveC.xMaxMoveSpeed = originalXMaxSpeed;
+        this.moveC.rMaxMoveSpeed = originalRMaxSpeed;
 
         //Restaura a desaceleração de cada eixo
         this.moveC.xDeceleration = originalXDeceleration;
@@ -323,9 +323,9 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     /// Calcula as velocidades máximas
     private void calculateSpeedLimits(LiquidData data) {
-        moveC.xMaxSpeed = Math.min(originalXMaxSpeed, data.maxMoveSpeed);
-        moveC.rMaxSpeed = Math.min(originalRMaxSpeed, data.maxMoveSpeed);
-        moveC.yMaxSpeed = Math.min(originalYMaxSpeed, data.maxSinkSpeed);
+        moveC.xMaxMoveSpeed = Math.min(originalXMaxSpeed, data.maxMoveSpeed);
+        moveC.rMaxMoveSpeed = Math.min(originalRMaxSpeed, data.maxMoveSpeed);
+        moveC.yMaxMoveSpeed = Math.min(originalYMaxSpeed, data.maxSinkSpeed);
     }
 
     public void setMass(float mass) {

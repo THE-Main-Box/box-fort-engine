@@ -17,6 +17,9 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
 
     private boolean leftPressed = false;
     private boolean rightPressed = false;
+    private boolean upPressed = false;
+    private boolean downPressed = false;
+
     private Direction lastDirectionPressed = Direction.STILL;
 
     // Estado anterior armazenado para comparação
@@ -35,28 +38,28 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     }
 
     public void up(boolean pressed) {
+        this.upPressed = pressed;
+
         if (!pressed) return;
 
-        if (UPS_TARGET == 30) {
-            PhysicsConstants.updateUps(60);
-        } else {
-            PhysicsConstants.updateUps(30);
-        }
+
+//        if (UPS_TARGET == 30) {
+//            PhysicsConstants.updateUps(60);
+//        } else {
+//            PhysicsConstants.updateUps(30);
+//        }
 
     }
 
     public void down(boolean pressed) {
+        this.downPressed = pressed;
+
         if (!pressed) return;
 
 //        player.getLiquidInteractionC().setCanInteractWithLiquid(
 //            !player.getLiquidInteractionC().isCanInteractWithLiquid()
 //        );
 
-        VehiclePassengerPhysicsComponent VPPC = player.getVehiclePassengerPhysicsC();
-
-        if(!VPPC.isInsideVehicle()) return;
-
-        VPPC.getCurrentSection().getPhysicsC().setVelocity(2f, 0);
 
 //        player.getMoveC().gravityScale *= -1;
     }
@@ -89,26 +92,45 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
         super.update(delta);
         if (player == null) return;
         updateMovement();
+
+        testSubMovement();
+    }
+
+    private void testSubMovement(){
+        VehiclePassengerPhysicsComponent VPPC = player.getVehiclePassengerPhysicsC();
+
+        if (VPPC.isInsideVehicle()) {
+
+            float velX = 0f;
+
+            if (upPressed && !downPressed) {
+                velX = -2f;
+            } else if (!upPressed && downPressed) {
+                velX = 2f;
+            }
+
+            VPPC.getCurrentSection().getPhysicsC().setVelocity(velX, 0);
+        }
     }
 
     private void updateMovement() {
-        Direction directionToApply;
+        Direction movementDirection;
 
         // Lógica de direção com early exit
         if (leftPressed && !rightPressed) {
-            directionToApply = Direction.LEFT;
+            movementDirection = Direction.LEFT;
         } else if (!leftPressed && rightPressed) {
-            directionToApply = Direction.RIGHT;
+            movementDirection = Direction.RIGHT;
         } else if (!leftPressed && !rightPressed) {
-            directionToApply = Direction.STILL;
+            movementDirection = Direction.STILL;
         } else {
-            directionToApply = lastDirectionPressed;
+            movementDirection = lastDirectionPressed;
         }
 
         // Só atualiza se houve mudança de direção
-        if (directionToApply != lastAppliedDirection) {
-            applyDirectionChange(directionToApply);
-            lastAppliedDirection = directionToApply;
+        if (movementDirection != lastAppliedDirection) {
+            applyDirectionChange(movementDirection);
+            lastAppliedDirection = movementDirection;
         }
     }
 

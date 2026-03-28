@@ -36,6 +36,8 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
     }
 
     public void update(float deltaTime) {
+        super.update(deltaTime);
+
         if (autoApplyMovement) {
             applyMovementToBody();
         }
