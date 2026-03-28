@@ -39,7 +39,7 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
         super.update(deltaTime);
 
         if (autoApplyMovement) {
-            applyMovementToBody();
+            applyMovement();
         }
         constraintMovementAxis();
         constraintRotation();
@@ -47,7 +47,11 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
 
     }
 
-    public void applyMovementToBody() {
+    protected void applyMovement(){
+        applyMovementToBodyByImpulse();
+    }
+
+    public void applyMovementToBodyByImpulse() {
         //Aplica a movimentação no corpo
         applyImpulseForSpeed(
             mob.getMoveC().xSpeed,

@@ -81,6 +81,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     }
 
     private void applyLiquidEffects() {
+        if(!canInteractWithLiquid) return;
+
         if (neutralBuoyancy) {
             moveC.gravityAffected = false;
             totalBoyancyEffect = 0;
@@ -131,7 +133,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             storeOriginalMovementValues();
         }
 
-        object.onLiquidEnter();
+        object.onLiquidEnter(liquid);
 
         inLiquid = true;
         needsRecalculation = true;
@@ -160,7 +162,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         if (!canInteractWithLiquid) return;
 
         //Chama um callBack personalizado do dono
-        object.onLiquidExit();
+        object.onLiquidExit(liquid);
 
         //Caso tenhamos removido o último liquido
         if (liquidBuffer.isEmpty()) {
@@ -369,13 +371,13 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             moveC.resetYMovement();
             totalBoyancyEffect = 0;
             boyancyFactor = 0;
-            object.onLiquidExit();
+            object.onLiquidExit(null);
         } else if (!liquidBuffer.isEmpty()) {
             // Reativa com o que já está no buffer
             storeOriginalMovementValues();
             inLiquid = true;
             needsRecalculation = true;
-            object.onLiquidEnter();
+            object.onLiquidEnter(null);
         }
     }
 

@@ -27,7 +27,11 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
         disposed = false;
 
     // Constantes (evita recriação/lookup)
-    private static final float CORRECTION_THRESHOLD = 0.01f;
+    private static final float CORRECTION_THRESHOLD = 0.001f;
+
+    public boolean
+        autoCorrect = true,
+        autoApplySubMovement = true;
 
     public VehiclePassengerPhysicsComponent(
         VehiclePassenger object,
@@ -56,23 +60,56 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
     }
 
     @Override
-    public void postUpdate() {
-        if (currentSection != null) {
-            synObjectPositionToVehicle();
+    protected void applyMovement() {
+        if (currentSection == null || !autoApplySubMovement) {
+            super.applyMovement();
+            return;
         }
+
+        float subVelX = currentSection.getVelX();
+        float subVelY = currentSection.getVelY();
+
+        updateVelBuffer();
+
+        // Velocidade relativa atual do jogador em relação ao sub
+        float relVelX = tmpVel.x - subVelX;
+        float relVelY = tmpVel.y - subVelY;
+
+        // Velocidade desejada relativa ao sub
+        float desiredRelX = limitAndConvertSpeedToMeters(
+            moveC.xSpeed, moveC.xMaxSpeed, relVelX
+        );
+        float desiredRelY = limitAndConvertSpeedToMeters(
+            moveC.ySpeed, moveC.yMaxSpeed, relVelY
+        );
+
+        // Impulso para atingir a velocidade relativa desejada
+        tmpVel.set(
+            desiredRelX != 0 ? desiredRelX - relVelX : 0,
+            desiredRelY != 0 ? desiredRelY - relVelY : 0
+        );
+
+        applyImpulse(tmpVel.scl(object.getBody().getMass()));
+    }
+
+    @Override
+    public void postUpdate() {
         super.postUpdate();
     }
 
-    private void synObjectPositionToVehicle() {
+    @Override
+    public void syncObjectToBodyPos() {
+        super.syncObjectToBodyPos();
+        synObjectPositionToVehicle();
+    }
 
-        final VehicleSection section = this.currentSection;
-        if (section == null) return;
+    private void synObjectPositionToVehicle() {
+        if (this.currentSection == null || !autoCorrect) return;
 
         final Body body = object.getBody();
 
-        // --- leitura única ---
-        final float subVelX = section.getVelX();
-        final float subVelY = section.getVelY();
+        final float subVelX = currentSection.getVelX();
+        final float subVelY = currentSection.getVelY();
 
         if (!initialized) {
             lastSubVelX = subVelX;
@@ -81,38 +118,30 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
             return;
         }
 
-        // --- velocidade ---
+        // --- VELOCIDADE (mantém comportamento antigo de "grudar") ---
         final Vector2 vel = body.getLinearVelocity();
 
         final float relativeVelX = vel.x - lastSubVelX;
-
         final float relativeVelY = vel.y - lastSubVelY;
 
-        final float moveVelX = moveC.xSpeed / PPM;
-        final float moveVelY = moveC.ySpeed / PPM;
-
-        final float newVelX = relativeVelX + subVelX;
-        final float newVelY = relativeVelY + subVelY;
-
         body.setLinearVelocity(
-            newVelX,
-            newVelY
+            relativeVelX + subVelX,
+            relativeVelY + subVelY
         );
 
-        System.out.println(body.getLinearVelocity().x + " | " + newVelX);
+        // --- CORREÇÃO POSICIONAL (igual ao código antigo, mas isolada) ---
+        final float deltaSubX = subVelX - lastSubVelX;
+        final float deltaSubY = subVelY - lastSubVelY;
 
-        // --- correção ---
-        final float correctionX = (subVelX - lastSubVelX) * deltaTime;
-        final float correctionY = (subVelY - lastSubVelY) * deltaTime;
-
-        if ((correctionX > CORRECTION_THRESHOLD || correctionX < -CORRECTION_THRESHOLD) ||
-            (correctionY > CORRECTION_THRESHOLD || correctionY < -CORRECTION_THRESHOLD)) {
+        // só corrige se realmente mudou (evita jitter)
+        if (Math.abs(deltaSubX) > CORRECTION_THRESHOLD ||
+            Math.abs(deltaSubY) > CORRECTION_THRESHOLD) {
 
             final Vector2 pos = body.getPosition();
 
             body.setTransform(
-                pos.x + correctionX,
-                pos.y + correctionY,
+                pos.x + deltaSubX * deltaTime,
+                pos.y + deltaSubY * deltaTime,
                 body.getAngle()
             );
         }

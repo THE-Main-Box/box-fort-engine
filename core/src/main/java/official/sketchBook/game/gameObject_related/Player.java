@@ -14,6 +14,7 @@ import official.sketchBook.engine.components_related.physics.*;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.animated_renderable_game_object.AnimatedRenderableRoomGameObject;
+import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
@@ -330,8 +331,6 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     @Override
     public void update(float delta) {
-//        physicsC.autoApplyMovement = !getVehiclePassengerPhysicsC().isInsideVehicle();
-
         super.update(delta);
     }
 
@@ -444,13 +443,12 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     @Override
-    public void onLiquidExit() {
+    public void onLiquidExit(LiquidData data) {
 
     }
 
     @Override
-    public void onLiquidEnter() {
-
+    public void onLiquidEnter(LiquidData data) {
     }
 
     @Override
