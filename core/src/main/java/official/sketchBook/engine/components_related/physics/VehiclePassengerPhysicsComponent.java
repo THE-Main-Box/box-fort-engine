@@ -66,30 +66,33 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
             return;
         }
 
-        float subVelX = currentSection.getVelX();
-        float subVelY = currentSection.getVelY();
-
         updateVelBuffer();
 
+        final float subVelX = currentSection.getVelX();
+        final float subVelY = currentSection.getVelY();
+
         // Velocidade relativa atual do jogador em relação ao sub
-        float relVelX = tmpVel.x - subVelX;
-        float relVelY = tmpVel.y - subVelY;
+        final float relVelX = tmpVel.x - subVelX;
+        final float relVelY = tmpVel.y - subVelY;
 
         // Velocidade desejada relativa ao sub
-        float desiredRelX = limitAndConvertSpeedToMeters(
+        final float desiredRelX = limitAndConvertSpeedToMeters(
             moveC.xSpeed, moveC.xMaxSpeed, relVelX
         );
-        float desiredRelY = limitAndConvertSpeedToMeters(
+        final float desiredRelY = limitAndConvertSpeedToMeters(
             moveC.ySpeed, moveC.yMaxSpeed, relVelY
         );
 
-        // Impulso para atingir a velocidade relativa desejada
-        tmpVel.set(
-            desiredRelX != 0 ? desiredRelX - relVelX : 0,
-            desiredRelY != 0 ? desiredRelY - relVelY : 0
-        );
+        final float impulseX = desiredRelX != 0 ? desiredRelX - relVelX : 0;
+        final float impulseY = desiredRelY != 0 ? desiredRelY - relVelY : 0;
 
-        applyImpulse(tmpVel.scl(object.getBody().getMass()));
+        // --- OTIMIZAÇÃO: evita aplicar impulso nulo ---
+        if (impulseX == 0f && impulseY == 0f) return;
+
+        tmpVel.set(impulseX, impulseY);
+
+        final float mass = object.getBody().getMass();
+        applyImpulse(tmpVel.scl(mass));
     }
 
     @Override
@@ -118,7 +121,21 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
             return;
         }
 
-        // --- VELOCIDADE (mantém comportamento antigo de "grudar") ---
+        final float deltaSubX = subVelX - lastSubVelX;
+        final float deltaSubY = subVelY - lastSubVelY;
+
+        final boolean hasDelta =
+            Math.abs(deltaSubX) > CORRECTION_THRESHOLD ||
+                Math.abs(deltaSubY) > CORRECTION_THRESHOLD;
+
+        // --- OTIMIZAÇÃO: se não mudou nada, sai cedo ---
+        if (!hasDelta) {
+            lastSubVelX = subVelX;
+            lastSubVelY = subVelY;
+            return;
+        }
+
+        // --- VELOCIDADE ---
         final Vector2 vel = body.getLinearVelocity();
 
         final float relativeVelX = vel.x - lastSubVelX;
@@ -129,22 +146,14 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
             relativeVelY + subVelY
         );
 
-        // --- CORREÇÃO POSICIONAL (igual ao código antigo, mas isolada) ---
-        final float deltaSubX = subVelX - lastSubVelX;
-        final float deltaSubY = subVelY - lastSubVelY;
+        // --- POSIÇÃO ---
+        final Vector2 pos = body.getPosition();
 
-        // só corrige se realmente mudou (evita jitter)
-        if (Math.abs(deltaSubX) > CORRECTION_THRESHOLD ||
-            Math.abs(deltaSubY) > CORRECTION_THRESHOLD) {
-
-            final Vector2 pos = body.getPosition();
-
-            body.setTransform(
-                pos.x + deltaSubX * deltaTime,
-                pos.y + deltaSubY * deltaTime,
-                body.getAngle()
-            );
-        }
+        body.setTransform(
+            pos.x + deltaSubX * deltaTime,
+            pos.y + deltaSubY * deltaTime,
+            body.getAngle()
+        );
 
         // --- update estado ---
         lastSubVelX = subVelX;
@@ -168,8 +177,12 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
     }
 
     public void setCurrentSection(VehicleSection section) {
+        if (this.currentSection == section) return;
+
         this.currentSection = section;
+
         this.initialized = false;
+
         this.lastSubVelX = 0f;
         this.lastSubVelY = 0f;
     }

@@ -157,7 +157,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     private static List<SubmarinePart> getBaseSubmarineParts() {
         List<SubmarinePart> subParts = new ArrayList<>();
 
-        short
+        int
             categoryBit = VEHICLE.bit(),
             maskBit = VEHICLE_PASSENGER.bit();
 
@@ -170,9 +170,9 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             25,
             120,
             10,
-            false,
             categoryBit,
-            maskBit
+            maskBit,
+            false
         );
 
         corridor.addBoxFixture(
@@ -182,9 +182,9 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             -25,
             120,
             10,
-            false,
             categoryBit,
-            maskBit
+            maskBit,
+            false
         );
 
         subParts.add(corridor);

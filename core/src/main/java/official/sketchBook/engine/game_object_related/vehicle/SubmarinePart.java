@@ -1,11 +1,10 @@
 package official.sketchBook.engine.game_object_related.vehicle;
 
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
-import com.badlogic.gdx.physics.box2d.Shape;
 import com.badlogic.gdx.utils.Disposable;
-import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
+import official.sketchBook.engine.util_related.helper.body.FixtureData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +16,8 @@ public class SubmarinePart implements Disposable {
     /// Tag para facilitar leitura e identificação
     public final String tag;
     /// Lista de fixtures para criar as sessões para a body do sub
-    public final List<FixtureDef> fixtureDefList;
+    public final List<FixtureData> fixtureDataList;
+    public final List<Fixture> internalFixtureList;
 
     public float
         liquidMass,
@@ -39,7 +39,8 @@ public class SubmarinePart implements Disposable {
     public SubmarinePart(int id, String tag) {
         this.id = id;
         this.tag = tag;
-        this.fixtureDefList = new ArrayList<>();
+        this.fixtureDataList = new ArrayList<>();
+        this.internalFixtureList = new ArrayList<>();
     }
 
     /// Calcula a parte interna do sub, passamos uma pequena margem como limite simples
@@ -53,13 +54,13 @@ public class SubmarinePart implements Disposable {
 
         Vector2 vertex = new Vector2();
 
-        FixtureDef def;
+        Fixture def;
         //Para cada fixture da parte atual
-        for (int j = 0; j < part.fixtureDefList.size(); j++) {
-            def = part.fixtureDefList.get(j);
-            if (def.isSensor) continue;
+        for (int j = 0; j < part.internalFixtureList.size(); j++) {
+            def = part.internalFixtureList.get(j);
+            if (def.isSensor()) continue;
 
-            PolygonShape shape = (PolygonShape) def.shape;
+            PolygonShape shape = (PolygonShape) def.getShape();
 
             for (int i = 0; i < shape.getVertexCount(); i++) {
                 shape.getVertex(i, vertex);
@@ -81,8 +82,8 @@ public class SubmarinePart implements Disposable {
     /**
      * Adiciona uma "FixtureDef" na lista para podermos criar ela futuramente
      *
-     * @param partRelativeOffsetX offset em relação à grid da body no eixo X
-     * @param partRelativeOffsetY offset em relação à grid da body no eixo Y
+     * @param globalOffsetX offset em relação à grid da body no eixo X
+     * @param globalOffsetY offset em relação à grid da body no eixo Y
      * @param offsetX             offset em relação a posição relativa da grid da body no eixo X
      * @param offsetY             offset em relação a posição relativa da grid da body no eixo Y
      * @param width               largura a ser gerada futuramente, passa em pixels
@@ -92,36 +93,32 @@ public class SubmarinePart implements Disposable {
      * @param maskBit             com quem essa parte pode colidir
      */
     public void addBoxFixture(
-        float partRelativeOffsetX,
-        float partRelativeOffsetY,
+        float globalOffsetX,
+        float globalOffsetY,
         float offsetX,
         float offsetY,
         float width,
         float height,
-        boolean isSensor,
-        short categoryBit,
-        short maskBit
+        int categoryBit,
+        int maskBit,
+        boolean isSensor
     ) {
-
-        Shape boxShape = BodyCreatorHelper.createBoxShape(
-            width,
-            height,
-            offsetX + partRelativeOffsetX,
-            offsetY + partRelativeOffsetY
+        fixtureDataList.add(
+            new FixtureData(
+                0,
+                0,
+                0,
+                globalOffsetX,
+                globalOffsetY,
+                offsetX,
+                offsetY,
+                width,
+                height,
+                categoryBit,
+                maskBit,
+                isSensor
+            )
         );
-
-        //O corpo interno não precisa receber nenhum desses dados passados, como restituição, densidade e fricção
-        FixtureDef def = BodyCreatorHelper.createFixture(
-            boxShape,
-            0,
-            0,
-            0,
-            categoryBit,
-            maskBit
-        );
-
-        def.isSensor = isSensor;
-        fixtureDefList.add(def);
     }
 
     public boolean isBoundsCalculated() {
@@ -132,7 +129,8 @@ public class SubmarinePart implements Disposable {
     public void dispose() {
         if (disposed) return;
 
-        fixtureDefList.clear();
+        internalFixtureList.clear();
+        fixtureDataList.clear();
 
         disposed = true;
     }

@@ -2,6 +2,7 @@ package official.sketchBook.engine.liquid_related.model;
 
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
@@ -9,6 +10,7 @@ import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static official.sketchBook.engine.util_related.helper.body.LiquidBodyCreatorHelper.createLiquidFixture;
@@ -19,7 +21,8 @@ public class PhysicalRoomLiquid extends BaseRoomGameObject implements Liquid {
 
     private Body body;
 
-    private List<LiquidRegion> regionList;
+    public final List<LiquidRegion> regionList;
+    public final List<Fixture> fixtureList;
 
     private LiquidData liquidData;
 
@@ -37,6 +40,8 @@ public class PhysicalRoomLiquid extends BaseRoomGameObject implements Liquid {
 
         this.liquidData = data;
         this.regionList = regionList;
+
+        this.fixtureList = new ArrayList<>();
 
         initObject();
     }
@@ -64,10 +69,12 @@ public class PhysicalRoomLiquid extends BaseRoomGameObject implements Liquid {
 
         // Cria fixtures para cada região
         for (LiquidRegion region : regionList) {
-            createLiquidFixture(
-                region,
-                body,
-                this
+            fixtureList.add(
+                createLiquidFixture(
+                    region,
+                    body,
+                    this
+                )
             );
         }
     }
@@ -80,11 +87,12 @@ public class PhysicalRoomLiquid extends BaseRoomGameObject implements Liquid {
     @Override
     protected void disposeCriticalData() {
         super.disposeCriticalData();
+
         this.regionList.clear();
+        this.fixtureList.clear();
 
         this.body = null;
         this.world = null;
-        this.regionList = null;
         this.liquidData = null;
 
     }

@@ -54,7 +54,10 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     private boolean originallyGravityAffected;
 
-    private boolean disposed = false;
+    /// Flags de auxilio
+    private boolean
+        justEnteredLiquid = false,
+        disposed = false;
 
     public PhysicalMobLiquidInteractionComponent(LiquidInteractableObjectII object) {
         this.object = object;
@@ -63,7 +66,12 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     @Override
     public void update(float delta) {
-        if (!inLiquid || !canInteractWithLiquid) return;
+        if (!canInteractWithLiquid || !inLiquid) return;
+
+        if(justEnteredLiquid){
+            justEnteredLiquid = false;
+            return;
+        }
 
         if (needsRecalculation) {
             recalculateLiquidEffects();
@@ -121,6 +129,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         if (liquidBuffer.size() == 1) {
             storeOriginalMovementValues();
             inLiquid = true;
+            justEnteredLiquid = true;
             object.onLiquidEnter(liquid);
         }
 
@@ -149,6 +158,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             }
 
             inLiquid = false;
+            justEnteredLiquid = false;
             restartOriginalMovementValues();
 
             /*
@@ -159,6 +169,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
             totalBoyancyEffect = 0;
             boyancyFactor = 0;
+
             return;
         }
 
@@ -170,7 +181,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
      * Chamado na primeira entrada de um líquido.
      */
     private void storeOriginalMovementValues() {
-        if (originalValuesStored) return;
+        if (originalValuesStored || !canInteractWithLiquid) return;
 
         this.originalYMaxSpeed = moveC.yMaxMoveSpeed;
         this.originalXMaxSpeed = moveC.xMaxMoveSpeed;
@@ -312,24 +323,25 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         if (!canInteract) {
             // Desativa a simulação, mas não trata isso como "sair do líquido".
-            if (originalValuesStored) {
-                restartOriginalMovementValues();
-            }
+            restartOriginalMovementValues();
 
             inLiquid = false;
+            justEnteredLiquid = false;
+
             totalBoyancyEffect = 0;
             boyancyFactor = 0;
+
             needsRecalculation = false;
             return;
         }
 
         // Reativa a simulação caso já exista líquido no buffer.
         if (!liquidBuffer.isEmpty()) {
-            if (!originalValuesStored) {
-                storeOriginalMovementValues();
-            }
+
+            storeOriginalMovementValues();
 
             inLiquid = true;
+            justEnteredLiquid = true;
             needsRecalculation = true;
             object.onLiquidEnter(liquidBuffer.get(0));
         }
