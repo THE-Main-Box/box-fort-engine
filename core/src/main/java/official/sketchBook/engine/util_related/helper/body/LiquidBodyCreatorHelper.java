@@ -14,7 +14,7 @@ import static official.sketchBook.engine.util_related.helper.CollisionBitImplant
 
 public class LiquidBodyCreatorHelper {
 
-    public static void createLiquidFixture(LiquidRegion region, Body body, Liquid liquid) {
+    public static Fixture createLiquidFixture(LiquidRegion region, Body body, Liquid liquid) {
         //Seta a posição da body no centro da criação de mundo,
         // para que a posição relativa das fixtures seja relativa a geração de mundo
         body.setTransform(0, 0, 0);
@@ -43,7 +43,7 @@ public class LiquidBodyCreatorHelper {
         );
 
         //Criamos a fixture em si
-        body.createFixture(fixtureDef);
+        Fixture toReturn = body.createFixture(fixtureDef);
 
         // Aplicamos a userData na fixture para que possamos detectar os dados
         body.setUserData(
@@ -55,5 +55,7 @@ public class LiquidBodyCreatorHelper {
 
         //Liberamos o shape
         shape.dispose();
+
+        return toReturn;
     }
 }

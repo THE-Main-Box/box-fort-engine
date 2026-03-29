@@ -122,11 +122,42 @@ public class SubmarinePartBodyCreateHelper {
             SubmarinePart part = parts.get(i);
 
             //Para cada dado de fixture que devemos criar
-            for (int j = 0; j < part.fixtureDefList.size(); j++) {
-                FixtureDef def = part.fixtureDefList.get(j);
+            for (int j = 0; j < part.fixtureDataList.size(); j++) {
+                FixtureData data = part.fixtureDataList.get(j);
+
+                Shape shape;
+
+                if (data.isSphere) {
+                    shape = BodyCreatorHelper.createCircleShape(
+                        data.radius,
+                        (data.offsetX + data.globalOffsetX), //Cálculo da posição com base no offset global e padrão eixo X
+                        (data.offsetY + data.globalOffsetY)  //Cálculo da posição com base no offset global e padrão eixo Y
+                    );
+                } else {
+                    shape = BodyCreatorHelper.createBoxShape(
+                        data.width,
+                        data.height,
+                        (data.offsetX + data.globalOffsetX), //Cálculo da posição com base no offset global e padrão eixo X
+                        (data.offsetY + data.globalOffsetY)  //Cálculo da posição com base no offset global e padrão eixo Y
+                    );
+                }
+
+                //O corpo interno não precisa receber nenhum desses dados passados, como restituição, densidade e fricção
+                FixtureDef def = BodyCreatorHelper.createFixture(
+                    shape,
+                    data.density,
+                    data.friction,
+                    data.restitution,
+                    data.categoryBit,
+                    data.maskBit
+                );
+
+                def.isSensor = data.isSensor;
 
                 //Criamos a fixture, passando a def atual como parâmetro
-                Fixture internalFix =  internal.createFixture(def);
+                Fixture internalFix = internal.createFixture(def);
+
+                part.internalFixtureList.add(internalFix);
 
                 internalFix.setUserData(
                     new GameObjectTag(
@@ -168,10 +199,10 @@ public class SubmarinePartBodyCreateHelper {
         // Convertemos as margens de pixels para metros
         // Cada lado pode ter uma margem diferente, permitindo áreas internas assimétricas
         // Ex: uma seção de acoplagem pode ter margem 0 no lado da conexão
-        float marginLeft  = part.internalMarginLeft  / PPM;
+        float marginLeft = part.internalMarginLeft / PPM;
         float marginRight = part.internalMarginRight / PPM;
-        float marginUp    = part.internalMarginUp    / PPM;
-        float marginDown  = part.internalMarginDown  / PPM;
+        float marginUp = part.internalMarginUp / PPM;
+        float marginDown = part.internalMarginDown / PPM;
 
         // Calculamos os limites reais da área interna após aplicar as margens
         // Min cresce com a margem esquerda/baixo, Max diminui com a margem direita/cima
@@ -181,14 +212,14 @@ public class SubmarinePartBodyCreateHelper {
         float maxY = part.internalMaxY - marginUp;
 
         // Dimensões e centro do sensor resultante
-        float width   = maxX - minX;
-        float height  = maxY - minY;
+        float width = maxX - minX;
+        float height = maxY - minY;
         float centerX = (minX + maxX) / 2f;
         float centerY = (minY + maxY) / 2f;
 
         Shape sensorShape = BodyCreatorHelper.createBoxShape(
-            width   * PPM,
-            height  * PPM,
+            width * PPM,
+            height * PPM,
             centerX * PPM,
             centerY * PPM
         );
