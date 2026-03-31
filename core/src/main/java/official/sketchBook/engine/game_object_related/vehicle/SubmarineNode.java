@@ -16,6 +16,7 @@ import official.sketchBook.engine.components_related.physics.MovableObjectPhysic
 import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.components_related.system_utils.ComponentManagerComponent;
+import official.sketchBook.engine.components_related.system_utils.RenderableAndDefaultComponentManagerComponent;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 
@@ -58,7 +59,7 @@ public class SubmarineNode
     private PhysicalMobLiquidInteractionComponent liquidInteractionC;
 
     /// Gerênciador de componentes lógicos de funcionamento de objeto
-    private ComponentManagerComponent managerC;
+    private RenderableAndDefaultComponentManagerComponent managerC;
 
     /// Body do submarino completo
     private Body
@@ -141,7 +142,7 @@ public class SubmarineNode
     }
 
     private void initComponents() {
-        this.managerC = new ComponentManagerComponent();
+        this.managerC = new RenderableAndDefaultComponentManagerComponent();
 
         MovableObjectPhysicsComponent vPhysicsC = new MovableObjectPhysicsComponent(
             this,
@@ -328,18 +329,10 @@ public class SubmarineNode
 
     }
 
-    BitmapFont font = new BitmapFont();
-
     @Override
     public void render(SpriteBatch batch) {
 
-        String message = "Rendering start";
-        font.draw(
-            batch,
-            message,
-            transformC.getCenterX(),
-            transformC.getCenterY()
-        );
+
     }
 
     @Override
@@ -394,10 +387,7 @@ public class SubmarineNode
     public void disposeGraphics() {
         if(graphicsDisposed) return;
 
-        font.dispose();
-
-        System.out.println("rendering complete");
-
+        managerC.disposeGraphics();
 
         graphicsDisposed = true;
     }
