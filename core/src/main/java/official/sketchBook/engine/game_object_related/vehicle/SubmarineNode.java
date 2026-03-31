@@ -1,5 +1,6 @@
 package official.sketchBook.engine.game_object_related.vehicle;
 
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.MassData;
@@ -100,6 +101,7 @@ public class SubmarineNode
             part.setSection(this);
         }
 
+        /// TODO: Adicionar sistema para determinar as dimensões padrão do node
         transformC = new TransformComponent(
             centerX,
             centerY,
@@ -326,9 +328,18 @@ public class SubmarineNode
 
     }
 
+    BitmapFont font = new BitmapFont();
+
     @Override
     public void render(SpriteBatch batch) {
 
+        String message = "Rendering start";
+        font.draw(
+            batch,
+            message,
+            transformC.getCenterX(),
+            transformC.getCenterY()
+        );
     }
 
     @Override
@@ -382,6 +393,11 @@ public class SubmarineNode
     @Override
     public void disposeGraphics() {
         if(graphicsDisposed) return;
+
+        font.dispose();
+
+        System.out.println("rendering complete");
+
 
         graphicsDisposed = true;
     }

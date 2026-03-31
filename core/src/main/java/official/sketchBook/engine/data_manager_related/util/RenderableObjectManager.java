@@ -268,6 +268,7 @@ public class RenderableObjectManager {
         }
 
         /// Verificamos se o objeto está dentro dos limites da tela
+        /// Verificamos se o objeto está dentro dos limites da tela
         private boolean isInBounds(RenderableObjectII obj, CullBounds bounds) {
 
             TransformComponent transformC = obj.getTransformC();
@@ -279,14 +280,32 @@ public class RenderableObjectManager {
             float width = transformC.width;
             float height = transformC.height;
 
-            float paddingX = width * 1.5f;
-            float paddingY = height * 1.5f;
+            // --- NOVO: calcular AABB rotacionado ---
+            float halfW = width * 0.5f;
+            float halfH = height * 0.5f;
+
+            float centerX = x + halfW;
+            float centerY = y + halfH;
+
+            float rad = (float) Math.toRadians(transformC.rotation);
+            float cos = Math.abs((float) Math.cos(rad));
+            float sin = Math.abs((float) Math.sin(rad));
+
+            float rotatedHalfW = halfW * cos + halfH * sin;
+            float rotatedHalfH = halfW * sin + halfH * cos;
+
+            float rotatedWidth = rotatedHalfW * 2f;
+            float rotatedHeight = rotatedHalfH * 2f;
+
+            // --- mantém exatamente seu comportamento de padding ---
+            float paddingX = rotatedWidth * 1.5f;
+            float paddingY = rotatedHeight * 1.5f;
 
             return !(
-                x + width + paddingX < bounds.minX ||
-                    x - paddingX > bounds.maxX ||
-                    y + height + paddingY < bounds.minY ||
-                    y - paddingY > bounds.maxY
+                centerX + rotatedHalfW + paddingX < bounds.minX ||
+                    centerX - rotatedHalfW - paddingX > bounds.maxX ||
+                    centerY + rotatedHalfH + paddingY < bounds.minY ||
+                    centerY - rotatedHalfH - paddingY > bounds.maxY
             );
         }
 

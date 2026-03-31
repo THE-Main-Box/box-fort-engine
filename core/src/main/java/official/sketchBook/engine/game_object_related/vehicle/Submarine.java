@@ -14,7 +14,7 @@ public class Submarine extends BaseGameObject implements
     Vehicle,
     MultiRenderableObjectII{
 
-    private List<SubmarineNode> submarineNodes;
+    private final List<SubmarineNode> submarineNodes;
 
     public int renderIndex;
 
@@ -90,9 +90,6 @@ public class Submarine extends BaseGameObject implements
     @Override
     protected void disposeCriticalData() {
         super.disposeCriticalData();
-
-        submarineNodes.clear();
-        submarineNodes = null;
     }
 
     @Override
