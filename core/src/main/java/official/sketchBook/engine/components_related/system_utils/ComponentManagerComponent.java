@@ -1,17 +1,20 @@
 package official.sketchBook.engine.components_related.system_utils;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ComponentManagerComponent implements Component{
+public class ComponentManagerComponent implements Component {
 
     private final List<Component>
         toUpdate,
         toPostUpdate;
 
-    private boolean disposed = false;
+    private boolean
+        disposed = false;
 
     public ComponentManagerComponent() {
         toUpdate = new ArrayList<>();
@@ -24,7 +27,8 @@ public class ComponentManagerComponent implements Component{
             toUpdate.get(i).update(delta);
         }
     }
-    public void postUpdate(){
+
+    public void postUpdate() {
         for (int i = 0; i < toPostUpdate.size(); i++) {
             toPostUpdate.get(i).postUpdate();
         }
@@ -35,7 +39,7 @@ public class ComponentManagerComponent implements Component{
         boolean removeFromUpdateList,
         boolean removeFromPostUpdateList,
         boolean autoDispose
-    ){
+    ) {
         if (removeFromUpdateList) {
             for (int i = toUpdate.size() - 1; i >= 0; i--) {
                 Component c = toUpdate.get(i);
@@ -57,6 +61,7 @@ public class ComponentManagerComponent implements Component{
         }
     }
 
+
     public void add(
         Component component,
         boolean toUpdate,
@@ -70,8 +75,8 @@ public class ComponentManagerComponent implements Component{
         }
     }
 
-    public void dispose(){
-        if(disposed) return;
+    public void dispose() {
+        if (disposed) return;
 
         for (Component component : toUpdate) {
             component.dispose();
