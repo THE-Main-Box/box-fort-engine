@@ -3,7 +3,7 @@ package official.sketchBook.engine.components_related.intefaces.integration_inte
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 
-public interface RenderAbleObjectII {
+public interface RenderableObjectII {
     /// Obtém o indice da ordem de renderização deste objeto
     int getRenderIndex();
 
