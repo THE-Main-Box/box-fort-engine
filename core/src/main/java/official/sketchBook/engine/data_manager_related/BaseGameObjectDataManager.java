@@ -1,7 +1,7 @@
 package official.sketchBook.engine.data_manager_related;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.data_manager_related.util.RenderableObjectManager;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseGameObject;
@@ -71,9 +71,9 @@ public abstract class BaseGameObjectDataManager implements com.badlogic.gdx.util
         gameObjectList.remove(i);                       //Remove da lista de objetos ativos
 
         //remove da pipeline de render caso seja renderizável e esteja marcado para remoção
-        if (object instanceof RenderAbleObjectII) {
+        if (object instanceof RenderableObjectII) {
             renderTree.remove(
-                (RenderAbleObjectII) object
+                (RenderableObjectII) object
             );
         }
 

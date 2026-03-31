@@ -1,5 +1,7 @@
 package official.sketchBook.engine.game_object_related.vehicle;
 
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.MassData;
 import com.badlogic.gdx.physics.box2d.World;
@@ -7,6 +9,7 @@ import com.badlogic.gdx.utils.Disposable;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.LiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.physics.MovableObjectPhysicsComponent;
@@ -18,7 +21,8 @@ import official.sketchBook.game.util_related.constants.WorldConstants;
 
 import java.util.List;
 
-import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.*;
+import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createExternalBody;
+import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createInternalBody;
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
 public class SubmarineNode
@@ -27,9 +31,19 @@ public class SubmarineNode
     LiquidInteractableObjectII,
     PhysicalObjectII,
     VehicleSection,
+    RenderableObjectII,
     Disposable {
 
     private World physicsWorld;
+
+    /// Referência ao veículo dono desse node
+    private Vehicle vehicle;
+
+    /// Lista de partes físicas
+    private final List<SubmarinePart> physicalParts;
+
+    /// Dado de massa atual
+    private final MassData massData = new MassData();
 
     /// Componente para controle de movimentação do sub a partir de velocidade
     private MovementComponent moveC;
@@ -43,36 +57,34 @@ public class SubmarineNode
     /// Componente para lidar com a interação com liquidos do submarino
     private PhysicalMobLiquidInteractionComponent liquidInteractionC;
 
-    private Vehicle vehicle;
+    /// Gerênciador de componentes lógicos de funcionamento de objeto
+    private ComponentManagerComponent managerC;
 
     /// Body do submarino completo
     private Body
         internalBody,
         body;
 
-    private ComponentManagerComponent managerC;
-
-    /// Lista de nós de massa
-    private final List<SubmarinePart> physicalParts;
-
-    /// Dado de massa atual
-    private final MassData massData = new MassData();
-
-    /// Dados bufferizados de velocidade
+    /// Dados bufferizados de velocidade para sincronização de objetos internos
     private float
         lastPosX = 0f,      //Antiga velocidade do eixo X
         lastPosY = 0f,      //Antiga velocidade do eixo Y
         velX = 0f,          //Atual velocidade do eixo X
         velY = 0f;          //Atual velocidade do eixo Y
 
-    /// Massa total do node
+    /// Flags de auxilio de estado
     private boolean
+        inScreen,
         velInitialized = false,
+        graphicsDisposed = false,
         disposed = false;
+
+    /// Indíce de renderização
+    public int renderIndex;
 
     public SubmarineNode(
         World physicsWorld,
-        List<SubmarinePart> submarineParts,
+        List<SubmarinePart> physicalParts,
         float centerX,
         float centerY,
         float centerZ,
@@ -82,8 +94,14 @@ public class SubmarineNode
     ) {
 
         this.physicsWorld = physicsWorld;
-        this.physicalParts = submarineParts;
 
+        this.physicalParts = physicalParts;
+
+        for (SubmarinePart part : this.physicalParts) {
+            part.setSection(this);
+        }
+
+        /// TODO: Adicionar sistema para determinar as dimensões padrão do node
         transformC = new TransformComponent(
             centerX,
             centerY,
@@ -99,8 +117,8 @@ public class SubmarineNode
 
     }
 
-    public void initObject(Vehicle vehicle) {
-        this.vehicle = vehicle;
+    /// Inicialização de objeto
+    public void initObject() {
         initComponents();
         generateBody(physicalParts);
     }
@@ -257,16 +275,16 @@ public class SubmarineNode
             float centerY = (part.internalMinY + part.internalMaxY) / 2f;
 
             // Volume e massa da parte
-            float width  = (part.internalMaxX - part.internalMinX) * PPM;
+            float width = (part.internalMaxX - part.internalMinX) * PPM;
             float height = (part.internalMaxY - part.internalMinY) * PPM;
             float volume = width * height;
-            float mass   = part.getTotalMass();
+            float mass = part.getTotalMass();
 
             // Acumulamos tudo
-            totalVolume        += volume;
-            totalMass          += mass;
-            weightedCenterX    += centerX * mass;
-            weightedCenterY    += centerY * mass;
+            totalVolume += volume;
+            totalMass += mass;
+            weightedCenterX += centerX * mass;
+            weightedCenterY += centerY * mass;
         }
 
         if (totalMass <= 0) return;
@@ -301,6 +319,45 @@ public class SubmarineNode
     }
 
     @Override
+    public int getRenderIndex() {
+        return renderIndex;
+    }
+
+    @Override
+    public void updateVisuals(float delta) {
+
+    }
+
+    BitmapFont font = new BitmapFont();
+
+    @Override
+    public void render(SpriteBatch batch) {
+
+        String message = "Rendering start";
+        font.draw(
+            batch,
+            message,
+            transformC.getCenterX(),
+            transformC.getCenterY()
+        );
+    }
+
+    @Override
+    public boolean canRender() {
+        return true;
+    }
+
+    @Override
+    public boolean isInScreen() {
+        return inScreen;
+    }
+
+    @Override
+    public void setInScreen(boolean inScreen) {
+        this.inScreen = inScreen;
+    }
+
+    @Override
     public TransformComponent getTransformC() {
         return transformC;
     }
@@ -326,6 +383,23 @@ public class SubmarineNode
 
     public float getVelY() {
         return velY;
+    }
+
+    public void setVehicle(Vehicle vehicle) {
+        if (vehicle == this.vehicle || vehicle == null || this.vehicle != null) return;
+        this.vehicle = vehicle;
+    }
+
+    @Override
+    public void disposeGraphics() {
+        if(graphicsDisposed) return;
+
+        font.dispose();
+
+        System.out.println("rendering complete");
+
+
+        graphicsDisposed = true;
     }
 
     @Override

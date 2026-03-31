@@ -15,6 +15,9 @@ public class SubmarinePart implements Disposable {
     public final int id;
     /// Tag para facilitar leitura e identificação
     public final String tag;
+
+    private VehicleSection section;
+
     /// Lista de fixtures para criar as sessões para a body do sub
     public final List<FixtureData> fixtureDataList;
     public final List<Fixture> internalFixtureList;
@@ -84,13 +87,13 @@ public class SubmarinePart implements Disposable {
      *
      * @param globalOffsetX offset em relação à grid da body no eixo X
      * @param globalOffsetY offset em relação à grid da body no eixo Y
-     * @param offsetX             offset em relação a posição relativa da grid da body no eixo X
-     * @param offsetY             offset em relação a posição relativa da grid da body no eixo Y
-     * @param width               largura a ser gerada futuramente, passa em pixels
-     * @param height              altura a ser gerada futuramente, passa em pixels
-     * @param isSensor            se essa parte é um sensor
-     * @param categoryBit         quem essa parte é no quesito de colisão
-     * @param maskBit             com quem essa parte pode colidir
+     * @param offsetX       offset em relação a posição relativa da grid da body no eixo X
+     * @param offsetY       offset em relação a posição relativa da grid da body no eixo Y
+     * @param width         largura a ser gerada futuramente, passa em pixels
+     * @param height        altura a ser gerada futuramente, passa em pixels
+     * @param isSensor      se essa parte é um sensor
+     * @param categoryBit   quem essa parte é no quesito de colisão
+     * @param maskBit       com quem essa parte pode colidir
      */
     public void addBoxFixture(
         float globalOffsetX,
@@ -137,5 +140,14 @@ public class SubmarinePart implements Disposable {
 
     public float getTotalMass() {
         return baseMass + liquidMass;
+    }
+
+    public VehicleSection getSection() {
+        return section;
+    }
+
+    public void setSection(VehicleSection section) {
+        if (this.section == section || section == null || this.section != null) return;
+        this.section = section;
     }
 }

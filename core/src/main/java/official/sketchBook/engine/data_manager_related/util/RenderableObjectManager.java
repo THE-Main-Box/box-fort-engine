@@ -1,6 +1,7 @@
 package official.sketchBook.engine.data_manager_related.util;
 
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderAbleObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.MultiRenderableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 
 import java.util.*;
@@ -32,14 +33,14 @@ public class RenderableObjectManager {
     }
 
     /// Adicionamos um objeto da tree
-    public void add(RenderAbleObjectII obj) {
+    public void add(RenderableObjectII obj) {
         int renderIndex = obj.getRenderIndex();
         ObjectBucket bucket = renderTree.computeIfAbsent(renderIndex, k -> new ObjectBucket());
         bucket.add(obj);
     }
 
     /// Removemos um objeto da tree
-    public void remove(RenderAbleObjectII obj) {
+    public void remove(RenderableObjectII obj) {
         int renderIndex = obj.getRenderIndex();
         ObjectBucket bucket = renderTree.get(renderIndex);
         if (bucket != null) {
@@ -53,7 +54,7 @@ public class RenderableObjectManager {
     /// Executa a atualização da mudança de index de renderização de um objeto,
     ///  não basta só mudar no objeto precisamos também aplicar aqui dentro,
     ///  fazemos isso para justamente controlar a quantidade de vezes que mudamos a tree
-    public void updateRenderIndex(RenderAbleObjectII obj) {
+    public void updateRenderIndex(RenderableObjectII obj) {
         int newIndex = obj.getRenderIndex();
         int oldIndex = obj.getRenderIndex();
 
@@ -73,7 +74,7 @@ public class RenderableObjectManager {
 
     /// Executa um código para cada objeto renderizável,
     ///  deve ser usado para chamar o render e atualização de visuais
-    public void forEachObject(Consumer<RenderAbleObjectII> action) {
+    public void forEachObject(Consumer<RenderableObjectII> action) {
         for (ObjectBucket bucket : renderTree.values()) {
             bucket.forEach(action);
         }
@@ -83,7 +84,7 @@ public class RenderableObjectManager {
     ///  desde que este esteja dentro dos limites passados e cacheados,
     ///  deve ser usado para chamar o render e atualização de visuais
     public void forEachObject(
-        Consumer<RenderAbleObjectII> action,
+        Consumer<RenderableObjectII> action,
         float camX,
         float camY,
         float viewWidth,
@@ -131,7 +132,7 @@ public class RenderableObjectManager {
     public void dispose() {
         if (disposed) return;
         //Realiza a limpeza dos gráficos
-        forEachObject(RenderAbleObjectII::disposeGraphics);
+        forEachObject(RenderableObjectII::disposeGraphics);
         //Limpa a lista existente
         clear();
         disposed = true;
@@ -141,9 +142,9 @@ public class RenderableObjectManager {
         RenderableObjectManager manager,
         Object toAdd
     ) {
-        if (toAdd instanceof RenderAbleObjectII) {
+        if (toAdd instanceof RenderableObjectII) {
             manager.remove(
-                (RenderAbleObjectII) toAdd
+                (RenderableObjectII) toAdd
             );
         }
     }
@@ -152,9 +153,9 @@ public class RenderableObjectManager {
         RenderableObjectManager manager,
         Object toAdd
     ) {
-        if (toAdd instanceof RenderAbleObjectII) {
+        if (toAdd instanceof RenderableObjectII) {
             manager.add(
-                (RenderAbleObjectII) toAdd
+                (RenderableObjectII) toAdd
             );
         }
 
@@ -162,18 +163,18 @@ public class RenderableObjectManager {
 
     /// Classe interna que gerencia um array de objetos com tamanho dinâmico
     private static class ObjectBucket {
-        private RenderAbleObjectII[] items;
+        private RenderableObjectII[] items;
         private int size = 0;
 
         ObjectBucket() {
-            this.items = new RenderAbleObjectII[DEFAULT_BUCKET_SIZE];
+            this.items = new RenderableObjectII[DEFAULT_BUCKET_SIZE];
         }
 
         /// Adiciona mais objetos no balde
-        void add(RenderAbleObjectII obj) {
+        void add(RenderableObjectII obj) {
             if (size == items.length) {
                 // Expande o array quando necessário
-                RenderAbleObjectII[] newItems = new RenderAbleObjectII[items.length * 2];
+                RenderableObjectII[] newItems = new RenderableObjectII[items.length * 2];
                 System.arraycopy(items, 0, newItems, 0, items.length);
                 this.items = newItems;
             }
@@ -181,7 +182,7 @@ public class RenderableObjectManager {
         }
 
         /// Remove um objeto do balde
-        void remove(RenderAbleObjectII obj) {
+        void remove(RenderableObjectII obj) {
             for (int i = 0; i < size; i++) {
                 if (items[i] == obj) {
                     // Move o último elemento para a posição do removido
@@ -193,9 +194,9 @@ public class RenderableObjectManager {
         }
 
         /// Código a ser executado para todos os objetos dentro de nossa array
-        void forEach(Consumer<RenderAbleObjectII> action) {
+        void forEach(Consumer<RenderableObjectII> action) {
             for (int i = 0; i < size; i++) {
-                RenderAbleObjectII obj = items[i];
+                RenderableObjectII obj = items[i];
 
                 //Verificamos se podemos renderizar o objeto, por validar se está dentro da tela e se pode renderizar,
                 // de acordo com sua lógica interna
@@ -210,19 +211,28 @@ public class RenderableObjectManager {
         ///  desde que estejam dentro dos limites de tela,
         ///  com uma pequena margem de folga
         void forEachCulled(
-            Consumer<RenderAbleObjectII> action,
+            Consumer<RenderableObjectII> action,
             CullBounds bounds
         ) {
             for (int i = 0; i < size; i++) {
-                RenderAbleObjectII obj = items[i];
+                RenderableObjectII obj = items[i];
 
-                //Seta o valor do objeto para mostrar que ele está dentro da tela
-                obj.setInScreen(
-                    isInBounds(
-                        obj,
-                        bounds
-                    )
-                );
+                if (obj instanceof MultiRenderableObjectII) {
+                    obj.setInScreen(
+                        isInBounds(
+                            (MultiRenderableObjectII) obj,
+                            bounds
+                        )
+                    );
+                } else {
+                    //Seta o valor do objeto para mostrar que ele está dentro da tela
+                    obj.setInScreen(
+                        isInBounds(
+                            obj,
+                            bounds
+                        )
+                    );
+                }
 
                 //Se o objeto puder ser renderizado e estiver dentro da tela
                 if (obj.isInScreen() && obj.canRender()) {
@@ -232,24 +242,70 @@ public class RenderableObjectManager {
             }
         }
 
+        /// Verifica se o objeto que pode ser renderizado está com todas suas seções dentro da tela
+        private boolean isInBounds(MultiRenderableObjectII object, CullBounds bounds) {
+            if(object.getRenderableObjList() == null) return true;
+
+            RenderableObjectII currentObj;
+
+            int renderableCount = object.getRenderableObjList().size();
+            int isInsideScreenCount = 0;
+
+            for (int i = 0; i < renderableCount; i++) {
+                currentObj = object.getRenderableObjList().get(i);
+
+                currentObj.setInScreen(
+                    isInBounds(
+                        currentObj,
+                        bounds
+                    )
+                );
+
+                if (currentObj.isInScreen()) isInsideScreenCount++;
+            }
+
+            return isInsideScreenCount >= renderableCount;
+        }
+
         /// Verificamos se o objeto está dentro dos limites da tela
-        private boolean isInBounds(RenderAbleObjectII obj, CullBounds bounds) {
-            
+        /// Verificamos se o objeto está dentro dos limites da tela
+        private boolean isInBounds(RenderableObjectII obj, CullBounds bounds) {
+
             TransformComponent transformC = obj.getTransformC();
+
+            if (transformC == null) return true;
 
             float x = transformC.x;
             float y = transformC.y;
             float width = transformC.width;
             float height = transformC.height;
 
-            float paddingX = width * 1.5f;
-            float paddingY = height * 1.5f;
+            // --- NOVO: calcular AABB rotacionado ---
+            float halfW = width * 0.5f;
+            float halfH = height * 0.5f;
+
+            float centerX = x + halfW;
+            float centerY = y + halfH;
+
+            float rad = (float) Math.toRadians(transformC.rotation);
+            float cos = Math.abs((float) Math.cos(rad));
+            float sin = Math.abs((float) Math.sin(rad));
+
+            float rotatedHalfW = halfW * cos + halfH * sin;
+            float rotatedHalfH = halfW * sin + halfH * cos;
+
+            float rotatedWidth = rotatedHalfW * 2f;
+            float rotatedHeight = rotatedHalfH * 2f;
+
+            // --- mantém exatamente seu comportamento de padding ---
+            float paddingX = rotatedWidth * 1.5f;
+            float paddingY = rotatedHeight * 1.5f;
 
             return !(
-                x + width + paddingX < bounds.minX ||
-                    x - paddingX > bounds.maxX ||
-                    y + height + paddingY < bounds.minY ||
-                    y - paddingY > bounds.maxY
+                centerX + rotatedHalfW + paddingX < bounds.minX ||
+                    centerX - rotatedHalfW - paddingX > bounds.maxX ||
+                    centerY + rotatedHalfH + paddingY < bounds.minY ||
+                    centerY - rotatedHalfH - paddingY > bounds.maxY
             );
         }
 
