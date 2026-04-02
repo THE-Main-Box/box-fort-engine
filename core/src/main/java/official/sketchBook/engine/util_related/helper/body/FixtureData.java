@@ -24,8 +24,8 @@ public class FixtureData {
         maskBit;                    //Máscara de colisão da fixture (com quem ela pode colidir)
 
     /// Flag de auxílio
-    public final boolean
-        isSphere,
+    private final boolean
+        isCircle,
         isSensor;
 
     public FixtureData(
@@ -36,10 +36,12 @@ public class FixtureData {
         float globalOffsetY,
         float offsetX,
         float offsetY,
+        float radius,
         float width,
         float height,
         int categoryBit,
         int maskBit,
+        boolean isCircle,
         boolean isSensor
     ) {
         this.density = density;
@@ -51,52 +53,39 @@ public class FixtureData {
 
         this.offsetX = offsetX;
         this.offsetY = offsetY;
+
+        this.radius = radius;
 
         this.width = width;
         this.height = height;
 
-        this.radius = 0;
-
         this.categoryBit = (short) categoryBit;
         this.maskBit = (short) maskBit;
 
-        this.isSensor = isSensor;
-        this.isSphere = false;
-    }
-
-    public FixtureData(
-        float density,
-        float restitution,
-        float friction,
-        float globalOffsetX,
-        float globalOffsetY,
-        float offsetX,
-        float offsetY,
-        float radius,
-        short categoryBit,
-        short maskBit,
-        boolean isSensor
-    ) {
-        this.density = density;
-        this.restitution = restitution;
-        this.friction = friction;
-
-        this.globalOffsetX = globalOffsetX;
-        this.globalOffsetY = globalOffsetY;
-
-        this.offsetX = offsetX;
-        this.offsetY = offsetY;
-
-        this.width = 0;
-        this.height = 0;
-
-        this.radius = radius;
-
-        this.categoryBit = categoryBit;
-        this.maskBit = maskBit;
-
-        this.isSphere = true;
-
+        this.isCircle = isCircle;
         this.isSensor = isSensor;
     }
+
+    public boolean isSensor() {
+        return isSensor;
+    }
+
+    /// É um círculo apenas caso tenhamos valores de raio, mas não de
+    public boolean isCircle() {
+        return isCircle && radius != 0;
+    }
+
+    /// É um retângulo caso não sejamos um círculo, e caso tenhamos dados de largura e altura
+    public boolean isRectangle() {
+        return !isCircle && hasWidthAndHeight();
+    }
+
+    public boolean isCapsule() {
+        return isCircle && hasWidthAndHeight();
+    }
+
+    private boolean hasWidthAndHeight() {
+        return width != 0 && height != 0;
+    }
+
 }

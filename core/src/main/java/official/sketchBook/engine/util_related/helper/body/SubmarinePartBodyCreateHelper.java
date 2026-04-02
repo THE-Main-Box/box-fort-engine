@@ -105,44 +105,73 @@ public class SubmarinePartBodyCreateHelper {
         TransformComponent transformC,
         World world
     ) {
-        //Criamos a body
         BodyDef bodyDef = new BodyDef();
-
         bodyDef.type = BodyDef.BodyType.KinematicBody;
-
-        bodyDef.position.set(
-            transformC.x / PPM,
-            transformC.y / PPM
-        );
+        bodyDef.position.set(transformC.x / PPM, transformC.y / PPM);
 
         Body internal = world.createBody(bodyDef);
 
-        //Para cada parte interna
         for (int i = 0; i < parts.size(); i++) {
             SubmarinePart part = parts.get(i);
 
-            //Para cada dado de fixture que devemos criar
             for (int j = 0; j < part.fixtureDataList.size(); j++) {
                 FixtureData data = part.fixtureDataList.get(j);
 
-                Shape shape;
+                // CAPSULE (não retorna Shape)
+                if (data.isCapsule()) {
 
-                if (data.isSphere) {
+                    int before = internal.getFixtureList().size;
+
+                    BodyCreatorHelper.createCapsuleFixture(
+                        internal,
+                        data.width,
+                        data.height,
+                        (data.offsetX + data.globalOffsetX),
+                        (data.offsetY + data.globalOffsetY),
+                        data.density,
+                        data.friction,
+                        data.restitution,
+                        data.categoryBit,
+                        data.maskBit
+                    );
+
+                    // captura fixtures criadas
+                    for (int k = before; k < internal.getFixtureList().size; k++) {
+                        Fixture fix = internal.getFixtureList().get(k);
+
+                        fix.setSensor(data.isSensor());
+
+                        fix.setUserData(
+                            new GameObjectTag(ObjectType.VEHICLE, part)
+                        );
+
+                        part.internalFixtureList.add(fix);
+                    }
+
+                    continue;
+                }
+
+                // CIRCLE / RECTANGLE
+                Shape shape = null;
+
+                if (data.isCircle()) {
                     shape = BodyCreatorHelper.createCircleShape(
                         data.radius,
-                        (data.offsetX + data.globalOffsetX), //Cálculo da posição com base no offset global e padrão eixo X
-                        (data.offsetY + data.globalOffsetY)  //Cálculo da posição com base no offset global e padrão eixo Y
+                        (data.offsetX + data.globalOffsetX),
+                        (data.offsetY + data.globalOffsetY)
                     );
-                } else {
+                }
+                else if (data.isRectangle()) {
                     shape = BodyCreatorHelper.createBoxShape(
                         data.width,
                         data.height,
-                        (data.offsetX + data.globalOffsetX), //Cálculo da posição com base no offset global e padrão eixo X
-                        (data.offsetY + data.globalOffsetY)  //Cálculo da posição com base no offset global e padrão eixo Y
+                        (data.offsetX + data.globalOffsetX),
+                        (data.offsetY + data.globalOffsetY)
                     );
                 }
 
-                //O corpo interno não precisa receber nenhum desses dados passados, como restituição, densidade e fricção
+                if (shape == null) continue;
+
                 FixtureDef def = BodyCreatorHelper.createFixture(
                     shape,
                     data.density,
@@ -152,86 +181,71 @@ public class SubmarinePartBodyCreateHelper {
                     data.maskBit
                 );
 
-                def.isSensor = data.isSensor;
+                def.isSensor = data.isSensor();
 
-                //Criamos a fixture, passando a def atual como parâmetro
-                Fixture internalFix = internal.createFixture(def);
+                Fixture fix = internal.createFixture(def);
 
-                part.internalFixtureList.add(internalFix);
+                part.internalFixtureList.add(fix);
 
-                internalFix.setUserData(
-                    new GameObjectTag(
-                        ObjectType.VEHICLE,
-                        part
-                    )
+                fix.setUserData(
+                    new GameObjectTag(ObjectType.VEHICLE, part)
                 );
 
-                //Liberamos a shape
-                def.shape.dispose();
+                shape.dispose();
             }
 
-            //Aproveitamos e calculamos os limites da body
-
-            //Por isso é muito importante manter esta sempre o mais simples possível,
-            // melhor ainda se for um quadrado ou retângulo
             SubmarinePart.calculateAndStoreBounds(part);
 
-            //Se o calculo foi bem sucedido
             if (!part.isBoundsCalculated()) continue;
 
-            //Criamos o sensor interno delimitando os limites internos da parte
             createInternalAreaSensor(internal, part);
-
         }
 
         internal.setUserData(
-            new GameObjectTag(
-                ObjectType.VEHICLE,
-                node
-            )
+            new GameObjectTag(ObjectType.VEHICLE, node)
         );
+
         return internal;
     }
 
     /// Criamos o sensor que determina qual é a area interna do sub
     public static void createInternalAreaSensor(Body body, SubmarinePart part) {
 
-        // Convertemos as margens de pixels para metros
-        // Cada lado pode ter uma margem diferente, permitindo áreas internas assimétricas
-        // Ex: uma seção de acoplagem pode ter margem 0 no lado da conexão
+        // fallback seguro: usa bounds já calculado (independente do formato original)
         float marginLeft = part.internalMarginLeft / PPM;
         float marginRight = part.internalMarginRight / PPM;
         float marginUp = part.internalMarginUp / PPM;
         float marginDown = part.internalMarginDown / PPM;
 
-        // Calculamos os limites reais da área interna após aplicar as margens
-        // Min cresce com a margem esquerda/baixo, Max diminui com a margem direita/cima
         float minX = part.internalMinX + marginLeft;
         float maxX = part.internalMaxX - marginRight;
         float minY = part.internalMinY + marginDown;
         float maxY = part.internalMaxY - marginUp;
 
-        // Dimensões e centro do sensor resultante
         float width = maxX - minX;
         float height = maxY - minY;
         float centerX = (minX + maxX) / 2f;
         float centerY = (minY + maxY) / 2f;
 
-        Shape sensorShape = BodyCreatorHelper.createBoxShape(
+        Shape shape = BodyCreatorHelper.createBoxShape(
             width * PPM,
             height * PPM,
             centerX * PPM,
             centerY * PPM
         );
 
-        FixtureDef sensorDef = new FixtureDef();
-        sensorDef.shape = sensorShape;
-        sensorDef.isSensor = true;
-        sensorDef.filter.categoryBits = VEHICLE.bit();
-        sensorDef.filter.maskBits = VEHICLE_PASSENGER.bit();
+        FixtureDef def = new FixtureDef();
+        def.shape = shape;
+        def.isSensor = true;
+        def.filter.categoryBits = VEHICLE.bit();
+        def.filter.maskBits = VEHICLE_PASSENGER.bit();
 
-        Fixture sensor = body.createFixture(sensorDef);
-        sensor.setUserData(new GameObjectTag(ObjectType.DYNAMIC_DRY_AREA, part));
-        sensorShape.dispose();
+        Fixture sensor = body.createFixture(def);
+
+        sensor.setUserData(
+            new GameObjectTag(ObjectType.DYNAMIC_DRY_AREA, part)
+        );
+
+        shape.dispose();
     }
 }
