@@ -170,7 +170,7 @@ public class BodyCreatorHelper {
      * @param restitution Restituição (elasticidade) da fixture
      * @return Um corpo cápsula configurado e pronto para uso
      */
-    public static Body createCapsule(
+    public static Body createCapsuleBody(
         World world,
         Vector2 position,
         float width,
@@ -183,139 +183,24 @@ public class BodyCreatorHelper {
         short category,
         short mask
     ) {
-        if(world == null) return null;
+        if (world == null) return null;
 
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = type;
-
-        bodyDef.position.set(               //Define a posição
+        bodyDef.position.set(
             position.x / PPM,
             position.y / PPM
         );
-
         bodyDef.angle = rotation * MathUtils.degreesToRadians;
 
-        Body body = world.createBody(       //Cria uma instancia da body
-            bodyDef
-        );
+        Body body = world.createBody(bodyDef);
 
-        //Caso a largura seja maior que a altura, iremos mudar a orientação da capsule
-        boolean isHorizontal = width > height;
-
-        //Dimensões das seções do corpo
-        float radius = isHorizontal ?
-            height / 2f :
-            width / 2f;
-        float halfLength = isHorizontal ?
-            width / 2f :
-            height / 2f;
-
-        // Posição do primeiro circulo em relação ao corpo
-        Vector2 circleOffset1 = isHorizontal ?
-            new Vector2(
-                -halfLength + radius,
-                0
-            ) :
-            new Vector2(
-                0,
-                -halfLength + radius
-            );
-
-        //Posição do segundo circulo em relação ao corpo
-        Vector2 circleOffset2 = isHorizontal ?
-            new Vector2(
-                halfLength - radius,
-                0
-            ) :
-            new Vector2(
-                0,
-                halfLength - radius
-            );
-
-        //Começo da primeira linha
-        Vector2 edgeStart1 = isHorizontal ?
-            new Vector2(
-                (-halfLength + radius) / PPM,
-                radius / PPM
-            ) :
-            new Vector2(
-                -radius / PPM,
-                (-halfLength + radius) / PPM
-            );
-        //Final da primeira linha
-        Vector2 edgeEnd1 = isHorizontal ?
-            new Vector2(
-                (halfLength - radius) / PPM,
-                radius / PPM
-            ) :
-            new Vector2(
-                -radius / PPM,
-                (halfLength - radius) / PPM
-            );
-
-        //Começo da segunda linha
-        Vector2 edgeStart2 = isHorizontal ?
-            new Vector2(
-                (-halfLength + radius) / PPM,
-                -radius / PPM
-            ) :
-            new Vector2(
-                radius / PPM,
-                (-halfLength + radius) / PPM
-            );
-
-        //Final da segunda linha
-        Vector2 edgeEnd2 = isHorizontal ?
-            new Vector2(
-                (halfLength - radius) / PPM,
-                -radius / PPM
-            ) :
-            new Vector2(
-                radius / PPM,
-                (halfLength - radius) / PPM
-            );
-
-        // Adiciona o primeiro circulo
-        createCircleFixture(
+        createCapsuleFixture(
             body,
-            radius,
-            circleOffset1.x,
-            circleOffset1.y,
-            density,
-            friction,
-            restitution,
-            category,
-            mask
-        );
-        //Adiciona o segundo circulo
-        createCircleFixture(
-            body,
-            radius,
-            circleOffset2.x,
-            circleOffset2.y,
-            density,
-            friction,
-            restitution,
-            category,
-            mask
-        );
-
-        //Adiciona primeira reta
-        createEdge(
-            body,
-            edgeStart1,
-            edgeEnd1,
-            density,
-            friction,
-            restitution,
-            category,
-            mask
-        );
-        //Adiciona segunda reta
-        createEdge(
-            body,
-            edgeStart2,
-            edgeEnd2,
+            width,
+            height,
+            0,
+            0,
             density,
             friction,
             restitution,
@@ -326,6 +211,77 @@ public class BodyCreatorHelper {
         return body;
     }
 
+    public static void createCapsuleFixture(
+        Body body,
+        float width,
+        float height,
+        float offsetX,
+        float offsetY,
+        float density,
+        float friction,
+        float restitution,
+        short category,
+        short mask
+    ) {
+        boolean isHorizontal = width > height;
+
+        float radius = isHorizontal ? height / 2f : width / 2f;
+        float halfLength = isHorizontal ? width / 2f : height / 2f;
+
+        // offsets em metros
+        float ox = offsetX / PPM;
+        float oy = offsetY / PPM;
+
+        // círculos (já com offset aplicado)
+        Vector2 circleOffset1 = isHorizontal
+            ? new Vector2((-halfLength + radius) / PPM + ox, oy)
+            : new Vector2(ox, (-halfLength + radius) / PPM + oy);
+
+        Vector2 circleOffset2 = isHorizontal
+            ? new Vector2((halfLength - radius) / PPM + ox, oy)
+            : new Vector2(ox, (halfLength - radius) / PPM + oy);
+
+        // edges (já com offset aplicado)
+        Vector2 edgeStart1 = isHorizontal
+            ? new Vector2((-halfLength + radius) / PPM + ox, (radius / PPM) + oy)
+            : new Vector2((-radius / PPM) + ox, (-halfLength + radius) / PPM + oy);
+
+        Vector2 edgeEnd1 = isHorizontal
+            ? new Vector2((halfLength - radius) / PPM + ox, (radius / PPM) + oy)
+            : new Vector2((-radius / PPM) + ox, (halfLength - radius) / PPM + oy);
+
+        Vector2 edgeStart2 = isHorizontal
+            ? new Vector2((-halfLength + radius) / PPM + ox, (-radius / PPM) + oy)
+            : new Vector2((radius / PPM) + ox, (-halfLength + radius) / PPM + oy);
+
+        Vector2 edgeEnd2 = isHorizontal
+            ? new Vector2((halfLength - radius) / PPM + ox, (-radius / PPM) + oy)
+            : new Vector2((radius / PPM) + ox, (halfLength - radius) / PPM + oy);
+
+        // círculos
+        CircleShape circle1 = new CircleShape();
+        circle1.setRadius(radius / PPM);
+        circle1.setPosition(circleOffset1);
+        body.createFixture(createFixture(circle1, density, friction, restitution, category, mask));
+        circle1.dispose();
+
+        CircleShape circle2 = new CircleShape();
+        circle2.setRadius(radius / PPM);
+        circle2.setPosition(circleOffset2);
+        body.createFixture(createFixture(circle2, density, friction, restitution, category, mask));
+        circle2.dispose();
+
+        // edges
+        EdgeShape edge1 = new EdgeShape();
+        edge1.set(edgeStart1, edgeEnd1);
+        body.createFixture(createFixture(edge1, density, friction, restitution, category, mask));
+        edge1.dispose();
+
+        EdgeShape edge2 = new EdgeShape();
+        edge2.set(edgeStart2, edgeEnd2);
+        body.createFixture(createFixture(edge2, density, friction, restitution, category, mask));
+        edge2.dispose();
+    }
 
     /**
      * Cria e anexa uma fixture circular a uma body com offset.

@@ -1,8 +1,10 @@
 package official.sketchBook.engine.game_object_related.vehicle;
 
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
+import com.badlogic.gdx.physics.box2d.Shape;
 import com.badlogic.gdx.utils.Disposable;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
 
@@ -57,22 +59,43 @@ public class SubmarinePart implements Disposable {
 
         Vector2 vertex = new Vector2();
 
-        Fixture def;
-        //Para cada fixture da parte atual
         for (int j = 0; j < part.internalFixtureList.size(); j++) {
-            def = part.internalFixtureList.get(j);
-            if (def.isSensor()) continue;
+            Fixture fix = part.internalFixtureList.get(j);
+            if (fix.isSensor()) continue;
 
-            PolygonShape shape = (PolygonShape) def.getShape();
+            Shape shape = fix.getShape();
 
-            for (int i = 0; i < shape.getVertexCount(); i++) {
-                shape.getVertex(i, vertex);
-                if (vertex.x < minX) minX = vertex.x;
-                if (vertex.y < minY) minY = vertex.y;
-                if (vertex.x > maxX) maxX = vertex.x;
-                if (vertex.y > maxY) maxY = vertex.y;
+            if (shape instanceof PolygonShape) {
+                PolygonShape poly = (PolygonShape) shape;
+
+                for (int i = 0; i < poly.getVertexCount(); i++) {
+                    poly.getVertex(i, vertex);
+
+                    if (vertex.x < minX) minX = vertex.x;
+                    if (vertex.y < minY) minY = vertex.y;
+                    if (vertex.x > maxX) maxX = vertex.x;
+                    if (vertex.y > maxY) maxY = vertex.y;
+                }
+            } else if (shape instanceof CircleShape) {
+                CircleShape circle = (CircleShape) shape;
+
+                Vector2 pos = circle.getPosition();
+                float r = circle.getRadius();
+
+                float cMinX = pos.x - r;
+                float cMaxX = pos.x + r;
+                float cMinY = pos.y - r;
+                float cMaxY = pos.y + r;
+
+                if (cMinX < minX) minX = cMinX;
+                if (cMinY < minY) minY = cMinY;
+                if (cMaxX > maxX) maxX = cMaxX;
+                if (cMaxY > maxY) maxY = cMaxY;
             }
+            // EdgeShape ignorado
         }
+
+        if (minX == Float.MAX_VALUE) return;
 
         part.internalMinX = minX;
         part.internalMinY = minY;
@@ -89,21 +112,25 @@ public class SubmarinePart implements Disposable {
      * @param globalOffsetY offset em relação à grid da body no eixo Y
      * @param offsetX       offset em relação a posição relativa da grid da body no eixo X
      * @param offsetY       offset em relação a posição relativa da grid da body no eixo Y
+     * @param radius        se for um círculo irá ter um raio
      * @param width         largura a ser gerada futuramente, passa em pixels
      * @param height        altura a ser gerada futuramente, passa em pixels
      * @param isSensor      se essa parte é um sensor
      * @param categoryBit   quem essa parte é no quesito de colisão
      * @param maskBit       com quem essa parte pode colidir
+     * @param isCircle      se temos partes circulares na fixture
      */
-    public void addBoxFixture(
+    public void addInternalFixture(
         float globalOffsetX,
         float globalOffsetY,
         float offsetX,
         float offsetY,
+        float radius,
         float width,
         float height,
         int categoryBit,
         int maskBit,
+        boolean isCircle,
         boolean isSensor
     ) {
         fixtureDataList.add(
@@ -115,10 +142,12 @@ public class SubmarinePart implements Disposable {
                 globalOffsetY,
                 offsetX,
                 offsetY,
+                radius,
                 width,
                 height,
                 categoryBit,
                 maskBit,
+                isCircle,
                 isSensor
             )
         );

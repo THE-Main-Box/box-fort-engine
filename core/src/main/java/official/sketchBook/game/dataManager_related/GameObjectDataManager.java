@@ -163,27 +163,31 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         SubmarinePart corridor = new SubmarinePart(1, "corridor_test");
 
-        corridor.addBoxFixture(
+        corridor.addInternalFixture(
             0,
             0,
             0,
             25,
+            0,
             120,
             10,
             categoryBit,
             maskBit,
+            true,
             false
         );
 
-        corridor.addBoxFixture(
+        corridor.addInternalFixture(
             0,
             0,
             0,
             -25,
+            0,
             120,
             10,
             categoryBit,
             maskBit,
+            true,
             false
         );
 

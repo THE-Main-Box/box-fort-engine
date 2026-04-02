@@ -59,7 +59,7 @@ public class SubmarineNode
     private PhysicalMobLiquidInteractionComponent liquidInteractionC;
 
     /// Gerênciador de componentes lógicos de funcionamento de objeto
-    private RenderableAndDefaultComponentManagerComponent managerC;
+    private final RenderableAndDefaultComponentManagerComponent managerC;
 
     /// Body do submarino completo
     private Body
@@ -116,24 +116,26 @@ public class SubmarineNode
             mirrorY
         );
 
+        this.managerC = new RenderableAndDefaultComponentManagerComponent();
+
     }
 
     /// Inicialização de objeto
     public void initObject() {
         initComponents();
-        generateBody(physicalParts);
+        generateBody();
     }
 
-    private void generateBody(List<SubmarinePart> parts) {
+    private void generateBody() {
         this.internalBody = createInternalBody(
             this,
-            parts,
+            physicalParts,
             transformC,
             physicsWorld
         );
         this.body = createExternalBody(
             this,
-            parts,
+            physicalParts,
             transformC,
             physicsWorld
         );
@@ -142,8 +144,6 @@ public class SubmarineNode
     }
 
     private void initComponents() {
-        this.managerC = new RenderableAndDefaultComponentManagerComponent();
-
         MovableObjectPhysicsComponent vPhysicsC = new MovableObjectPhysicsComponent(
             this,
             0,
@@ -425,8 +425,6 @@ public class SubmarineNode
         this.transformC = null;
         this.physicsC = null;
         this.liquidInteractionC = null;
-
-        this.managerC = null;
 
     }
 }
