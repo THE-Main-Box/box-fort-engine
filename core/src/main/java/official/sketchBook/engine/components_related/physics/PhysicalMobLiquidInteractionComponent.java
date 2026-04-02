@@ -66,9 +66,12 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     @Override
     public void update(float delta) {
-        if (!canInteractWithLiquid || !inLiquid) return;
+        if (!canInteractWithLiquid || !inLiquid) {
+            restartOriginalMovementValues();
+            return;
+        }
 
-        if(justEnteredLiquid){
+        if (justEnteredLiquid) {
             justEnteredLiquid = false;
             return;
         }
@@ -100,7 +103,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         if (Math.abs(totalBoyancyEffect) < BOYANCY_THRESHOLD) return;
 
-        moveC.setySpeed(totalBoyancyEffect);
+//        moveC.setySpeed(totalBoyancyEffect);
+        moveC.setySpeed(moveC.ySpeed + totalBoyancyEffect);
     }
 
     private void updateTotalBoyancyEffect() {
@@ -323,8 +327,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         if (!canInteract) {
             // Desativa a simulação, mas não trata isso como "sair do líquido".
-            restartOriginalMovementValues();
-
             inLiquid = false;
             justEnteredLiquid = false;
 
