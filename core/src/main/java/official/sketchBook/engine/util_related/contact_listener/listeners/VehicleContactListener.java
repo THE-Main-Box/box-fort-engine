@@ -55,10 +55,10 @@ public class VehicleContactListener implements MultiContactListener.SubContactLi
 
         if (entering) {
             passenger.getVehiclePassengerPhysicsC().setCurrentSection(section);
-            passenger.getLiquidInteractionC().setCanInteractWithLiquid(false);
+            passenger.getLiquidInteractionC().setCanInteract(false);
         } else {
             passenger.getVehiclePassengerPhysicsC().setCurrentSection(null);
-            passenger.getLiquidInteractionC().setCanInteractWithLiquid(true);
+            passenger.getLiquidInteractionC().setCanInteract(true);
         }
 
         return true;

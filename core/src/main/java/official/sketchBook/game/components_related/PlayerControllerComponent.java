@@ -15,10 +15,12 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
 
     private float accelToApply = 100;
 
-    private boolean leftPressed = false;
-    private boolean rightPressed = false;
-    private boolean upPressed = false;
-    private boolean downPressed = false;
+    private boolean
+        submarineAlterPos = false,
+        upPressed = false,
+        downPressed = false,
+        leftPressed = false,
+        rightPressed = false;
 
     private Direction lastDirectionPressed = Direction.STILL;
 
@@ -35,6 +37,11 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
         this.bindKey(ControlKeys.dir_left, this::left);
         this.bindKey(ControlKeys.dir_right, this::right);
         this.bindKey(ControlKeys.jump, this::jump);
+        this.bindKey(ControlKeys.use, this::use);
+    }
+
+    public void use(boolean pressed){
+        if(!pressed) return;
     }
 
     public void up(boolean pressed) {
@@ -96,20 +103,23 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
         testSubMovement();
     }
 
-    private void testSubMovement(){
+    private void testSubMovement() {
         VehiclePassengerPhysicsComponent VPPC = player.getVehiclePassengerPhysicsC();
 
         if (VPPC.isInsideVehicle()) {
 
-            float velX = 0f;
+            float vel = 0;
 
             if (upPressed && !downPressed) {
-                velX = -2f;
+                vel = 2f;
             } else if (!upPressed && downPressed) {
-                velX = 2f;
+                vel = -2f;
             }
 
-            VPPC.getCurrentSection().getPhysicsC().setVelocity(velX, 0);
+            VPPC.getCurrentSection().getPhysicsC().setVelocity(
+                vel,
+                0
+            );
         }
     }
 

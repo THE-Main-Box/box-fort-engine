@@ -107,7 +107,7 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
     }
 
     private void synObjectPositionToVehicle() {
-        if (this.currentSection == null || !autoCorrect) return;
+        if (currentSection == null || !autoCorrect) return;
 
         final Body body = object.getBody();
 
@@ -124,12 +124,10 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
         final float deltaSubX = subVelX - lastSubVelX;
         final float deltaSubY = subVelY - lastSubVelY;
 
-        final boolean hasDelta =
-            Math.abs(deltaSubX) > CORRECTION_THRESHOLD ||
-                Math.abs(deltaSubY) > CORRECTION_THRESHOLD;
+        // early exit
+        if (Math.abs(deltaSubX) <= CORRECTION_THRESHOLD &&
+            Math.abs(deltaSubY) <= CORRECTION_THRESHOLD) {
 
-        // --- OTIMIZAÇÃO: se não mudou nada, sai cedo ---
-        if (!hasDelta) {
             lastSubVelX = subVelX;
             lastSubVelY = subVelY;
             return;
@@ -138,15 +136,12 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
         // --- VELOCIDADE ---
         final Vector2 vel = body.getLinearVelocity();
 
-        final float relativeVelX = vel.x - lastSubVelX;
-        final float relativeVelY = vel.y - lastSubVelY;
-
         body.setLinearVelocity(
-            relativeVelX + subVelX,
-            relativeVelY + subVelY
+            vel.x + deltaSubX,
+            vel.y + deltaSubY
         );
 
-        // --- POSIÇÃO ---
+        // --- POSIÇÃO (mantida, mas mais leve) ---
         final Vector2 pos = body.getPosition();
 
         body.setTransform(
@@ -155,7 +150,6 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
             body.getAngle()
         );
 
-        // --- update estado ---
         lastSubVelX = subVelX;
         lastSubVelY = subVelY;
     }

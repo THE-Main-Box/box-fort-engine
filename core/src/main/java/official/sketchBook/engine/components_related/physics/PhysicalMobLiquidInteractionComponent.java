@@ -24,7 +24,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     /// flags de constraints e auxiliares
     private boolean
-        canInteractWithLiquid = true,       // Se podemos interagir com líquidos
+        wasInLiquid = false,                //Se estávamos dentro de um liquido a pouco tempo
+        canInteract = true,                 // Se podemos interagir com líquidos
         neutralBuoyancy = false,            // Se estamos neutralmente boiantes
         inLiquid = false,                   // Se estamos físicamente na área de um líquido
         originalValuesStored = false,       // Se armazenamos os valores de movimentação
@@ -56,7 +57,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     /// Flags de auxilio
     private boolean
-        justEnteredLiquid = false,
         disposed = false;
 
     public PhysicalMobLiquidInteractionComponent(LiquidInteractableObjectII object) {
@@ -66,22 +66,50 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     @Override
     public void update(float delta) {
-        if (!canInteractWithLiquid || !inLiquid) {
+        final boolean shouldSimulate = canInteract && !liquidBuffer.isEmpty();
+
+        applyChange(shouldSimulate);
+        applyPhysics(shouldSimulate, needsRecalculation);
+    }
+
+    private void applyChange(boolean isInsideLiquid){
+        //Caso haja uma diferença nos dados de estar dentro de um liquido anteriormente e poder estar agora
+        if (isInsideLiquid && !inLiquid) {
+            storeOriginalMovementValues();
+            inLiquid = true;
+            object.onLiquidEnter(liquidBuffer.get(0));
+        }
+        else if (!isInsideLiquid && inLiquid) {
+            inLiquid = false;
+
             restartOriginalMovementValues();
-            return;
-        }
+            moveC.resetYMovement();
 
-        if (justEnteredLiquid) {
-            justEnteredLiquid = false;
-            return;
-        }
+            totalBoyancyEffect = 0;
+            boyancyFactor = 0;
 
+            object.onLiquidExit(null);
+        }
+    }
+
+    /// Realizamos as aplicações relacionadas a simulação do liquido
+    private void applyPhysics(
+        boolean shouldSimulate,
+        boolean needsRecalculation
+    ) {
+
+        //Se não podemos simular a interação com liquido, não fazemos isso
+        if (!shouldSimulate) return;
+
+        // Recalculamos os dados de simulação e aplicamos os limites
         if (needsRecalculation) {
             recalculateLiquidEffects();
         }
 
+        //Aplicamos os dados da simulação que ainda não foram aplicados
         applyLiquidEffects();
 
+        //Realizamos um update interno do objeto
         object.inLiquidUpdate();
     }
 
@@ -91,7 +119,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     }
 
     private void applyLiquidEffects() {
-        if (!canInteractWithLiquid) return;
+        if (!canInteract) return;
 
         if (neutralBuoyancy) {
             moveC.gravityAffected = false;
@@ -127,16 +155,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         liquidBuffer.add(liquid);
 
-        // Se não pode interagir, só mantemos o buffer.
-        if (!canInteractWithLiquid) return;
-
-        if (liquidBuffer.size() == 1) {
-            storeOriginalMovementValues();
-            inLiquid = true;
-            justEnteredLiquid = true;
-            object.onLiquidEnter(liquid);
-        }
-
         needsRecalculation = true;
     }
 
@@ -153,30 +171,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             }
         }
 
-        // Se não pode interagir, não executa a simulação nem o reset de saída.
-        if (!canInteractWithLiquid) return;
-
-        if (liquidBuffer.isEmpty()) {
-            if (inLiquid) {
-                object.onLiquidExit(liquid);
-            }
-
-            inLiquid = false;
-            justEnteredLiquid = false;
-            restartOriginalMovementValues();
-
-            /*
-             * Reseta a movimentação no eixo y para evitar excesso residual
-             * após sair de líquidos.
-             */
-            moveC.resetYMovement();
-
-            totalBoyancyEffect = 0;
-            boyancyFactor = 0;
-
-            return;
-        }
-
         needsRecalculation = true;
     }
 
@@ -185,7 +179,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
      * Chamado na primeira entrada de um líquido.
      */
     private void storeOriginalMovementValues() {
-        if (originalValuesStored || !canInteractWithLiquid) return;
+        if (originalValuesStored || !canInteract) return;
 
         this.originalYMaxSpeed = moveC.yMaxMoveSpeed;
         this.originalXMaxSpeed = moveC.xMaxMoveSpeed;
@@ -316,37 +310,18 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         needsRecalculation = true;
     }
 
-    public boolean isCanInteractWithLiquid() {
-        return canInteractWithLiquid;
+    public boolean isCanInteract() {
+        return canInteract;
     }
 
-    public void setCanInteractWithLiquid(boolean canInteract) {
-        if (this.canInteractWithLiquid == canInteract) return;
+    public void setCanInteract(boolean canInteract) {
+        if (this.canInteract == canInteract) return;    //Se o valor passado for o mesmo, ignoramos
 
-        this.canInteractWithLiquid = canInteract;
+        //Atribuimos o novo valor
+        this.canInteract = canInteract;
 
-        if (!canInteract) {
-            // Desativa a simulação, mas não trata isso como "sair do líquido".
-            inLiquid = false;
-            justEnteredLiquid = false;
-
-            totalBoyancyEffect = 0;
-            boyancyFactor = 0;
-
-            needsRecalculation = false;
-            return;
-        }
-
-        // Reativa a simulação caso já exista líquido no buffer.
-        if (!liquidBuffer.isEmpty()) {
-
-            storeOriginalMovementValues();
-
-            inLiquid = true;
-            justEnteredLiquid = true;
-            needsRecalculation = true;
-            object.onLiquidEnter(liquidBuffer.get(0));
-        }
+        //Como o valor será diferente, precisamos recalcular algumas coisas
+        this.needsRecalculation = true;
     }
 
     public void setNeedsRecalculation(boolean needsRecalculation) {
