@@ -1,6 +1,5 @@
 package official.sketchBook.engine.game_object_related.vehicle;
 
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -16,7 +15,6 @@ import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.physics.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
-import official.sketchBook.engine.components_related.system_utils.ComponentManagerComponent;
 import official.sketchBook.engine.components_related.system_utils.RenderableAndDefaultComponentManagerComponent;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.game.util_related.constants.WorldConstants;
@@ -185,7 +183,7 @@ public class SubmarineNode
 
         liquidInteractionC = new PhysicalMobLiquidInteractionComponent(this);
 
-        liquidInteractionC.setCanInteractWithLiquid(false);
+        liquidInteractionC.setCanInteract(false);
 
         this.managerC.add(
             moveC,
