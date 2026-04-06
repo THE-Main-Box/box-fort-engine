@@ -2,6 +2,7 @@ package official.sketchBook.engine.game_object_related.vehicle;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.MassData;
 import com.badlogic.gdx.physics.box2d.World;
@@ -241,8 +242,14 @@ public class SubmarineNode
     }
 
     private void updateVelocity() {
-        float currentX = body.getPosition().x;
-        float currentY = body.getPosition().y;
+        final float delta = physicsC.getDeltaTime();
+
+        // evita divisão desnecessária
+        if (delta == 0f) return;
+
+        final Vector2 pos = body.getPosition();
+        final float currentX = pos.x;
+        final float currentY = pos.y;
 
         if (!velInitialized) {
             lastPosX = currentX;
@@ -253,8 +260,10 @@ public class SubmarineNode
             return;
         }
 
-        velX = (currentX - lastPosX) / physicsC.getDeltaTime();
-        velY = (currentY - lastPosY) / physicsC.getDeltaTime();
+        final float invDelta = 1f / delta;
+
+        velX = (currentX - lastPosX) * invDelta;
+        velY = (currentY - lastPosY) * invDelta;
 
         lastPosX = currentX;
         lastPosY = currentY;
