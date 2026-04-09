@@ -10,6 +10,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.AppMain;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
+import official.sketchBook.engine.components_related.objects.MovementDataComponent;
 import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadRenderSystem;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadUpdateSystem;
@@ -183,10 +184,11 @@ public class PlayScreen extends BaseScreen {
             if(bullet == null) return;
 
             MovementComponent moveC = bullet.getMoveC();
-            moveC.gravityAffected = true;
-            moveC.canMoveY = true;
-            moveC.canMoveX = true;
-            moveC.canRotate = true;
+            MovementDataComponent data = moveC.dataComponent;
+            data.gravityAffected = true;
+            data.xAxis.canMove = true;
+            data.yAxis.canMove = true;
+            data.rAxis.canMove = true;
 
             ProjectileControllerComponent controller = bullet.getControllerC();
             controller.continuousDetection = false;

@@ -2,69 +2,14 @@ package official.sketchBook.engine.components_related.movement;
 
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
+import official.sketchBook.engine.components_related.objects.MovementDataComponent;
 
 public class MovementComponent implements Component {
 
     /// Referencia ao objeto capaz de se mover
     private MovableObjectII mob;
 
-    /// Valores de velocidade
-    public float
-        xSpeed,             //Velocidade do eixo x (m|px/s)
-        ySpeed,             //Velocidade do eixo y (m|px/s)
-        rSpeed;             //Velocidade de rotação (rad/s)
-
-    /// Limite de velocidade de movimentação
-    public float
-        xMaxMoveSpeed,          //Limite de velocidade do eixo X (m|px/s)
-        yMaxMoveSpeed,          //Limite de velocidade do eixo y (m|px/s)
-        rMaxMoveSpeed;          //Limite de velocidade de rotação (rad/s)
-
-    /// Limite de velocidade
-    public float
-        xMaxSpeed,          //Limite de velocidade do eixo X (m|px/s)
-        yMaxSpeed,          //Limite de velocidade do eixo y (m|px/s)
-        rMaxSpeed;          //Limite de velocidade de rotação (rad/s)
-
-    /// Valores de aceleração (input, sempre vem em pixels, exceto pelo rad que é em radianos)
-    public float
-        xAccel,             //Aceleração do eixo x (m|px/s)
-        yAccel,             //Aceleração do eixo y (m|px/s)
-        rAccel;             //Aceleração de rotação (rad/s)
-
-    /// Valores de desaceleração
-    public float
-        xDeceleration,          //Desaceleração do eixo x (m|px/s)
-        yDeceleration,          //Desaceleração do eixo x (m|px/s)
-        rDeceleration;          //Desaceleração de rotação (rad/s)
-
-    /// Peso de resistência por eixo (0 = sem efeito, maior = mais difícil iniciar, mais fácil parar)
-    public float
-        xResistanceWeight,
-        yResistanceWeight,
-        rResistanceWeight;
-
-    /// Flags que determinam se podemos nos mover nos eixos respectivos
-    public boolean
-        canMoveX,           //Se podemos nos mover no eixo x
-        canMoveY,           //Se podemos nos mover no eixo y
-        gravityAffected,    //Se podemos ser afetados pela gravidade (quem aplica é o componente de física)
-        canRotate;          //Se podemos rotacionar usando o componente de movimento
-
-    /// Flags para determinar se podemos manter uma aceleração nos eixos respectivos
-    public boolean
-        canAccelerateX,         //Se podemos acelerar no eixo x
-        canAccelerateY,         //Se podemos acelerar no eixo y
-        canAccelerateR;         //Se podemos acelerar a rotação
-
-    /// Flags para determinar se podemos realizar uma desaceleração nos eixos respectivos
-    public boolean
-        canDeAccelerateX,           //Se podemos desacelerar no eixo x
-        canDeAccelerateY,           //Se podemos desacelerar no eixo y
-        canDeAccelerateR;           //Se podemos desacelerar a rotação
-
-    /// Valor de escala de gravidade padrão
-    public float gravityScale = 1;
+    public final MovementDataComponent dataComponent;
 
     /// Esta variavel determina se a velocidade é aplicada no objeto de forma direta
     public final boolean autoApplySpeed;
@@ -96,79 +41,35 @@ public class MovementComponent implements Component {
     ) {
         this.mob = mob;
 
-        this.xMaxSpeed = xMaxSpeed;
-        this.yMaxSpeed = yMaxSpeed;
-        this.rMaxSpeed = rMaxSpeed;
-
-        this.xMaxMoveSpeed = xMaxMoveSpeed;
-        this.yMaxMoveSpeed = yMaxMoveSpeed;
-        this.rMaxMoveSpeed = rMaxMoveSpeed;
-
-        this.xDeceleration = xDeceleration;
-        this.yDeceleration = yDeceleration;
-        this.rDeceleration = rDeceleration;
-
-        this.canMoveX = canMoveX;
-        this.canMoveY = canMoveY;
-        this.canRotate = canRotate;
-
-        this.canAccelerateX = canAccelerateX;
-        this.canAccelerateY = canAccelerateY;
-        this.canAccelerateR = canAccelerateR;
-
-        this.canDeAccelerateX = canDeAccelerateX;
-        this.canDeAccelerateY = canDeAccelerateY;
-        this.canDeAccelerateR = canDeAccelerateR;
+        this.dataComponent = new MovementDataComponent(
+            xMaxMoveSpeed,
+            yMaxMoveSpeed,
+            rMaxMoveSpeed,
+            xMaxSpeed,
+            yMaxSpeed,
+            rMaxSpeed,
+            xDeceleration,
+            yDeceleration,
+            rDeceleration,
+            canMoveX,
+            canMoveY,
+            canRotate,
+            canAccelerateX,
+            canAccelerateY,
+            canAccelerateR,
+            canDeAccelerateX,
+            canDeAccelerateY,
+            canDeAccelerateR,
+            gravityAffected
+        );
 
         this.autoApplySpeed = autoApplySpeed;
-        this.gravityAffected = gravityAffected;
     }
 
     @Override
     public void update(float delta) {
 
-        xSpeed = updateAxis(
-            xSpeed,
-            xAccel,
-            xMaxMoveSpeed,
-            xDeceleration,
-            xResistanceWeight,
-            canMoveX,
-            canAccelerateX,
-            canDeAccelerateX,
-            delta
-        );
-
-        ySpeed = updateAxis(
-            ySpeed,
-            yAccel,
-            yMaxMoveSpeed,
-            yDeceleration,
-            yResistanceWeight,
-            canMoveY,
-            canAccelerateY,
-            canDeAccelerateY,
-            delta
-        );
-
-        rSpeed = updateAxis(
-            rSpeed,
-            rAccel,
-            rMaxMoveSpeed,
-            rDeceleration,
-            rResistanceWeight,
-            canRotate,
-            canAccelerateR,
-            canDeAccelerateR,
-            delta
-        );
-
-        if (!canRotate)
-            resetRMovement();
-        if (!canMoveX)
-            resetXMovement();
-        if (!canMoveY)
-            resetYMovement();
+        dataComponent.updateAndConstraintAllAxis(delta);
 
         if (autoApplySpeed) {
             applyMovementToMob(delta);
@@ -182,152 +83,28 @@ public class MovementComponent implements Component {
 
     protected void applyMovementToMob(float delta) {
         mob.getTransformC().x = (
-            mob.getTransformC().x + this.xSpeed * delta
+            mob.getTransformC().x + dataComponent
+                .xAxis.velocity * delta
         );
 
         mob.getTransformC().y = (
-            mob.getTransformC().y + this.ySpeed * delta
+            mob.getTransformC().y + dataComponent
+                .yAxis.velocity * delta
         );
 
-    }
+        mob.getTransformC().rotation = (
+            mob.getTransformC().rotation + dataComponent
+                .rAxis.velocity * delta
+        );
 
-    private float updateAxis(
-        float speed,
-        float accel,
-        float maxSpeed,
-        float deceleration,
-        float resistanceWeight,
-        boolean canMove,
-        boolean canAccelerate,
-        boolean canDeAccelerate,
-        float delta
-    ) {
-        if (!canMove) return 0;
-
-        if (canAccelerate && accel != 0) {
-            // Resistência dificulta iniciar movimento
-            float effectiveAccel = accel / (1f + resistanceWeight);
-            speed += effectiveAccel;
-        } else if (canDeAccelerate && speed != 0) {
-            // Resistência facilita parar
-            float effectiveDeAccel = deceleration / (1f + resistanceWeight * delta);
-            speed = applyDeceleration(speed, effectiveDeAccel * delta);
-        }
-
-        return clamp(speed, maxSpeed);
-    }
-
-    private float clamp(float value, float max) {
-        if (value > max) return max;
-        return Math.max(value, -max);
-    }
-
-    /// Aplica a desaceleração artificial
-    private float applyDeceleration(float speed, float deceleration) {
-        if (speed == 0 || deceleration == 0) return 0;
-
-        // Se a velocidade é menor que o deceleration, zera
-        if (Math.abs(speed) <= deceleration) return 0;
-
-        return speed - deceleration * Math.signum(speed);
-    }
-
-    public void cleanAcceleration(){
-        this.xAccel = 0;
-        this.rAccel = 0;
-        this.yAccel = 0;
-    }
-
-    public void reverseX(){
-        this.xAccel *= -1;
-        this.xSpeed *= -1;
-    }
-
-    public void reverseY(){
-        this.yAccel *= -1;
-        this.ySpeed *= -1;
-    }
-
-    public void reverseR(){
-        this.rAccel *= -1;
-        this.rSpeed *= -1;
-    }
-
-    public void setxSpeed(float xSpeed) {
-        this.xSpeed = xSpeed;
-        this.xAccel = xSpeed;
-    }
-
-    public void setySpeed(float ySpeed) {
-        this.ySpeed = ySpeed;
-        this.yAccel = ySpeed;
-    }
-
-    public void setrSpeed(float rSpeed) {
-        this.rSpeed = rSpeed;
-        this.rAccel = rSpeed;
-    }
-
-    public void cleanAccelToDeAccelManually(){
-        if (canDeAccelerateX)
-            xAccel = 0;
-        if (canDeAccelerateY)
-            yAccel = 0;
-        if (canDeAccelerateR)
-            rAccel = 0;
-    }
-
-    /// Reseta a movimentação no eixo x de aceleração e velocidade
-    public void resetXMovement() {
-        this.xSpeed = 0;
-        this.xAccel = 0;
-    }
-
-    /// Reseta a movimentação no eixo y de aceleração e velocidade
-    public void resetYMovement() {
-        this.ySpeed = 0;
-        this.yAccel = 0;
-    }
-
-    /// Reseta os valores de movimento de rotação
-    public void resetRMovement() {
-        this.rSpeed = 0;
-        this.rAccel = 0;
-    }
-
-    /// Verifica se existe aceleração armazenada no eixo x
-    public boolean isAcceleratingX() {
-        return xAccel != 0;
-    }
-
-    /// Verifica se existe aceleração armazenada no eixo y
-    public boolean isAcceleratingY() {
-        return yAccel != 0;
-    }
-
-    /// Verifica se temos aceleração armazenada no eixo de rotação
-    public boolean isAcceleratingRotation() {
-        return rAccel != 0;
-    }
-
-    /// Verifica se existe velocidade armazenada no eixo x
-    public boolean isMovingX() {
-        return xSpeed != 0;
-    }
-
-    /// Verifica se existe velocidade armazenada no eixo y
-    public boolean isMovingY() {
-        return ySpeed != 0;
-    }
-
-    /// Verifica se temos velocidade armazenada no eixo de rotação
-    public boolean isRotating() {
-        return rSpeed != 0;
     }
 
     @Override
     public void dispose() {
         if (disposed) return;
+
+        dataComponent.dispose();
+
         nullifyReferences();
         disposed = true;
     }
@@ -335,6 +112,5 @@ public class MovementComponent implements Component {
     public void nullifyReferences() {
         this.mob = null;
     }
-
 
 }

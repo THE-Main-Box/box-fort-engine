@@ -37,10 +37,16 @@ public class ProjectileMovementLockComponent implements Component {
         this.controllerC = controllerC;
         this.moveC = moveC;
 
-        this.gravityAffected = moveC.gravityAffected;
-        this.canMoveX = moveC.canMoveX;
-        this.canMoveY = moveC.canMoveY;
-        this.canRotate = moveC.canRotate;
+        this.gravityAffected = moveC.dataComponent.gravityAffected;
+
+        this.canMoveX = moveC.
+            dataComponent.xAxis.canMove;
+
+        this.canMoveY = moveC.
+            dataComponent.yAxis.canMove;
+
+        this.canRotate = moveC.
+            dataComponent.rAxis.canMove;
 
         this.autoApplyLock = true;
     }
@@ -79,15 +85,26 @@ public class ProjectileMovementLockComponent implements Component {
         //Se já estivermos presos não adianta chamar novamente
         if (stuck) return;
 
-        moveC.canMoveY = false;         //Impede a alteração de velocidade do eixo y
-        moveC.canMoveX = false;         //Impede a alteração de velocidade do eixo x
-        moveC.canRotate = false;        //Impede a alteração de velocidade de rotação
-        moveC.gravityAffected = false;  //Impede que a gravidade afete o projétil
+        moveC.dataComponent.
+            xAxis.canMove = false;
+
+        moveC.dataComponent.
+            yAxis.canMove = false;
+
+        moveC.dataComponent.
+            rAxis.canMove = false;
+
+        moveC.dataComponent.gravityAffected = false;  //Impede que a gravidade afete o projétil
 
         //Reseta todas as velocidades para que não haja movimento residual
-        moveC.resetXMovement();
-        moveC.resetYMovement();
-        moveC.resetRMovement();
+        moveC.dataComponent.
+            xAxis.resetMovement();
+
+        moveC.dataComponent.
+            yAxis.resetMovement();
+
+        moveC.dataComponent.
+            rAxis.resetMovement();
 
         //Marca que estamos travados sem poder nos mover
         stuck = true;
@@ -99,10 +116,17 @@ public class ProjectileMovementLockComponent implements Component {
         if (!stuck) return;
 
         //Passa as configurações originais de movimentação
-        moveC.canMoveX = canMoveX;
-        moveC.canMoveY = canMoveY;
-        moveC.canRotate = canRotate;
-        moveC.gravityAffected = gravityAffected;
+        moveC.dataComponent.
+            xAxis.canMove = canMoveX;
+
+        moveC.dataComponent.
+            yAxis.canMove = canMoveY;
+
+        moveC.dataComponent.
+            rAxis.canMove = canRotate;
+
+        moveC.dataComponent.
+            gravityAffected = gravityAffected;
 
         //Marca que não estamos mais travados e que podemos nos mover
         stuck = false;
@@ -122,7 +146,7 @@ public class ProjectileMovementLockComponent implements Component {
     }
 
     /// Verifica se devemos ou não travar os eixos do projétil com base nos valores passados
-    public boolean shouldLockMovement(Direction colDir){
+    public boolean shouldLockMovement(Direction colDir) {
         return stickToAnyCollision
             ||  //Se tivermos batido pra cima e tivermos uma constraint
             colDir.isUp() && stickToUpCollision

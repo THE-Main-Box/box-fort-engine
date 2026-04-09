@@ -5,6 +5,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.VehiclePassenger;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
+import official.sketchBook.engine.components_related.objects.AxisData;
 import official.sketchBook.engine.game_object_related.vehicle.VehicleSection;
 
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.FIXED_TIMESTAMP;
@@ -33,6 +34,8 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
         autoCorrect = true,
         autoApplySubMovement = true;
 
+    private AxisData xAxis, yAxis;
+
     public VehiclePassengerPhysicsComponent(
         VehiclePassenger object,
         int categoryBit,
@@ -52,6 +55,9 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
 
         this.passenger = object;
         this.moveC = object.getMoveC();
+
+        this.xAxis = moveC.dataComponent.xAxis;
+        this.yAxis = moveC.dataComponent.yAxis;
     }
 
     @Override
@@ -77,10 +83,10 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
 
         // Velocidade desejada relativa ao sub
         final float desiredRelX = limitAndConvertSpeedToMeters(
-            moveC.xSpeed, moveC.xMaxSpeed, relVelX
+            xAxis.velocity, xAxis.maxVel, relVelX
         );
         final float desiredRelY = limitAndConvertSpeedToMeters(
-            moveC.ySpeed, moveC.yMaxSpeed, relVelY
+            yAxis.velocity, yAxis.maxVel, relVelY
         );
 
         final float impulseX = desiredRelX != 0 ? desiredRelX - relVelX : 0;

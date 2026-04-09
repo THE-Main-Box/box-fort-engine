@@ -331,6 +331,8 @@ public class Player extends AnimatedRenderableRoomGameObject
     @Override
     public void update(float delta) {
         super.update(delta);
+
+//        System.out.println(moveC.dataComponent.xAxis.velocity);
     }
 
     @Override
