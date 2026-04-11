@@ -210,7 +210,7 @@ public class SubmarinePartBodyCreateHelper {
     /// Criamos o sensor que determina qual é a area interna do sub
     public static void createInternalAreaSensor(Body body, SubmarinePart part) {
 
-        float toInteriorMargin = 1f;
+        float toInteriorMargin = 2f;
 
         // fallback seguro: usa bounds já calculado (independente do formato original)
         float marginLeft = (toInteriorMargin + part.internalMarginLeft) / PPM;
