@@ -71,21 +71,22 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     @Override
     public void update(float delta) {
-        final boolean shouldSimulate = canInteract && !liquidBuffer.isEmpty();
+        final boolean inLiquid = !liquidBuffer.isEmpty();
+        final boolean shouldSimulate = canInteract && inLiquid;
 
-        applyChange(shouldSimulate);
+        applyChange(inLiquid, shouldSimulate);
         applyPhysics(shouldSimulate, needsRecalculation);
     }
 
-    private void applyChange(boolean isInsideLiquid) {
+    private void applyChange(boolean isInsideLiquid, boolean shouldSimulate) {
         //Caso haja uma diferença nos dados de estar dentro de um liquido anteriormente e poder estar agora
-        if (isInsideLiquid && !inLiquid) {
+        if (isInsideLiquid && !inLiquid && shouldSimulate) {
             inLiquid = true;
 
-            this.storeCurrentMovementValues();
+            storeCurrentMovementValues();
 
             object.onLiquidEnter();
-        } else if (!isInsideLiquid && inLiquid) {
+        } else if (!isInsideLiquid && inLiquid || !shouldSimulate) {
             inLiquid = false;
 
             restartStoredMovementValues();
