@@ -3,6 +3,7 @@ package official.sketchBook.engine.components_related.movement;
 import com.badlogic.gdx.physics.box2d.Body;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.JumpCapableObjectII;
+import official.sketchBook.engine.components_related.objects.AxisData;
 import official.sketchBook.engine.components_related.objects.TimerComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 
@@ -53,6 +54,8 @@ public class JumpComponent implements Component {
     private TimerComponent coyoteTimer;
     /// Valida se podemos usar um pulo mesmo após termos saído do chão
     private TimerComponent jumpBufferTimer;
+
+    private AxisData yAxis;
 
     private boolean disposed = false;
 
@@ -106,6 +109,8 @@ public class JumpComponent implements Component {
         this.falling = false;
         this.jumpedFromGround = false;
         this.coyoteConsumed = false;
+
+        yAxis = moveC.dataComponent.yAxis;
     }
 
     @Override
@@ -166,7 +171,7 @@ public class JumpComponent implements Component {
     private void updateJumpingFallingFlags() {
         boolean onGround = object.isOnGround();
         float vy = physicsC.getTmpVel().y;
-        moveC.ySpeed = vy * PPM;
+        moveC.dataComponent.yAxis.velocity = vy * PPM;
 
         if (onGround) {
             jumping = false;
@@ -251,13 +256,13 @@ public class JumpComponent implements Component {
 
     /// Pula ou cancela um pulo
     private void executeJump(boolean cancel) {
-        if (!cancel && moveC.canMoveY) {
+        if (!cancel && yAxis.canMove) {
             if (object.canJump()) {
 
                 //zera a velocidade vertical caso ela seja negativa antes de pular para evitar um pulo fraco
                 //ou zeramos para evitar um superPulo sem a intenção
-                if (moveC.ySpeed < 0 ||
-                    moveC.ySpeed > 0 && !superJump
+                if (yAxis.velocity< 0 ||
+                    yAxis.velocity> 0 && !superJump
                 ) {
                     body.setLinearVelocity(
                         physicsC.getTmpVel().x,
@@ -279,7 +284,7 @@ public class JumpComponent implements Component {
                 coyoteTimer.reset();
             }
         } else {
-            if (jumping && moveC.ySpeed / PPM> fallSpeedAfterJCancel) {
+            if (jumping && yAxis.velocity / PPM> fallSpeedAfterJCancel) {
                 body.setLinearVelocity(
                     physicsC.getTmpVel().x,
                     fallSpeedAfterJCancel

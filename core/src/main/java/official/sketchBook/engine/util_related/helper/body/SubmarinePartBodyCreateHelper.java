@@ -160,8 +160,7 @@ public class SubmarinePartBodyCreateHelper {
                         (data.offsetX + data.globalOffsetX),
                         (data.offsetY + data.globalOffsetY)
                     );
-                }
-                else if (data.isRectangle()) {
+                } else if (data.isRectangle()) {
                     shape = BodyCreatorHelper.createBoxShape(
                         data.width,
                         data.height,
@@ -211,11 +210,13 @@ public class SubmarinePartBodyCreateHelper {
     /// Criamos o sensor que determina qual é a area interna do sub
     public static void createInternalAreaSensor(Body body, SubmarinePart part) {
 
+        float toInteriorMargin = 1f;
+
         // fallback seguro: usa bounds já calculado (independente do formato original)
-        float marginLeft = part.internalMarginLeft / PPM;
-        float marginRight = part.internalMarginRight / PPM;
-        float marginUp = part.internalMarginUp / PPM;
-        float marginDown = part.internalMarginDown / PPM;
+        float marginLeft = (toInteriorMargin + part.internalMarginLeft) / PPM;
+        float marginRight = (toInteriorMargin + part.internalMarginRight) / PPM;
+        float marginUp = (toInteriorMargin + part.internalMarginUp) / PPM;
+        float marginDown = (toInteriorMargin + part.internalMarginDown) / PPM;
 
         float minX = part.internalMinX + marginLeft;
         float maxX = part.internalMaxX - marginRight;

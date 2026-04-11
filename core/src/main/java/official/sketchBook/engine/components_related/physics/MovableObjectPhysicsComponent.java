@@ -2,10 +2,16 @@ package official.sketchBook.engine.components_related.physics;
 
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
+import official.sketchBook.engine.components_related.objects.AxisData;
 
 public class MovableObjectPhysicsComponent extends PhysicsComponent {
 
     private MovableObjectII mob;
+
+    private final AxisData
+        xAxis,
+        yAxis,
+        rAxis;
 
     private float defaultGravityScale = 0;
     private boolean gravityWasAffected = true;
@@ -33,6 +39,10 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
         );
 
         this.mob = (MovableObjectII) object;
+
+        this.xAxis = mob.getMoveC().dataComponent.xAxis;
+        this.yAxis = mob.getMoveC().dataComponent.yAxis;
+        this.rAxis = mob.getMoveC().dataComponent.rAxis;
     }
 
     public void update(float deltaTime) {
@@ -41,23 +51,25 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
         if (autoApplyMovement) {
             applyMovement();
         }
+
         constraintMovementAxis();
         constraintRotation();
         constraintGravity();
 
     }
 
-    protected void applyMovement(){
+    protected void applyMovement() {
         applyMovementToBodyByImpulse();
     }
 
     public void applyMovementToBodyByImpulse() {
         //Aplica a movimentação no corpo
         applyImpulseForSpeed(
-            mob.getMoveC().xSpeed,
-            mob.getMoveC().ySpeed,
-            mob.getMoveC().xMaxSpeed,
-            mob.getMoveC().yMaxSpeed
+            xAxis.velocity,
+            yAxis.velocity,
+
+            xAxis.maxVel,
+            yAxis.maxVel
         );
     }
 
@@ -67,8 +79,8 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
 
         //Limita a velocidade do corpo físico
         limitVelocity(
-            mob.getMoveC().xMaxSpeed,
-            mob.getMoveC().yMaxSpeed
+            xAxis.maxVel,
+            yAxis.maxVel
         );
     }
 
@@ -79,7 +91,7 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
     }
 
     private void constraintRotation() {
-        if (!mob.getMoveC().canRotate) {
+        if (!rAxis.canMove) {
             object.getBody().setAngularVelocity(0);
             object.getBody().setFixedRotation(true);
         } else {
@@ -87,7 +99,7 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
 
             if (autoConstraintR)
                 object.getBody().setAngularVelocity(
-                    mob.getMoveC().rSpeed
+                    rAxis.velocity
                 );
         }
     }
@@ -95,21 +107,21 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
 
     /// Impede a movimentação nos eixos
     private void constraintMovementAxis() {
-        if (!mob.getMoveC().canMoveX && !mob.getMoveC().canMoveY) {
+        if (!xAxis.canMove && !yAxis.canMove) {
             stopMovement();
-        } else if (!mob.getMoveC().canMoveX) {
+        } else if (!xAxis.canMove) {
             stopMovementX();
-        } else if (!mob.getMoveC().canMoveY) {
+        } else if (!yAxis.canMove) {
             stopMovementY();
         }
     }
 
     private void constraintGravity() {
-        boolean shouldAffectGravity = mob.getMoveC().gravityAffected;
+        boolean shouldAffectGravity = mob.getMoveC().dataComponent.gravityAffected;
 
         if (!shouldAffectGravity) {
             if (gravityWasAffected) {
-                defaultGravityScale = mob.getMoveC().gravityScale; // backup lógico
+                defaultGravityScale = mob.getMoveC().dataComponent.gravityScale; // backup lógico
                 object.getBody().setGravityScale(0);
                 gravityWasAffected = false;
             }
@@ -122,7 +134,7 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
             gravityWasAffected = true;
         }
 
-        float targetGravity = mob.getMoveC().gravityScale;
+        float targetGravity = mob.getMoveC().dataComponent.gravityScale;
         if (object.getBody().getGravityScale() != targetGravity) {
             object.getBody().setGravityScale(targetGravity);
         }

@@ -70,20 +70,22 @@ public class ProjectileControllerComponent implements Component {
     public void postUpdate() {
         managerC.postUpdate();
 
-        moveC.cleanAccelToDeAccelManually();
+        moveC.dataComponent.xAxis.cleanAcceleration();
+        moveC.dataComponent.yAxis.cleanAcceleration();
+        moveC.dataComponent.rAxis.cleanAcceleration();
     }
 
     /// Insere a velocidade de disparo na pipeline de aceleração
     public void launch() {
-        this.moveC.xAccel = launchSpeedX;
-        this.moveC.yAccel = launchSpeedY;
-        this.moveC.rAccel = launchSpeedR;
+        moveC.dataComponent.xAxis.setMovement(launchSpeedX);
+        moveC.dataComponent.yAxis.setMovement(launchSpeedY);
+        moveC.dataComponent.rAxis.setMovement(launchSpeedR);
     }
 
     /// Ativa o controlador
     public void start() {
         //Caso queiramos começar a nos mover logo após ativar o projétil
-        if(moveOnStart){
+        if (moveOnStart) {
             //Mandamos para a pipeline de lançamento do projétil
             projectile.launch();
         }

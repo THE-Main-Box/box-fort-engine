@@ -2,12 +2,16 @@ package official.sketchBook.engine.util_related.contact_listener.listeners;
 
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
+import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.VehiclePassenger;
 import official.sketchBook.engine.game_object_related.vehicle.VehicleSection;
 import official.sketchBook.engine.util_related.contact_listener.MultiContactListener;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
+import official.sketchBook.engine.util_related.helper.body.BodyTagHelper;
+
+import static official.sketchBook.engine.util_related.helper.body.BodyTagHelper.getFixtureTagFromContact;
 
 public class VehicleContactListener implements MultiContactListener.SubContactListener {
 
@@ -37,9 +41,9 @@ public class VehicleContactListener implements MultiContactListener.SubContactLi
 
     private boolean tryHandle(Contact contact, GameObjectTag sectionTag, GameObjectTag passengerTag, boolean entering) {
         if (sectionTag == null || passengerTag == null) return false;
-
         // A body precisa ser um veículo
         if (sectionTag.type != ObjectType.VEHICLE) return false;
+
         if (!(sectionTag.owner instanceof VehicleSection)) return false;
 
         // O passageiro precisa ser um VehiclePassenger
@@ -47,7 +51,7 @@ public class VehicleContactListener implements MultiContactListener.SubContactLi
 
         // Verificamos se a fixture que colidiu é o sensor de área seca
         // Pegamos a fixture da section com base em qual body é a section
-        GameObjectTag fixtureTag = getFixtureTagFromContact(contact, sectionTag);
+        GameObjectTag fixtureTag = getFixtureTagFromContact(contact);
         if (fixtureTag == null || fixtureTag.type != ObjectType.DYNAMIC_DRY_AREA) return false;
 
         VehiclePassenger passenger = (VehiclePassenger) passengerTag.owner;
@@ -62,20 +66,5 @@ public class VehicleContactListener implements MultiContactListener.SubContactLi
         }
 
         return true;
-    }
-
-    private GameObjectTag getFixtureTagFromContact(Contact contact, GameObjectTag sectionTag) {
-        Object dataA = contact.getFixtureA().getUserData();
-        Object dataB = contact.getFixtureB().getUserData();
-
-        // Retorna a tag da fixture que pertence à section
-        if (dataA instanceof GameObjectTag && contact.getFixtureA().getBody().getUserData() == sectionTag) {
-            return (GameObjectTag) dataA;
-        }
-        if (dataB instanceof GameObjectTag && contact.getFixtureB().getBody().getUserData() == sectionTag) {
-            return (GameObjectTag) dataB;
-        }
-
-        return null;
     }
 }

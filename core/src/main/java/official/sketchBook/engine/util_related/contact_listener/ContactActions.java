@@ -7,6 +7,7 @@ import com.badlogic.gdx.physics.box2d.WorldManifold;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalGameObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
+import official.sketchBook.engine.components_related.objects.AxisData;
 import official.sketchBook.engine.util_related.enumerators.Direction;
 
 public class ContactActions {
@@ -65,34 +66,37 @@ public class ContactActions {
             ((PhysicalGameObjectII) mob).getBody() :
             null;
 
+        AxisData xAxis = moveC.dataComponent.xAxis;
+        AxisData yAxis = moveC.dataComponent.yAxis;
+
         //Se a direção da batida em relação ao objeto for na esquerda e estivermos nos movendo naquela direção
         boolean leftBlocked = dir.isLeft()
-            && moveC.xSpeed < -MIN_VEL_THRESHOLD;
+            && xAxis.velocity< -MIN_VEL_THRESHOLD;
 
         //Se a direção da batida em relação ao objeto for na direita e estivermos nos movendo naquela direção
         boolean rightBlocked = dir.isRight() &&
-            moveC.xSpeed > MIN_VEL_THRESHOLD;
+            xAxis.velocity> MIN_VEL_THRESHOLD;
 
         //Se a direção da batida em relação ao objeto for pra cima e estivermos nos movendo naquela direção
-        boolean upBlocked = dir.isUp() && moveC.ySpeed > MIN_VEL_THRESHOLD;
+        boolean upBlocked = dir.isUp() && yAxis.velocity > MIN_VEL_THRESHOLD;
         //Se a direção da batida em relação ao objeto for pra baixo e estivermos nos movendo naquela direção
-        boolean downBlocked = dir.isDown() && moveC.ySpeed < -MIN_VEL_THRESHOLD;
+        boolean downBlocked = dir.isDown() && yAxis.velocity < -MIN_VEL_THRESHOLD;
 
         if (body == null) {
             // Resetamos a velocidade do eixo X
             if (leftBlocked || rightBlocked) {
-                moveC.resetXMovement();
+                xAxis.resetMovement();
             }
 
             // Resetamos a velocidade do eixo Y
             if (upBlocked || downBlocked) {
-                moveC.resetYMovement();
+                yAxis.resetMovement();
             }
         } else {
             tmpSpeed.set(body.getLinearVelocity());
 
             if (leftBlocked || rightBlocked) {
-                moveC.resetXMovement();
+                xAxis.resetMovement();
 
                 body.setLinearVelocity(
                     0,
@@ -101,7 +105,7 @@ public class ContactActions {
             }
 
             if (upBlocked || downBlocked) {
-                moveC.resetYMovement();
+                yAxis.resetMovement();
 
                 body.setLinearVelocity(
                     tmpSpeed.x,

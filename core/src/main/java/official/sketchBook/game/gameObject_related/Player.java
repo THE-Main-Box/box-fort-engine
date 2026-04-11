@@ -168,8 +168,6 @@ public class Player extends AnimatedRenderableRoomGameObject
             ObjectType.VEHICLE
         );
 
-        groundDetection.rayLength = 10;
-
         this.managerC.add(
             groundDetection,
             false,
@@ -333,6 +331,8 @@ public class Player extends AnimatedRenderableRoomGameObject
     @Override
     public void update(float delta) {
         super.update(delta);
+
+//        System.out.println(moveC.dataComponent.xAxis.velocity);
     }
 
     @Override
@@ -444,12 +444,12 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     @Override
-    public void onLiquidExit(LiquidData data) {
+    public void onLiquidExit() {
 
     }
 
     @Override
-    public void onLiquidEnter(LiquidData data) {
+    public void onLiquidEnter() {
     }
 
     @Override

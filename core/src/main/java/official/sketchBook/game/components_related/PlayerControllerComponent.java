@@ -163,12 +163,12 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     private void setXMovement(boolean canAccelerate, float accel) {
         // Só faz setters se realmente algo mudou
         if (lastCanAccelerate != canAccelerate) {
-            player.getMoveC().canAccelerateX = canAccelerate;
+            player.getMoveC().dataComponent.xAxis.canAccelerate = canAccelerate;
             lastCanAccelerate = canAccelerate;
         }
 
         if (lastAppliedAccel != accel) {
-            player.getMoveC().xAccel = accel;
+            player.getMoveC().dataComponent.xAxis.acceleration = accel;
             lastAppliedAccel = accel;
 
         }
