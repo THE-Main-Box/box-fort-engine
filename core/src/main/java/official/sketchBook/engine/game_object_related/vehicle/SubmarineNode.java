@@ -143,20 +143,6 @@ public class SubmarineNode
     }
 
     private void initComponents() {
-        MovableObjectPhysicsComponent vPhysicsC = new MovableObjectPhysicsComponent(
-            this,
-            0,
-            0,
-            0,
-            0,
-            0
-        );
-
-//        vPhysicsC.autoApplyMovement = false;
-        vPhysicsC.autoConstraintR = false;
-
-        physicsC = vPhysicsC;
-
         moveC = new MovementComponent(
             this,
             WorldConstants.SubmarineConstants.DEF_MAX_MOVE_SPEED_X,
@@ -185,6 +171,20 @@ public class SubmarineNode
 
         liquidInteractionC.setCanInteract(false);
 
+        MovableObjectPhysicsComponent vPhysicsC = new MovableObjectPhysicsComponent(
+            this,
+            0,
+            0,
+            0,
+            0,
+            0
+        );
+
+//        vPhysicsC.autoApplyMovement = false;
+        vPhysicsC.autoConstraintR = false;
+
+        physicsC = vPhysicsC;
+
         this.managerC.add(
             moveC,
             true,
@@ -205,11 +205,11 @@ public class SubmarineNode
     }
 
     @Override
-    public void onLiquidExit(LiquidData data) {
+    public void onLiquidExit() {
     }
 
     @Override
-    public void onLiquidEnter(LiquidData data) {
+    public void onLiquidEnter() {
 
     }
 

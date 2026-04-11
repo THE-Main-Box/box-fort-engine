@@ -444,12 +444,12 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     @Override
-    public void onLiquidExit(LiquidData data) {
+    public void onLiquidExit() {
 
     }
 
     @Override
-    public void onLiquidEnter(LiquidData data) {
+    public void onLiquidEnter() {
     }
 
     @Override

@@ -25,8 +25,6 @@ public class AxisData {
     }
 
     public AxisData(
-        float velocity,
-        float acceleration,
         float deceleration,
         float weightFactor,
         float maxVel,
@@ -35,9 +33,6 @@ public class AxisData {
         boolean canDecelerate,
         boolean canMove
     ) {
-        this.velocity = velocity;
-
-        this.acceleration = acceleration;
         this.deceleration = deceleration;
 
         this.weightFactor = weightFactor;
@@ -132,19 +127,18 @@ public class AxisData {
         return this.velocity != 0;
     }
 
+    /// Seta dados sem alterar os dados de movimentação como velocidade e aceleração, que são individuais
     public void set(AxisData data) {
-        this.velocity = data.velocity;
-
-        this.acceleration = data.acceleration;
-        this.deceleration = data.deceleration;
-
         this.maxVel = data.maxVel;
         this.maxMoveVel = data.maxMoveVel;
+
+        this.deceleration = data.deceleration;
 
         this.weightFactor = data.weightFactor;
 
         this.canAccelerate = data.canAccelerate;
         this.canDecelerate = data.canDecelerate;
+
 
         this.canMove = data.canMove;
     }

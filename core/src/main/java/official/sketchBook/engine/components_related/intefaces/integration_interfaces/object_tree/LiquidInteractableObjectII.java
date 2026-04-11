@@ -5,8 +5,8 @@ import official.sketchBook.engine.liquid_related.model.LiquidData;
 
 public interface LiquidInteractableObjectII extends MovableObjectII{
 
-    void onLiquidExit(LiquidData liquidData);
-    void onLiquidEnter(LiquidData liquidData);
+    void onLiquidExit();
+    void onLiquidEnter();
 
     void inLiquidUpdate();
     PhysicalMobLiquidInteractionComponent getLiquidInteractionC();

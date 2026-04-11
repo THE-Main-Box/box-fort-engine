@@ -38,18 +38,19 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         mass,                               // Fator de massa do objeto
         volume,                             // Fator de volume
         totalBoyancyEffect,                 // Efeito de flutuabilidade a ser aplicado no objeto
-        boyancyFactor,                      // O quanto iremos flutuar
-        boyancyModifier,                    // Modificador dinamico para flutuabilidade
+        boyancyEffect,                      // O quanto iremos flutuar
+        boyancyEffectModifier,              // Modificador dinamico para flutuabilidade
         resistanceMultiplier = 1.0f;        // O quanto iremos responder à resistência de movimentação do liquido
 
-    /// Valores originais de movimentação ao entrar no primeiro líquido
-    private MovementDataComponent
+    /// Valores de movimentação a serem usados como padrão
+    private final MovementDataComponent
         storedMovementData;
 
-    private AxisData
-        xAxis,
-        yAxis,
-        rAxis;
+    /// Referência aos dados de eixo dos eixos armazenados
+    private final AxisData
+        sxAxis,
+        syAxis,
+        srAxis;
 
     /// Flags de auxilio
     private boolean
@@ -61,23 +62,15 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         this.storedMovementData = new MovementDataComponent();
 
-        this.xAxis = new AxisData();
-        this.yAxis = new AxisData();
-        this.rAxis = new AxisData();
-    }
+        this.sxAxis = storedMovementData.xAxis;
+        this.syAxis = storedMovementData.yAxis;
+        this.srAxis = storedMovementData.rAxis;
 
-    private void updateAxisReferences() {
-        if (moveC != null && moveC.dataComponent != null) {
-            this.xAxis = moveC.dataComponent.xAxis;
-            this.yAxis = moveC.dataComponent.yAxis;
-            this.rAxis = moveC.dataComponent.rAxis;
-        }
+
     }
 
     @Override
     public void update(float delta) {
-        updateAxisReferences();
-
         final boolean shouldSimulate = canInteract && !liquidBuffer.isEmpty();
 
         applyChange(shouldSimulate);
@@ -88,16 +81,20 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         //Caso haja uma diferença nos dados de estar dentro de um liquido anteriormente e poder estar agora
         if (isInsideLiquid && !inLiquid) {
             inLiquid = true;
-            object.onLiquidEnter(liquidBuffer.get(0));
+
+            this.storeCurrentMovementValues();
+
+            object.onLiquidEnter();
         } else if (!isInsideLiquid && inLiquid) {
             inLiquid = false;
 
             restartStoredMovementValues();
+            resetStoredMovementValues();
 
             totalBoyancyEffect = 0;
-            boyancyFactor = 0;
+            boyancyEffect = 0;
 
-            object.onLiquidExit(null);
+            object.onLiquidExit();
         }
     }
 
@@ -132,7 +129,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         if (neutralBuoyancy) {
             moveC.dataComponent.gravityAffected = false;
             totalBoyancyEffect = 0;
-            boyancyFactor = 0;
+            boyancyEffect = 0;
         }
 
         updateTotalBoyancyEffect();
@@ -140,31 +137,24 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         if (Math.abs(totalBoyancyEffect) < BOYANCY_THRESHOLD) return;
 
 //        moveC.setySpeed(totalBoyancyEffect);
-        yAxis.velocity += totalBoyancyEffect;
+        moveC.dataComponent.yAxis.velocity += totalBoyancyEffect;
     }
 
     /// Atualiza o valor de flutuabilidade
     private void updateTotalBoyancyEffect() {
         //Determinamos que fator de flutuabilidade final será uma soma contínua de:
         totalBoyancyEffect +=
-            boyancyFactor +         //Fator original
-                boyancyModifier;    //Modificador
+            boyancyEffect +         //Fator original
+                boyancyEffectModifier;    //Modificador
 
         //Limitamos o valor final com o limite de movimentação determinado no sistema de movimentação
 
-//        totalBoyancyEffect = MathUtils.clamp(
-//            totalBoyancyEffect,
-//            yAxis.maxMoveVel,
-//            -yAxis.maxMoveVel
-//        );
-
-        totalBoyancyEffect = Math.max(
-            -yAxis.maxMoveVel,
-            Math.min(
-                yAxis.maxMoveVel,
-                totalBoyancyEffect
-            )
+        totalBoyancyEffect = MathUtils.clamp(
+            totalBoyancyEffect,
+            -syAxis.maxMoveVel,
+            syAxis.maxMoveVel
         );
+
     }
 
     /**
@@ -200,18 +190,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     }
 
-    /// Prepara o ambiente e atualiza os dados de movimentação armazenados
-    public void updateCurrentMovementValues(boolean reset) {
-        this.setCanInteract(false);
-
-        if (reset)
-            this.resetCurrentMovementValues();
-        else
-            this.storeCurrentMovementValues();
-
-        this.setCanInteract(true);
-    }
-
     /**
      * Armazena valores atuais do MovementComponent.
      * É Importante ter em mente que este irá armazenar os dados
@@ -226,15 +204,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         originalValuesStored = true;
     }
 
-    private void resetCurrentMovementValues() {
-        //Se não tivermos dados armazenados, ou pudermos retornar, ambos se tornam motivos para sair da função
-        if (!originalValuesStored || canInteract) return;
-
-        this.storedMovementData.reset();
-
-        originalValuesStored = false;
-    }
-
     /**
      * Restaura os valores de movimentação original no MovementComponent.
      * Chamado para restaurar a movimentação fora de liquido.
@@ -242,14 +211,16 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     private void restartStoredMovementValues() {
         if (!originalValuesStored) return;
 
-        this.moveC.
-            dataComponent.set(
+        this.moveC.dataComponent
+            .set(
                 storedMovementData
             );
 
-        moveC.dataComponent.xAxis.resetMovement();
-        moveC.dataComponent.yAxis.resetMovement();
-        moveC.dataComponent.rAxis.resetMovement();
+    }
+
+    private void resetStoredMovementValues(){
+        storedMovementData.reset();
+        originalValuesStored = false;
     }
 
     /**
@@ -290,36 +261,36 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     /// Calcula a flutuabilidade a ser aplicada
     private void calculateBoyancy(LiquidData data) {
         float objectDensity = (volume > 0) ? mass / volume : Float.MAX_VALUE;
-        boyancyFactor = (data.density - objectDensity) * volume;
+        boyancyEffect = (data.density - objectDensity) * volume;
     }
 
     /// Calcula os dados para simulação de resistencia de liquidos
     private void calculateResistance(LiquidData data) {
         float resistance = data.resistance * resistanceMultiplier;
 
-        xAxis.weightFactor = storedMovementData.xAxis.weightFactor + resistance;
-        yAxis.weightFactor = storedMovementData.yAxis.weightFactor + resistance;
-        rAxis.weightFactor = storedMovementData.rAxis.weightFactor + resistance;
+        moveC.dataComponent.xAxis.weightFactor = resistance;
+        moveC.dataComponent.yAxis.weightFactor = resistance;
+        moveC.dataComponent.rAxis.weightFactor = resistance;
 
-        xAxis.deceleration = storedMovementData.xAxis.deceleration + resistance;
-        yAxis.deceleration = storedMovementData.yAxis.deceleration + resistance;
-        rAxis.deceleration = storedMovementData.rAxis.deceleration + resistance;
+        moveC.dataComponent.xAxis.deceleration = sxAxis.deceleration + resistance;
+        moveC.dataComponent.yAxis.deceleration = syAxis.deceleration + resistance;
+        moveC.dataComponent.rAxis.deceleration = srAxis.deceleration + resistance;
     }
 
     /// Calcula as velocidades máximas
     private void calculateSpeedLimits(LiquidData data) {
-        xAxis.maxMoveVel = Math.min(
-            storedMovementData.xAxis.maxMoveVel,
+        moveC.dataComponent.xAxis.maxMoveVel = Math.min(
+            sxAxis.maxMoveVel,
             data.maxMoveSpeed
         );
 
-        yAxis.maxMoveVel = Math.min(
-            storedMovementData.yAxis.maxMoveVel,
+        moveC.dataComponent.yAxis.maxMoveVel = Math.min(
+            syAxis.maxMoveVel,
             data.maxSinkSpeed
         );
 
-        rAxis.maxMoveVel = Math.min(
-            storedMovementData.rAxis.maxMoveVel,
+        moveC.dataComponent.rAxis.maxMoveVel = Math.min(
+            srAxis.maxMoveVel,
             data.maxMoveSpeed
         );
     }
@@ -334,8 +305,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         needsRecalculation = true;
     }
 
-    public void setBoyancyModifier(float boyancyModifier) {
-        this.boyancyModifier = boyancyModifier;
+    public void setBoyancyEffectModifier(float boyancyEffectModifier) {
+        this.boyancyEffectModifier = boyancyEffectModifier;
         needsRecalculation = true;
     }
 
@@ -375,12 +346,12 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         return volume;
     }
 
-    public float getBoyancyFactor() {
-        return boyancyFactor;
+    public float getBoyancyEffect() {
+        return boyancyEffect;
     }
 
-    public float getBoyancyModifier() {
-        return boyancyModifier;
+    public float getBoyancyEffectModifier() {
+        return boyancyEffectModifier;
     }
 
     public float getResistanceMultiplier() {

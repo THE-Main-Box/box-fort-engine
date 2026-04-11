@@ -2,7 +2,7 @@ package official.sketchBook.engine.components_related.objects;
 
 public class MovementDataComponent {
 
-    public AxisData
+    public final AxisData
         xAxis,
         yAxis,
         rAxis;
@@ -44,8 +44,6 @@ public class MovementDataComponent {
     ) {
 
         this.xAxis = new AxisData(
-            0,
-            0,
             xDeceleration,
             0,
             xMaxSpeed,
@@ -56,8 +54,6 @@ public class MovementDataComponent {
         );
 
         this.yAxis = new AxisData(
-            0,
-            0,
             yDeceleration,
             0,
             yMaxSpeed,
@@ -68,8 +64,6 @@ public class MovementDataComponent {
         );
 
         this.rAxis = new AxisData(
-            0,
-            0,
             rDeceleration,
             0,
             rMaxSpeed,
@@ -93,6 +87,7 @@ public class MovementDataComponent {
 
     }
 
+    /// Seta os dados que não são individuais
     public void set(MovementDataComponent dataComponent) {
 
         this.xAxis.set(dataComponent.xAxis);
@@ -118,10 +113,6 @@ public class MovementDataComponent {
 
     public void dispose() {
         if (disposed) return;
-
-        xAxis = null;
-        yAxis = null;
-        rAxis = null;
 
         disposed = true;
     }

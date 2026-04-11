@@ -12,7 +12,7 @@ public class MovementComponent implements Component {
     public final MovementDataComponent dataComponent;
 
     /// Esta variavel determina se a velocidade é aplicada no objeto de forma direta
-    public final boolean autoApplySpeed;
+    public final boolean autoApplyMovement;
 
     private boolean disposed = false;
 
@@ -36,7 +36,7 @@ public class MovementComponent implements Component {
         boolean canDeAccelerateX,
         boolean canDeAccelerateY,
         boolean canDeAccelerateR,
-        boolean autoApplySpeed,
+        boolean autoApplyMovement,
         boolean gravityAffected
     ) {
         this.mob = mob;
@@ -63,7 +63,7 @@ public class MovementComponent implements Component {
             gravityAffected
         );
 
-        this.autoApplySpeed = autoApplySpeed;
+        this.autoApplyMovement = autoApplyMovement;
     }
 
     @Override
@@ -71,7 +71,7 @@ public class MovementComponent implements Component {
 
         dataComponent.updateAndConstraintAllAxis(delta);
 
-        if (autoApplySpeed) {
+        if (autoApplyMovement) {
             applyMovementToMob(delta);
         }
     }
@@ -82,20 +82,15 @@ public class MovementComponent implements Component {
     }
 
     protected void applyMovementToMob(float delta) {
-        mob.getTransformC().x = (
-            mob.getTransformC().x + dataComponent
-                .xAxis.velocity * delta
-        );
+        mob.getTransformC().x += dataComponent
+            .xAxis.velocity * delta
+        ;
 
-        mob.getTransformC().y = (
-            mob.getTransformC().y + dataComponent
-                .yAxis.velocity * delta
-        );
+        mob.getTransformC().y += dataComponent.
+            yAxis.velocity * delta;
 
-        mob.getTransformC().rotation = (
-            mob.getTransformC().rotation + dataComponent
-                .rAxis.velocity * delta
-        );
+        mob.getTransformC().rotation += dataComponent.
+            rAxis.velocity * delta;
 
     }
 

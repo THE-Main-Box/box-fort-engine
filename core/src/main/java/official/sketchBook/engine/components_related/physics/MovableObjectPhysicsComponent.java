@@ -8,7 +8,7 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
 
     private MovableObjectII mob;
 
-    private AxisData
+    private final AxisData
         xAxis,
         yAxis,
         rAxis;
@@ -40,27 +40,18 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
 
         this.mob = (MovableObjectII) object;
 
-        this.xAxis = new AxisData();
-        this.yAxis = new AxisData();
-        this.rAxis = new AxisData();
-    }
-
-    private void updateAxisReferences(){
-        if(mob.getMoveC() == null) return;
-
-        this.xAxis.set(mob.getMoveC().dataComponent.xAxis);
-        this.yAxis.set(mob.getMoveC().dataComponent.yAxis);
-        this.rAxis.set(mob.getMoveC().dataComponent.rAxis);
+        this.xAxis = mob.getMoveC().dataComponent.xAxis;
+        this.yAxis = mob.getMoveC().dataComponent.yAxis;
+        this.rAxis = mob.getMoveC().dataComponent.rAxis;
     }
 
     public void update(float deltaTime) {
         super.update(deltaTime);
 
-        updateAxisReferences();
-
         if (autoApplyMovement) {
             applyMovement();
         }
+
         constraintMovementAxis();
         constraintRotation();
         constraintGravity();
