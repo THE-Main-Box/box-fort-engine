@@ -31,6 +31,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         neutralBuoyancy = false,            // Se estamos neutralmente boiantes
         inLiquid = false,                   // Se estamos físicamente na área de um líquido
         originalValuesStored = false,       // Se armazenamos os valores de movimentação
+        updateStoredMovement = true,        //Se devemos marcar para atualizar os valores de movimentação armazenados
         needsRecalculation = true;          // Se precisamos recalcular a simulação de física
 
     /// Valores de correspondência a dados de movimentação
@@ -68,10 +69,23 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         this.cxAxis = moveC.dataComponent.xAxis;
         this.cyAxis = moveC.dataComponent.yAxis;
         this.crAxis = moveC.dataComponent.rAxis;
+
+        this.updateCurrentStoredMovementValues();
+    }
+
+    private void updateStoredMovement(){
+        if(!updateStoredMovement) return;
+
+        storeCurrentMovementValues();
+
+        canInteract = true;
+        updateStoredMovement = false;
     }
 
     @Override
     public void update(float delta) {
+        updateStoredMovement();
+
         final boolean isInsideLiquid = !liquidBuffer.isEmpty();  // Checa se tem liquido no buffer
         final boolean shouldSimulate = canInteract && isInsideLiquid;  // Pode simular?
 
@@ -85,14 +99,12 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         if (isInsideLiquid && !inLiquid && shouldSimulate) {
             inLiquid = true;  // Marca que estamos dentro
 
-            storeCurrentMovementValues();  // Armazena os valores pra depois restaurar
 
             object.onLiquidEnter();
         } else if (!shouldSimulate && inLiquid) {  // Saiu ou não pode mais simular
             inLiquid = false;  // Marca que saímos
 
             restartStoredMovementValues();  // Restaura aos valores originais
-            originalValuesStored = false;
 
             totalBoyancyEffect = 0;  // Zera os efeitos
             boyancyEffect = 0;
@@ -186,7 +198,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     /// Armazena valores atuais do MovementComponent pra poder restaurar depois
     private void storeCurrentMovementValues() {
-        if (originalValuesStored || !canInteract) return;  // Se já armazenou ou não pode interagir, sai
+        if (originalValuesStored) return;  // Se já armazenou ou não pode interagir, sai
 
         this.storedMovementData         // Copia os dados atuais
             .set(moveC.dataComponent);
@@ -201,7 +213,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         this.moveC.dataComponent        // Copia os dados armazenados de volta
             .set(storedMovementData);
 
-        originalValuesStored = false;
+//        originalValuesStored = false;
     }
 
     /**
@@ -345,6 +357,11 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     public boolean isInLiquid() {
         return inLiquid;
+    }
+
+    public void updateCurrentStoredMovementValues(){
+        this.updateStoredMovement = true;
+        this.canInteract = false;
     }
 
     @Override
