@@ -192,16 +192,20 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     private void storeCurrentMovementValues() {
         if (originalValuesStored || !canInteract) return;  // Se já armazenou ou não pode interagir, sai
 
-        this.storedMovementData.set(moveC.dataComponent);  // Copia os dados atuais
+        this.storedMovementData         // Copia os dados atuais
+            .set(moveC.dataComponent);
 
-        originalValuesStored = true;  // Marca que foi armazenado
+        originalValuesStored = true;    // Marca que foi armazenado
     }
 
     /// Restaura os valores de movimentação original no MovementComponent
     private void restartStoredMovementValues() {
         if (!originalValuesStored) return;  // Se não temos dados armazenados, não faz nada
 
-        this.moveC.dataComponent.set(storedMovementData);  // Copia os dados armazenados de volta
+        this.moveC.dataComponent        // Copia os dados armazenados de volta
+            .set(storedMovementData);
+
+        originalValuesStored = false;
     }
 
     /**
@@ -263,13 +267,22 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     /// Calcula as velocidades máximas que o objeto pode atingir dentro do liquido
     private void calculateSpeedLimits(LiquidData data) {
         // Limita ao menor entre original e do liquido (usando cache)
-        cxAxis.maxMoveVel = Math.min(sxAxis.maxMoveVel, data.maxMoveSpeed);
+        cxAxis.maxMoveVel = Math.min(
+            sxAxis.maxMoveVel,
+            data.maxMoveSpeed
+        );
 
         // No eixo Y usa o maxSinkSpeed (mais restritivo pra submersão)
-        cyAxis.maxMoveVel = Math.min(syAxis.maxMoveVel, data.maxSinkSpeed);
+        cyAxis.maxMoveVel = Math.min(
+            syAxis.maxMoveVel,
+            data.maxSinkSpeed
+        );
 
         // Rotação usa o maxMoveSpeed
-        crAxis.maxMoveVel = Math.min(srAxis.maxMoveVel, data.maxMoveSpeed);
+        crAxis.maxMoveVel = Math.min(
+            srAxis.maxMoveVel,
+            data.maxMoveSpeed
+        );
     }
 
     public void setMass(float mass) {
