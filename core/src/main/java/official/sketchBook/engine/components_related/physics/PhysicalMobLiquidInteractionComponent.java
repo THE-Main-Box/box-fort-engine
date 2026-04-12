@@ -88,20 +88,16 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             storeCurrentMovementValues();  // Armazena os valores pra depois restaurar
 
             object.onLiquidEnter();
-        } else if (!isInsideLiquid && inLiquid ) {  // Saiu ou não pode mais simular
+        } else if (!shouldSimulate && inLiquid) {  // Saiu ou não pode mais simular
             inLiquid = false;  // Marca que saímos
 
             restartStoredMovementValues();  // Restaura aos valores originais
+            originalValuesStored = false;
 
             totalBoyancyEffect = 0;  // Zera os efeitos
             boyancyEffect = 0;
 
             object.onLiquidExit();
-        } else if (inLiquid && !shouldSimulate) {
-            restartStoredMovementValues();
-
-            totalBoyancyEffect = 0;
-            boyancyEffect = 0;
         }
     }
 
@@ -319,6 +315,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         //Atribuimos o novo valor
         this.canInteract = canInteract;
+
+        needsRecalculation = true;
     }
 
     public void setNeedsRecalculation(boolean needsRecalculation) {
