@@ -27,6 +27,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     /// flags de constraints e auxiliares
     private boolean
+        canInteractBuffer = false,
         canInteract = true,                 // Se podemos interagir com líquidos
         neutralBuoyancy = false,            // Se estamos neutralmente boiantes
         inLiquid = false,                   // Se estamos físicamente na área de um líquido
@@ -48,12 +49,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         intermediary,
         storedMovementData;
 
-    /// Referência aos dados de eixo dos eixos armazenados (cache pra evitar indireção)
-    private final AxisData
-        ixAxis, iyAxis, irAxis,
-        cxAxis, cyAxis, crAxis,
-        sxAxis, syAxis, srAxis;
-
     /// Flags de auxilio
     private boolean disposed = false;
 
@@ -64,77 +59,81 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         this.storedMovementData = new MovementDataComponent();
         this.intermediary = new MovementDataComponent();
 
-        this.ixAxis = intermediary.xAxis;
-        this.iyAxis = intermediary.yAxis;
-        this.irAxis = intermediary.rAxis;
-
-        this.sxAxis = storedMovementData.xAxis;
-        this.syAxis = storedMovementData.yAxis;
-        this.srAxis = storedMovementData.rAxis;
-
-        // Cache dos eixos atuais pra evitar acessos múltiplos via indireção
-        this.cxAxis = moveC.dataComponent.xAxis;
-        this.cyAxis = moveC.dataComponent.yAxis;
-        this.crAxis = moveC.dataComponent.rAxis;
-
         this.updateCurrentStoredMovementValues();
     }
 
+    /// Atualiza a referencia de dados de constraint armazenados
     private void updateStoredMovement() {
+        //Se precisamos atualizar iteramos
         if (!updateStoredMovement) return;
 
+        //Armazenamos o dado atual
         storeCurrentMovementValues();
 
-        canInteract = true;
+        //Restauramos a flag ao estado de poder interagir
+        canInteract = canInteractBuffer;
         updateStoredMovement = false;
     }
 
     @Override
     public void update(float delta) {
+        //Valida se podemos realizar a simulação
+        final boolean shouldSimulate = canInteract && !liquidBuffer.isEmpty();
+
+        applyChange(shouldSimulate);
+
+        applyPhysics(shouldSimulate);
+
         updateStoredMovement();
 
-        final boolean isInsideLiquid = !liquidBuffer.isEmpty();  // Checa se tem liquido no buffer
-        final boolean shouldSimulate = canInteract && isInsideLiquid;  // Pode simular?
-
-        applyChange(isInsideLiquid, shouldSimulate);
-        applyPhysics(shouldSimulate, needsRecalculation);
-    }
-
-    /// Aplica as mudanças de estado quando entra ou sai de um liquido
-    private void applyChange(boolean isInsideLiquid, boolean shouldSimulate) {
-        //Caso haja uma diferença nos dados de estar dentro de um liquido anteriormente e poder estar agora
-        if (isInsideLiquid && !inLiquid && shouldSimulate) {
-            inLiquid = true;  // Marca que estamos dentro
-
-            object.onLiquidEnter();
-        } else if (!shouldSimulate || inLiquid) {  // Saiu ou não pode mais simular
-            inLiquid = false;  // Marca que saímos
-
-            restartStoredMovementValues();  // Restaura aos valores originais
-
-            totalBoyancyEffect = 0;  // Zera os efeitos
-            boyancyEffect = 0;
-
-            object.onLiquidExit();
-        }
     }
 
     /// Realizamos as aplicações relacionadas a simulação do liquido
-    private void applyPhysics(boolean shouldSimulate, boolean needsRecalculation) {
+    private void applyPhysics(boolean shouldSimulate) {
         //Se não podemos simular a interação com liquido, não fazemos isso
         if (!shouldSimulate) return;
 
+        prepareIntermediary();
+
         // Recalculamos os dados de simulação e aplicamos os limites
         if (needsRecalculation) {
+            //Recalcula no intermediary os dados de constraint a serem aplicados
             recalculateLiquidEffects();
-            applyCalculatedIntermediary();
+
+            needsRecalculation = false;
         }
 
         //Aplicamos os dados da simulação que ainda não foram aplicados
         applyLiquidEffects();
 
-        //Realizamos um update interno do objeto
+        //Aplicamos a intermediary no objeto
+        applyCalculatedIntermediary();
+
         object.inLiquidUpdate();
+    }
+
+    /// Aplica as mudanças de estado quando entra ou sai de um liquido
+    private void applyChange(boolean shouldSimulate) {
+        //Caso haja uma diferença de estados, quer dizer que neste frame acabamos de entrar em um liquido
+        //O shouldsimulate já contém o estado de estar dentro de liquido ou não
+        if (shouldSimulate && !inLiquid) {
+            //Atualizamos o estado de estar em liquido
+            inLiquid = true;
+            object.onLiquidEnter();
+            //Se não podemos simular, ou seja se não podemos interagir,
+            // ou não tivermos dentro de um liquido e estivermos com um inLiquid,
+            // quer dizer que acabamos de sair de um liquido
+        } else if (!shouldSimulate && inLiquid) {
+            //Atualizamos o estado para não refletir incorretamente que estamos dentro de um liquido
+            inLiquid = false;
+            //Restauramos a movimentação original do objeto
+            restartStoredMovementValues();
+
+            //Reseta os dados de flutuabilidade, pois não iremos usar e precisaremos deles limpos mais pra frente
+            resetBoyancy();
+
+            object.onLiquidExit();
+        }
     }
 
     @Override
@@ -144,17 +143,20 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     /// Aplica a simulação de física no corpo do objeto em mãos
     private void applyLiquidEffects() {
-        if (neutralBuoyancy) {  // Se estamos neutro, desligamos gravidade
-            moveC.dataComponent.gravityAffected = false;  // Grav desligada
-            totalBoyancyEffect = 0;  // E zeramos a flutuabilidade
-            boyancyEffect = 0;
+        //Se temos uma flutuabilidade neutra
+        if (neutralBuoyancy) {
+            intermediary.gravityAffected = false;   // Desligamos a gravidade
+            resetBoyancy();                         // Resetamos os dados de flutuabilidade
         }
 
+        //Dependendo dos casos, se estivermos neutros em flutuabilidade, isso não irá afetar em nada
         updateTotalBoyancyEffect();  // Atualiza o efeito total
 
-        if (Math.abs(totalBoyancyEffect) < BOYANCY_THRESHOLD) return;  // Se é muito pequeno, ignora
+        // Impedimos que a flutuabilidade afete o objeto caso seja pequena demais para ser percebida
+        if (Math.abs(totalBoyancyEffect) < BOYANCY_THRESHOLD) return;
 
-        cyAxis.velocity += totalBoyancyEffect;  // Aplica no eixo Y (usando cache)
+        //Aplicamos no eixo da intermediary, para ser aplicada futuramente
+        intermediary.yAxis.velocity += totalBoyancyEffect;
     }
 
     /// Atualiza o valor de flutuabilidade, acumulando modificadores e limitando
@@ -167,8 +169,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         //Limitamos o valor final com o limite de movimentação determinado no sistema de movimentação
         totalBoyancyEffect = MathUtils.clamp(
             totalBoyancyEffect,
-            -iyAxis.maxMoveVel,
-            iyAxis.maxMoveVel
+            -intermediary.yAxis.maxMoveVel,
+            intermediary.yAxis.maxMoveVel
         );
     }
 
@@ -184,6 +186,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         }
 
         liquidBuffer.add(liquid);
+        //Marcamos para recalcular pois precisamos lidar com a simulação do novo liquido
         needsRecalculation = true;
     }
 
@@ -197,19 +200,19 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         for (int i = liquidBuffer.size() - 1; i >= 0; i--) {
             if (liquidBuffer.get(i).id == liquid.id) {
                 liquidBuffer.remove(i);
-                needsRecalculation = true;
+                //Precisamos recalcular pois o liquido já foi removido e pode ter outro esperando para ser calculado
+//                needsRecalculation = true;
                 return;
             }
         }
     }
 
     /// Armazena valores atuais do MovementComponent pra poder restaurar depois
-    /// Armazena valores atuais do MovementComponent pra poder restaurar depois
     private void storeCurrentMovementValues() {
         if (originalValuesStored) return;
 
-        // Cria uma cópia imutável
-        this.storedMovementData.set(moveC.dataComponent.cpy());
+        // Setamos uma copia que não será modificada
+        this.storedMovementData.set(moveC.dataComponent);
 
         originalValuesStored = true;
     }
@@ -218,76 +221,77 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     private void restartStoredMovementValues() {
         if (!originalValuesStored) return;
 
-        // Cria uma cópia NOVA dos dados, não referência
-        MovementDataComponent cleanCopy = storedMovementData.cpy();
-        this.moveC.dataComponent.set(cleanCopy);
-
-        // Limpa intermediário também
-        intermediary.set(storedMovementData);
-
-        needsRecalculation = true;
+        //Passamos para o moveC o dado armazenado de constraints de movimentação de fora do liquido
+        this.moveC.dataComponent.set(storedMovementData);
     }
 
-    private void prepareIntermediary(){
+    private void prepareIntermediary() {
         intermediary.set(storedMovementData);  // Cópia fresca do original
     }
 
     /// Aplica o intermediário calculado pro moveC (APLICAÇÃO)
     /// Aplica o intermediário calculado pro moveC (APLICAÇÃO)
     private void applyCalculatedIntermediary() {
-        // Cria cópia do intermediário pra não contaminar referências
-        MovementDataComponent copyToApply = intermediary.cpy();
-        moveC.dataComponent.set(copyToApply);
+        moveC.dataComponent.set(intermediary);
     }
 
     /// Calcula os efeitos dos líquidos no intermediário
     private void recalculateLiquidEffects() {
-        if (!inLiquid || liquidBuffer.isEmpty()) {
-            needsRecalculation = false;
-            return;
+        //Gera os liquidos que podem ser interpretados de modo isolado e os prepara
+        LiquidData
+            curLiq,                         //Liquido atual
+            densLiq = liquidBuffer.get(0),  //Liquido mais denso
+            resLiq = densLiq;               //Liquido mais resistente
+
+        //Se o buffer tiver mais que um liquido, iteramos para identificar qual é o que devemos dar prioridade
+        if (liquidBuffer.size() > 1) {
+            for (int i = 1; i < liquidBuffer.size(); i++) {
+                //Atualizamos o liquido atual
+                curLiq = liquidBuffer.get(i);
+
+                //Caso tenhamos encontrado um liquido com densidade maior, atualizamos este
+                if (curLiq.density > densLiq.density) {
+                    densLiq = curLiq;
+                }
+
+                //Caso tenhamos encontrado um liquido com resistencia de movimento maior, atualizamos este
+                if (curLiq.resistance > resLiq.resistance) {
+                    resLiq = curLiq;
+                }
+            }
         }
 
         // Prepara intermediário com dados originais
         prepareIntermediary();
 
-        LiquidData tmpCurrentLiquidByDensity = liquidBuffer.get(0);
-        LiquidData tmpCurrentLiquidByResistance = tmpCurrentLiquidByDensity;
+        //Calculamos a flutuabilidade com base no liquido mais denso
+        calculateBoyancy(densLiq);
+        //Calculamos a resistencia com base no liquido mais resistente
+        calculateResistance(resLiq);
+        //Calculamos o limite de velocidade com base no liquido mais denso
+        calculateSpeedLimits(densLiq);
 
-        if (liquidBuffer.size() > 1) {
-            for (int i = 1; i < liquidBuffer.size(); i++) {
-                LiquidData tmpCurrentLiquid = liquidBuffer.get(i);
-
-                if (tmpCurrentLiquid.density > tmpCurrentLiquidByDensity.density) {
-                    tmpCurrentLiquidByDensity = tmpCurrentLiquid;
-                }
-
-                if (tmpCurrentLiquid.resistance > tmpCurrentLiquidByResistance.resistance) {
-                    tmpCurrentLiquidByResistance = tmpCurrentLiquid;
-                }
-            }
-        }
-
-        calculateBoyancy(tmpCurrentLiquidByDensity);
-        calculateResistance(tmpCurrentLiquidByResistance);
-        calculateSpeedLimits(tmpCurrentLiquidByDensity);
-
+        //resetamos a flag
         needsRecalculation = false;
     }
 
-    /// Calcula resistencia NO INTERMEDIÁRIO
+    /// Calcula a resistencia de movimento do liquido de maior resistencia
     private void calculateResistance(LiquidData data) {
+        //Descobrimos a resistencia real a aplicar
         float resistance = data.resistance * resistanceMultiplier;
 
+        //Atualizamos o weight factor de todos os eixos com base na resistencia de movimento
         intermediary.xAxis.weightFactor = resistance;
         intermediary.yAxis.weightFactor = resistance;
         intermediary.rAxis.weightFactor = resistance;
 
-        intermediary.xAxis.deceleration = storedMovementData.xAxis.deceleration + resistance;
-        intermediary.yAxis.deceleration = storedMovementData.yAxis.deceleration + resistance;
-        intermediary.rAxis.deceleration = storedMovementData.rAxis.deceleration + resistance;
+        //Atualiza a desaceleração com base na resistencia e os dados de movimento originais
+        intermediary.xAxis.deceleration = resistance + storedMovementData.xAxis.deceleration;
+        intermediary.yAxis.deceleration = resistance + storedMovementData.yAxis.deceleration;
+        intermediary.rAxis.deceleration = resistance + storedMovementData.rAxis.deceleration;
     }
 
-    /// Calcula limites NO INTERMEDIÁRIO
+    /// Calcula limites de velocidade de movimentação (Não físicos, já que isso daí é outro departamento)
     private void calculateSpeedLimits(LiquidData data) {
         intermediary.xAxis.maxMoveVel = Math.min(
             storedMovementData.xAxis.maxMoveVel,
@@ -305,7 +309,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         );
     }
 
-  /// Calcula a flutuabilidade a ser aplicada
+    /// Calcula a flutuabilidade a ser aplicada
     private void calculateBoyancy(LiquidData data) {
         float objectDensity = (volume > 0) ? mass / volume : Float.MAX_VALUE;  // Densidade = massa / volume
         boyancyEffect = (data.density - objectDensity) * volume;  // Diferença de densidade vezes volume
@@ -348,10 +352,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     }
 
-    public void setNeedsRecalculation(boolean needsRecalculation) {
-        this.needsRecalculation = needsRecalculation;
-    }
-
     public float getMass() {
         return mass;
     }
@@ -376,10 +376,24 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         return inLiquid;
     }
 
+    /// Marca dentro da pipeline para poder armazenar as novas constraints
     public void updateCurrentStoredMovementValues() {
+        //Marca para a pipeline armazenar os novos dados
         this.updateStoredMovement = true;
+
+        //Armazena a flag de interação atual
+        this.canInteractBuffer = this.canInteract;
+
+        //torna a flag de interação falsa para dar brecha para interação
         this.canInteract = false;
+
+        //Dá a permissão para armazenar os dados novamente
         this.originalValuesStored = false;
+    }
+
+    public void resetBoyancy() {
+        totalBoyancyEffect = 0;
+        boyancyEffect = 0;
     }
 
     @Override
