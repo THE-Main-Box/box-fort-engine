@@ -213,7 +213,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         this.moveC.dataComponent        // Copia os dados armazenados de volta
             .set(storedMovementData);
 
-//        originalValuesStored = false;
+        needsRecalculation = true;
     }
 
     /**
@@ -259,17 +259,17 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     /// Calcula os dados para simulação de resistencia de liquidos
     private void calculateResistance(LiquidData data) {
-        float resistance = data.resistance * resistanceMultiplier;  // Calcula a resistencia final
+        float resistance = data.resistance * resistanceMultiplier;
 
-        // Aplica no weight factor (usando cache)
         cxAxis.weightFactor = resistance;
         cyAxis.weightFactor = resistance;
         crAxis.weightFactor = resistance;
 
-        // Soma com o original armazenado (não com o atual, evita acúmulo)
-        cxAxis.deceleration = sxAxis.deceleration + resistance;
-        cyAxis.deceleration = syAxis.deceleration + resistance;
-        crAxis.deceleration = srAxis.deceleration + resistance;
+        // ← Sempre pega o original, não acumula
+        float resistanceScale = 1f + (resistance * 0.5f);
+        cxAxis.deceleration = storedMovementData.xAxis.deceleration * resistanceScale;
+        cyAxis.deceleration = storedMovementData.yAxis.deceleration * resistanceScale;
+        crAxis.deceleration = storedMovementData.rAxis.deceleration * resistanceScale;
     }
 
     /// Calcula as velocidades máximas que o objeto pode atingir dentro do liquido
@@ -362,6 +362,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     public void updateCurrentStoredMovementValues(){
         this.updateStoredMovement = true;
         this.canInteract = false;
+        this.originalValuesStored = false;
     }
 
     @Override
