@@ -86,6 +86,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         updateStoredMovement();
 
+        System.out.println(liquidBuffer.size());
+
     }
 
     /// Realizamos as aplicações relacionadas a simulação do liquido

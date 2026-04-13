@@ -10,7 +10,6 @@ import official.sketchBook.engine.util_related.helper.GameObjectTag;
 
 public class PhysicalLiquidContactListener implements MultiContactListener.SubContactListener {
 
-
     @Override
     public void beginContact(Contact contact, GameObjectTag tagA, GameObjectTag tagB) {
         handle(tagA, tagB, true);
@@ -38,36 +37,26 @@ public class PhysicalLiquidContactListener implements MultiContactListener.SubCo
         GameObjectTag tagB,
         boolean entering
     ) {
-        // Tenta A como objeto e B como líquido
-        if (!tryHandle(tagA, tagB, entering)) {
-            // Tenta B como objeto e A como líquido
-            tryHandle(tagB, tagA, entering);
-        }
-    }
+        LiquidInteractableObjectII obj;
+        Liquid liquid;
 
-    private boolean tryHandle(
-        GameObjectTag objectTag,
-        GameObjectTag liquidTag,
-        boolean entering
-    ) {
-        if (objectTag == null || liquidTag == null) return false;
+        if (tagA == null || tagB == null) return;
 
-        if (!(objectTag.owner instanceof LiquidInteractableObjectII)) {
-            return false;
-        }
-        if (!(liquidTag.owner instanceof Liquid)) {
-            return false;
+        if (tagA.owner instanceof LiquidInteractableObjectII && tagB.owner instanceof Liquid) {
+            obj = (LiquidInteractableObjectII) tagA.owner;
+            liquid = (Liquid) tagB.owner;
+        } else if (tagB.owner instanceof LiquidInteractableObjectII && tagA.owner instanceof Liquid) {
+            obj = (LiquidInteractableObjectII) tagB.owner;
+            liquid = (Liquid) tagA.owner;
+        } else {
+            return;
         }
 
-        LiquidInteractableObjectII obj = (LiquidInteractableObjectII) objectTag.owner;
-        Liquid liquid = (Liquid) liquidTag.owner;
 
         if (entering) {
             obj.getLiquidInteractionC().addLiquid(liquid.getLiquidData());
         } else {
             obj.getLiquidInteractionC().removeLiquid(liquid.getLiquidData());
         }
-
-        return true;
     }
 }
