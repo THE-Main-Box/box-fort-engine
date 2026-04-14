@@ -10,12 +10,11 @@ import official.sketchBook.engine.game_object_related.vehicle.SubmarinePart;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.engine.liquid_related.model.PhysicalRoomLiquid;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
-import official.sketchBook.engine.util_related.contact_listener.listeners.VehicleContactListener;
-import official.sketchBook.engine.util_related.pools.GlobalProjectilePool;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.listeners.MovableObjectContactListener;
-import official.sketchBook.engine.util_related.contact_listener.listeners.PhysicalLiquidContactListener;
 import official.sketchBook.engine.util_related.contact_listener.listeners.ProjectileContactListener;
+import official.sketchBook.engine.util_related.contact_listener.listeners.VehicleContactListener;
+import official.sketchBook.engine.util_related.pools.GlobalProjectilePool;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.gameObject_related.Player;
@@ -24,7 +23,8 @@ import official.sketchBook.game.projectile_related.factories.ProjectilePoolFacto
 import java.util.ArrayList;
 import java.util.List;
 
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
+import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.VEHICLE;
+import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.VEHICLE_PASSENGER;
 import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_HEIGHT;
 import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_WIDTH;
 
@@ -210,13 +210,6 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             false,
             ContactUtils.keys.PROJECTILE_LISTENER,
             new ProjectileContactListener()
-        );
-
-        ContactUtils.handleContactListener(
-            this.contactListeners,
-            false,
-            ContactUtils.keys.LIQUID_LISTENER,
-            new PhysicalLiquidContactListener()
         );
 
         ContactUtils.handleContactListener(

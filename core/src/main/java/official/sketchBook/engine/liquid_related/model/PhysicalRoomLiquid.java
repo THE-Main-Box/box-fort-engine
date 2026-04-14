@@ -5,16 +5,19 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.LiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
+import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
+import official.sketchBook.engine.game_object_related.base_game_object.BaseGameObject;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import static official.sketchBook.engine.util_related.helper.body.LiquidBodyCreatorHelper.createLiquidFixture;
 
@@ -28,6 +31,8 @@ public class PhysicalRoomLiquid extends BaseRoomGameObject implements Liquid {
     public final List<Fixture> fixtureList;
 
     private LiquidData liquidData;
+
+    private final Set<LiquidInteractableObjectII> insideSet = new HashSet<>();
 
     public PhysicalRoomLiquid(
         PhysicalGameObjectDataManager worldDataManager,
@@ -80,6 +85,73 @@ public class PhysicalRoomLiquid extends BaseRoomGameObject implements Liquid {
                 )
             );
         }
+    }
+
+    @Override
+    public void update(float delta) {
+        super.update(delta);
+
+        List<BaseGameObject> objects = getPhysicalManager().getGameObjectList();
+
+        Set<LiquidInteractableObjectII> currentInside = new HashSet<>();
+
+        for (BaseGameObject obj : objects) {
+
+            if (!(obj instanceof LiquidInteractableObjectII) || !(obj instanceof PhysicalObjectII)) continue;
+
+            LiquidInteractableObjectII interactable = (LiquidInteractableObjectII) obj;
+            TransformComponent t = interactable.getTransformC();
+
+            if (t == null) continue;
+
+            System.out.println(interactable.getClass().getSimpleName());
+            if (isInsideLiquid(t)) {
+                currentInside.add(interactable);
+
+                // ENTROU
+                if (!insideSet.contains(interactable)) {
+                    interactable.getLiquidInteractionC().addLiquid(liquidData);
+
+                }
+            }
+        }
+
+        // SAIU
+        for (LiquidInteractableObjectII obj : insideSet) {
+            if (!currentInside.contains(obj)) {
+                obj.getLiquidInteractionC().removeLiquid(liquidData);
+            }
+        }
+
+        // atualiza estado
+        insideSet.clear();
+        insideSet.addAll(currentInside);
+    }
+
+    private boolean isInsideLiquid(TransformComponent t) {
+
+        float x = t.x;
+        float y = t.y;
+        float w = t.width;
+        float h = t.height;
+
+        for (LiquidRegion r : regionList) {
+
+            float rx = r.getX();
+            float ry = r.getY();
+            float rw = r.getWidth();
+            float rh = r.getHeight();
+
+            boolean overlap =
+                x < rx + rw &&
+                    x + w > rx &&
+                    y < ry + rh &&
+                    y + h > ry;
+
+            if (overlap) return true;
+        }
+
+        return false;
     }
 
     @Override

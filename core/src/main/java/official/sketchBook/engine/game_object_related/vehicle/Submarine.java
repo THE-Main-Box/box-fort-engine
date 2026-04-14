@@ -2,15 +2,21 @@ package official.sketchBook.engine.game_object_related.vehicle;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Disposable;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.LiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.LiquidInteractableSimplesObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MultiLiquidInteractableObject;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.MultiRenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
+import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
+import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseGameObject;
 
 import java.util.List;
 
 public class Submarine extends BaseGameObject implements
+    MultiLiquidInteractableObject,
     Vehicle,
     MultiRenderableObjectII{
 
@@ -128,6 +134,8 @@ public class Submarine extends BaseGameObject implements
         this.inScreen = inScreen;
     }
 
+    //TODO: ENTREGAR UM TRANSFORMC QUE CONTENHA OS DADOS DO SUBMARINO
+
     @Override
     public TransformComponent getTransformC() {
         return null;
@@ -135,6 +143,27 @@ public class Submarine extends BaseGameObject implements
 
     @Override
     public List<SubmarineNode> getRenderableObjList() {
+        return submarineNodes;
+    }
+
+
+    @Override
+    public void onLiquidExit() {
+
+    }
+
+    @Override
+    public void onLiquidEnter() {
+
+    }
+
+    @Override
+    public void inLiquidUpdate() {
+
+    }
+
+    @Override
+    public List<SubmarineNode> getLiquidIObj() {
         return submarineNodes;
     }
 }

@@ -3,16 +3,14 @@ package official.sketchBook.engine.components_related.intefaces.integration_inte
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
-import official.sketchBook.engine.liquid_related.model.LiquidData;
 
-public interface LiquidInteractableObjectII extends LiquidInteractableSimplesObjectII{
+import java.util.List;
 
+public interface MultiLiquidInteractableObject extends LiquidInteractableSimplesObjectII{
     void onLiquidExit();
     void onLiquidEnter();
 
     void inLiquidUpdate();
 
-    TransformComponent getTransformC();
-    MovementComponent getMoveC();
-    PhysicalMobLiquidInteractionComponent getLiquidInteractionC();
+    List<? extends LiquidInteractableObjectII> getLiquidIObj();
 }
