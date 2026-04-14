@@ -2,9 +2,8 @@ package official.sketchBook.engine.components_related.physics;
 
 import com.badlogic.gdx.math.MathUtils;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.LiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.SimpleLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
-import official.sketchBook.engine.components_related.objects.AxisData;
 import official.sketchBook.engine.components_related.objects.MovementDataComponent;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 
@@ -17,7 +16,7 @@ import static official.sketchBook.game.util_related.constants.PhysicsConstants.B
 public class PhysicalMobLiquidInteractionComponent implements Component {
 
     /// Referência ao objeto dono
-    private LiquidInteractableObjectII object;
+    private SimpleLiquidInteractableObjectII object;
 
     /// Componente de movimentação
     private MovementComponent moveC;
@@ -52,7 +51,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     /// Flags de auxilio
     private boolean disposed = false;
 
-    public PhysicalMobLiquidInteractionComponent(LiquidInteractableObjectII object) {
+    public PhysicalMobLiquidInteractionComponent(SimpleLiquidInteractableObjectII object) {
         this.object = object;
         this.moveC = object.getMoveC();
 
@@ -86,7 +85,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         updateStoredMovement();
 
-        System.out.println(liquidBuffer.size());
 
     }
 
@@ -376,6 +374,10 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     public boolean isInLiquid() {
         return inLiquid;
+    }
+
+    public List<LiquidData> getLiquidBuffer() {
+        return liquidBuffer;
     }
 
     /// Marca dentro da pipeline para poder armazenar as novas constraints

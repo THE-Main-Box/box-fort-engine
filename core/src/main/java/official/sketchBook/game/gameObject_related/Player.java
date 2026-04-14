@@ -34,7 +34,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     PhysicalGameObjectII,
     RoomGroundInteractableObject,
     JumpCapableObjectII,
-    LiquidInteractableObjectII,
+    SimpleLiquidInteractableObjectII,
     VehiclePassenger {
 
     private boolean inScreen = true;

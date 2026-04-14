@@ -1,22 +1,18 @@
 package official.sketchBook.engine.game_object_related.vehicle;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.Disposable;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.LiquidInteractableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.LiquidInteractableSimplesObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MultiLiquidInteractableObject;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MultiLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.MultiRenderableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
-import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
-import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
-import official.sketchBook.engine.game_object_related.base_game_object.BaseGameObject;
+import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
+import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
+import official.sketchBook.engine.world_gen.model.PlayableRoom;
 
 import java.util.List;
 
-public class Submarine extends BaseGameObject implements
-    MultiLiquidInteractableObject,
+public class Submarine extends BaseRoomGameObject implements
+    MultiLiquidInteractableObjectII,
     Vehicle,
     MultiRenderableObjectII{
 
@@ -31,9 +27,14 @@ public class Submarine extends BaseGameObject implements
     /// Importante ter em mente que a posição passada deverá ser o centro do sub, passado em pixels
     public Submarine(
         PhysicalGameObjectDataManager worldDataManager,
+        PlayableRoom ownerRoom,
         List<SubmarineNode> submarineNodes
     ) {
-        super(worldDataManager);
+        super(
+            worldDataManager,
+            ownerRoom,
+            RoomObjectScope.GLOBAL
+        );
 
         this.submarineNodes = submarineNodes;
 

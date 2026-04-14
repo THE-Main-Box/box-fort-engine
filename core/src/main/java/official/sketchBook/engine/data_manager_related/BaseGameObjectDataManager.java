@@ -1,8 +1,11 @@
 package official.sketchBook.engine.data_manager_related;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
+import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.data_manager_related.util.RenderableObjectManager;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseGameObject;
 
@@ -24,13 +27,19 @@ public abstract class BaseGameObjectDataManager implements com.badlogic.gdx.util
     /// Rastreamento de todas as classes que passaram pelo manager
     protected final Set<Class<? extends BaseGameObject>> registeredClasses = new HashSet<>();
 
+    protected ShapeRenderer shapeRenderer;
+    public List<TransformComponent> toRender = new ArrayList<>();
+
+
     /// Flags de identificação de limpeza
     protected boolean
         disposed = false,
         graphicsDisposed = false;
 
     /// Inicia todos os sistemas nativos dos managers filho
-    protected abstract void setupSystems();
+    protected void setupSystems(){
+        this.shapeRenderer = new ShapeRenderer();
+    }
 
     /// Atualização dos game objects
     public void update(float delta) {
@@ -152,6 +161,25 @@ public abstract class BaseGameObjectDataManager implements com.badlogic.gdx.util
     /// Sequencia de destruição customizável por instancia
     protected abstract void onManagerDestruction();
 
+    public void renderNotPhysicalObjects(Camera gameCamera) {
+        if (shapeRenderer == null) return;
+
+        shapeRenderer.setProjectionMatrix(gameCamera.combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(0, 0.5f, 1, 0.7f);  // Azul piscina
+
+        // Itera pelos líquidos da sala
+        for (int i = 0; i < toRender.size(); i++) {
+            TransformComponent t = toRender.get(i);
+
+            shapeRenderer.rect(t.x, t.y, t.width, t.height);
+        }
+
+        shapeRenderer.end();
+
+        toRender.clear();
+    }
+
     /// Dispose completo do manager
     public final void dispose() {
         if (disposed) return;
@@ -208,6 +236,7 @@ public abstract class BaseGameObjectDataManager implements com.badlogic.gdx.util
     }
 
     protected void disposeCriticalGraphics() {
+        toRender.clear();
     }
 
     /**

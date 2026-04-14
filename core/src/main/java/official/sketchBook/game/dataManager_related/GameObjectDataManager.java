@@ -1,14 +1,18 @@
 package official.sketchBook.game.dataManager_related;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
+import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
+import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
 import official.sketchBook.engine.game_object_related.vehicle.Submarine;
 import official.sketchBook.engine.game_object_related.vehicle.SubmarineNode;
 import official.sketchBook.engine.game_object_related.vehicle.SubmarinePart;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
-import official.sketchBook.engine.liquid_related.model.PhysicalRoomLiquid;
+import official.sketchBook.engine.liquid_related.model.RoomLiquid;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.listeners.MovableObjectContactListener;
@@ -103,7 +107,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         regionList.add(
             new LiquidRegion(
                 200,
-                50,
+                10,
                 150,
                 50
             )
@@ -119,7 +123,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             9999f
         );
 
-        PhysicalRoomLiquid water = new PhysicalRoomLiquid(
+        RoomLiquid water = new RoomLiquid(
             this,
             currentRoom,
             data,
@@ -149,6 +153,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         Submarine baseSubmarine = new Submarine(
             this,
+            currentRoom,
             nodeList
         );
 

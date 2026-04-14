@@ -1,33 +1,85 @@
 package official.sketchBook.engine.liquid_related.util;
 
-public class LiquidRegion{
-    /// Condensação de dados de coordenadas de dimensões
-    private final float
-        x,
-        y,
-        width,
-        height;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
+import official.sketchBook.engine.components_related.objects.TransformComponent;
 
+public class LiquidRegion implements RenderableObjectII {
+
+    private boolean
+        canRender = true,
+        inScreen = true;
+
+    /// Condensação de dados de coordenadas de dimensões
+    private final TransformComponent transformC;
     public LiquidRegion(float x, float y, float width, float height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+        transformC = new TransformComponent(
+            x,
+            y,
+            0,
+            0,
+            width,
+            height,
+            1,
+            1,
+            false,
+            false
+        );
     }
 
     public float getX() {
-        return x;
+        return transformC.x;
     }
 
     public float getY() {
-        return y;
+        return transformC.y;
     }
 
     public float getWidth() {
-        return width;
+        return transformC.width;
     }
 
     public float getHeight() {
-        return height;
+        return transformC.height;
+    }
+
+    @Override
+    public int getRenderIndex() {
+        return (int) transformC.z;
+    }
+
+    @Override
+    public void updateVisuals(float delta) {
+
+    }
+
+    @Override
+    public void render(SpriteBatch batch) {
+
+    }
+
+    @Override
+    public boolean canRender() {
+        return canRender;
+    }
+
+    @Override
+    public boolean isInScreen() {
+        return inScreen;
+    }
+
+    @Override
+    public void setInScreen(boolean inScreen) {
+        this.inScreen = inScreen;
+    }
+
+    @Override
+    public TransformComponent getTransformC() {
+        return transformC;
+    }
+
+    @Override
+    public void disposeGraphics() {
+
     }
 }

@@ -1,11 +1,16 @@
 package official.sketchBook.engine.data_manager_related;
 
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
+import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.util_related.contact_listener.MultiContactListener;
 import official.sketchBook.engine.util_related.pools.RayCastPool;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
@@ -29,6 +34,7 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
     protected Matrix4 renderDebugMatrix;
     /// Se existe um mundo foi gerado
     protected boolean physicsWorldExists;
+
 
     public PhysicalGameObjectDataManager(World physicsWorld, int velIterations, int posIterations) {
         this.physicsWorld = physicsWorld;                   //Inicia um world
@@ -54,6 +60,7 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
 
     @Override
     protected void setupSystems() {
+        super.setupSystems();
         setupContactListeners();
     }
 
@@ -104,6 +111,7 @@ public abstract class PhysicalGameObjectDataManager extends BaseGameObjectDataMa
     @Override
     protected void disposeCriticalData() {
         disposePhysicsWorld();
+
     }
 
     /// Limpa o mundo físico

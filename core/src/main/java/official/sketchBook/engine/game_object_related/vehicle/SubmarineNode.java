@@ -6,7 +6,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.MassData;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Disposable;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.LiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.SimpleLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
@@ -16,7 +16,6 @@ import official.sketchBook.engine.components_related.physics.MovableObjectPhysic
 import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.components_related.system_utils.RenderableAndDefaultComponentManagerComponent;
-import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 
 import java.util.List;
@@ -28,7 +27,7 @@ import static official.sketchBook.game.util_related.constants.PhysicsConstants.P
 public class SubmarineNode
     implements
     MovableObjectII,
-    LiquidInteractableObjectII,
+        SimpleLiquidInteractableObjectII,
     PhysicalObjectII,
     VehicleSection,
     RenderableObjectII,

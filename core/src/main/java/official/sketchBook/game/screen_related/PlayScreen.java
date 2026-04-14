@@ -220,6 +220,10 @@ public class PlayScreen extends BaseScreen {
             worldManager.renderWorldHitboxes(
                 gameCameraManager.getCamera()
             );
+
+            worldManager.renderNotPhysicalObjects(
+                gameCameraManager.getCamera()
+            );
         }
 
         RayCastPool rcPool = RayCastPool.getInstance();
