@@ -7,7 +7,6 @@ import official.sketchBook.engine.components_related.objects.TransformComponent;
 public class LiquidRegion implements RenderableObjectII {
 
     private boolean
-        canRender = true,
         inScreen = true;
 
     /// Condensação de dados de coordenadas de dimensões
@@ -60,7 +59,7 @@ public class LiquidRegion implements RenderableObjectII {
 
     @Override
     public boolean canRender() {
-        return canRender;
+        return true;
     }
 
     @Override
