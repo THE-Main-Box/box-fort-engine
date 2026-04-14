@@ -12,10 +12,7 @@ import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRenderableObjectII {
 
@@ -25,8 +22,11 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRende
     private LiquidData liquidData;
 
     private Set<SimpleLiquidInteractableObjectII>
-        currentInsideBuffer = new HashSet<>();
-    private Set<SimpleLiquidInteractableObjectII> insideSet = new HashSet<>();
+        currentInsideBuffer = new HashSet<>(),
+        insideSet = new HashSet<>();
+
+    /// Bounds gerais do líquido (otimização)
+    private float minX, minY, maxX, maxY;
 
     private boolean
         inScreen;
@@ -49,7 +49,30 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRende
 
         this.fixtureList = new ArrayList<>();
 
+        computeBounds(); // <<< otimização
         initObject();
+    }
+
+    /// Calcula AABB geral do líquido
+    private void computeBounds() {
+        minX = Float.MAX_VALUE;
+        minY = Float.MAX_VALUE;
+        maxX = Float.MIN_VALUE;
+        maxY = Float.MIN_VALUE;
+
+        for (int i = 0; i < regionList.size(); i++) {
+            LiquidRegion r = regionList.get(i);
+
+            float rx = r.getX();
+            float ry = r.getY();
+            float rw = r.getWidth();
+            float rh = r.getHeight();
+
+            if (rx < minX) minX = rx;
+            if (ry < minY) minY = ry;
+            if (rx + rw > maxX) maxX = rx + rw;
+            if (ry + rh > maxY) maxY = ry + rh;
+        }
     }
 
     @Override
@@ -61,6 +84,10 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRende
     public void update(float delta) {
         super.update(delta);
 
+        checkRoomObjectLiquidInteraction();
+    }
+
+    private void checkRoomObjectLiquidInteraction(){
         List<BaseRoomGameObject> objList = ownerRoom.roomGameObjectList;
         currentInsideBuffer.clear();
 
@@ -68,36 +95,31 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRende
         for (int i = 0; i < objList.size(); i++) {
             BaseRoomGameObject obj = objList.get(i);
 
-            if (obj instanceof SimpleLiquidInteractableObjectII) {
-                processSimpleObject((SimpleLiquidInteractableObjectII) obj, currentInsideBuffer);
-            }
-
+            // evita dupla detecção no mesmo frame
             if (obj instanceof MultiLiquidInteractableObjectII) {
                 processCompositeObject((MultiLiquidInteractableObjectII) obj, currentInsideBuffer);
+            } else if (obj instanceof SimpleLiquidInteractableObjectII) {
+                processSimpleObject((SimpleLiquidInteractableObjectII) obj, currentInsideBuffer);
             }
         }
 
-        // Detecta ENTRADAS: quem tá em currentInsideBuffer mas NÃO tá em insideSet
+        // Detecta ENTRADAS
         for (SimpleLiquidInteractableObjectII obj : currentInsideBuffer) {
             if (!insideSet.contains(obj)) {
                 obj.getLiquidInteractionC().addLiquid(liquidData);
-                insideSet.add(obj);  // ← Adiciona ao estado persistente
             }
         }
 
-        // Detecta SAÍDAS: quem tá em insideSet mas NÃO tá em currentInsideBuffer
-        List<SimpleLiquidInteractableObjectII> toRemove = new ArrayList<>();
+        // Detecta SAÍDAS
         for (SimpleLiquidInteractableObjectII obj : insideSet) {
             if (!currentInsideBuffer.contains(obj)) {
-                toRemove.add(obj);
+                obj.getLiquidInteractionC().removeLiquid(liquidData);
             }
         }
 
-        // Remove quem saiu
-        for (SimpleLiquidInteractableObjectII obj : toRemove) {
-            obj.getLiquidInteractionC().removeLiquid(liquidData);
-            insideSet.remove(obj);  // ← Remove do estado persistente
-        }
+        // Replace: insideSet vira cópia de currentInsideBuffer
+        insideSet.clear();
+        insideSet.addAll(currentInsideBuffer);
     }
 
     /// Processa objeto simples (implementa LiquidInteractableObjectII)
@@ -107,11 +129,6 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRende
 
         if (isInsideLiquid(t)) {
             currentInside.add(obj);
-
-            // ENTROU: só chama se não tava dentro antes
-            if (!insideSet.contains(obj)) {
-                obj.getLiquidInteractionC().addLiquid(liquidData);
-            }
         }
     }
 
@@ -129,11 +146,6 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRende
 
             if (isInsideLiquid(t)) {
                 currentInside.add(obj);
-
-                // ENTROU
-                if (!insideSet.contains(obj)) {
-                    obj.getLiquidInteractionC().addLiquid(liquidData);
-                }
             }
         }
     }
@@ -144,6 +156,11 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRende
         float y = t.y;
         float w = t.width;
         float h = t.height;
+
+        // early reject (ganho grande)
+        if (x + w < minX || x > maxX || y + h < minY || y > maxY) {
+            return false;
+        }
 
         for (int i = 0; i < regionList.size(); i++) {
             LiquidRegion r = regionList.get(i);
@@ -164,7 +181,6 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRende
 
     @Override
     protected void disposeGeneralData() {
-
 
     }
 

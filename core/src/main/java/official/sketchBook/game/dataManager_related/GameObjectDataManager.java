@@ -151,11 +151,11 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             )
         );
 
-        Submarine baseSubmarine = new Submarine(
-            this,
-            currentRoom,
-            nodeList
-        );
+//        Submarine baseSubmarine = new Submarine(
+//            this,
+//            currentRoom,
+//            nodeList
+//        );
 
     }
 
