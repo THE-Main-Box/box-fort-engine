@@ -4,7 +4,10 @@ import com.badlogic.gdx.physics.box2d.Body;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
 
 public interface VehicleSection extends PhysicalObjectII {
-     Vehicle getVehicle();
+
+    Vehicle getVehicle();
+
+     void setVehicle(Vehicle vehicle);
 
     Body getInternalBody();
 

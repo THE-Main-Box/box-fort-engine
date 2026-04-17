@@ -121,13 +121,17 @@ public class PlayerAnimationControllerComponent implements Component {
     }
 
     @Override
+    public void initObject() {
+
+    }
+
+    @Override
     public void dispose() {
         if (disposed) return;
         nullifyReferences();
         disposed = true;
     }
 
-    @Override
     public void nullifyReferences() {
         player = null;
         currentAniPlayer = null;

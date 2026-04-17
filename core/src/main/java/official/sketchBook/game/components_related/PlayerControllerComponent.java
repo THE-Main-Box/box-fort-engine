@@ -103,6 +103,11 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
         testSubMovement();
     }
 
+    @Override
+    public void initObject() {
+
+    }
+
     private void testSubMovement() {
         VehiclePassengerPhysicsComponent VPPC = player.getVehiclePassengerPhysicsC();
 
@@ -174,7 +179,6 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
         }
     }
 
-    @Override
     public void nullifyReferences() {
         player = null;
     }

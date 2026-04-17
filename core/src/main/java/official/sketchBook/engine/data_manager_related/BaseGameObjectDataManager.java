@@ -3,6 +3,8 @@ package official.sketchBook.engine.data_manager_related;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.Disposable;
+import official.sketchBook.engine.components_related.intefaces.base_interfaces.ManagedUpdatableObject;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
@@ -20,12 +22,13 @@ public abstract class BaseGameObjectDataManager implements com.badlogic.gdx.util
     /// Lista de objects que precisam de rendering
     protected final RenderableObjectManager renderTree = new RenderableObjectManager();
 
-    /// Lista de gameObjects base ativos
-    protected final List<BaseGameObject> gameObjectList = new ArrayList<>();
-    /// Lista de gameObjects a serem adicionados
-    protected final List<BaseGameObject> gameObjectToAddList = new ArrayList<>();
+    /// Lista de objetos que podem ser iterados
+    protected final List<ManagedUpdatableObject>
+        gameObjectToAddList = new ArrayList<>(),        //Lista dos que serão adicionados ainda
+        updatableObjectList = new ArrayList<>();             //Lista dos que estão ativos
+
     /// Rastreamento de todas as classes que passaram pelo manager
-    protected final Set<Class<? extends BaseGameObject>> registeredClasses = new HashSet<>();
+    protected final Set<Class<? extends Disposable>> registeredClasses = new HashSet<>();
 
     protected ShapeRenderer shapeRenderer;
     public List<TransformComponent> toRender = new ArrayList<>();
@@ -53,12 +56,12 @@ public abstract class BaseGameObjectDataManager implements com.badlogic.gdx.util
 
     /// Executa a sequencia de atualização
     protected void updateGameObjects(float delta) {
-        BaseGameObject currentObject;
+        ManagedUpdatableObject currentObject;
 
         //Itera de cima pra baixo
-        for (int i = gameObjectList.size() - 1; i >= 0; i--) {
+        for (int i = updatableObjectList.size() - 1; i >= 0; i--) {
             //Obtém uma referencia
-            currentObject = gameObjectList.get(i);
+            currentObject = updatableObjectList.get(i);
 
             //Se estiver pendente para remoção
             if (currentObject.isPendingRemoval()) {
@@ -76,8 +79,8 @@ public abstract class BaseGameObjectDataManager implements com.badlogic.gdx.util
      * @param i      Index presente na lista
      * @param object referência do objeto, para impedir ter que obter a referencia diretamente
      */
-    protected void removePendingObject(int i, BaseGameObject object) {
-        gameObjectList.remove(i);                       //Remove da lista de objetos ativos
+    protected void removePendingObject(int i, ManagedUpdatableObject object) {
+        updatableObjectList.remove(i);                       //Remove da lista de objetos ativos
 
         //remove da pipeline de render caso seja renderizável e esteja marcado para remoção
         if (object instanceof RenderableObjectII) {
@@ -98,11 +101,11 @@ public abstract class BaseGameObjectDataManager implements com.badlogic.gdx.util
     protected void insertGameObjectsInSys() {
         if (gameObjectToAddList.isEmpty()) return;
 
-        BaseGameObject currentObject;
+        ManagedUpdatableObject currentObject;
         for (int i = 0; i < gameObjectToAddList.size(); i++) {
             currentObject = gameObjectToAddList.get(i);
 
-            gameObjectList.add(currentObject);
+            updatableObjectList.add(currentObject);
 
             tryAddToRender(
                 renderTree,
@@ -116,9 +119,9 @@ public abstract class BaseGameObjectDataManager implements com.badlogic.gdx.util
 
     /// Atualização tardia dos objetos, geralmente aqueles que precisam ter dados atualizados após o step do mundo
     protected void postUpdateGameObjects() {
-        BaseGameObject currentObject;
-        for (int i = 0; i < gameObjectList.size(); i++) {
-            currentObject = gameObjectList.get(i);
+        ManagedUpdatableObject currentObject;
+        for (int i = 0; i < updatableObjectList.size(); i++) {
+            currentObject = updatableObjectList.get(i);
 
             if (currentObject.isPendingRemoval()) continue;
             currentObject.postUpdate();
@@ -206,14 +209,14 @@ public abstract class BaseGameObjectDataManager implements com.badlogic.gdx.util
 
     /// Realiza um dispose dos dados pro instancia dos GameObjects existentes dentro do manager
     protected void disposeGameObjectInstances() {
-        for (int i = 0; i < gameObjectList.size(); i++) {
-            gameObjectList.get(i).dispose();
+        for (int i = 0; i < updatableObjectList.size(); i++) {
+            updatableObjectList.get(i).dispose();
         }
     }
 
     /// Limpa as listas existentes
     protected void disposeLists() {
-        gameObjectList.clear();
+        updatableObjectList.clear();
         gameObjectToAddList.clear();
         registeredClasses.clear();
     }
@@ -248,11 +251,11 @@ public abstract class BaseGameObjectDataManager implements com.badlogic.gdx.util
      * tenham seus recursos estáticos limpos.
      */
     protected final void disposeGameObjectsStaticResourcesOnce() {
-        Set<Class<? extends BaseGameObject>> cleanedClasses = new HashSet<>();
+        Set<Class<? extends Disposable>> cleanedClasses = new HashSet<>();
 
         // Usa registeredClasses (todas as classes que PASSARAM pelo manager)
         // Em vez de apenas as ativas
-        for (Class<? extends BaseGameObject> clazz : registeredClasses) {
+        for (Class<? extends Disposable> clazz : registeredClasses) {
 
             // Pula se já foi disposado
             if (cleanedClasses.contains(clazz)) {
@@ -287,13 +290,13 @@ public abstract class BaseGameObjectDataManager implements com.badlogic.gdx.util
 
     /// Usa a pipeline interna para marcar um objeto para ser destruido internamente
     public void removeGameObject(BaseGameObject go) {
-        if (gameObjectList.contains(go)) {
+        if (updatableObjectList.contains(go)) {
             go.markToDestroy();
         }
     }
 
-    public List<BaseGameObject> getGameObjectList() {
-        return gameObjectList;
+    public List<ManagedUpdatableObject> getGameObjectList() {
+        return updatableObjectList;
     }
 
     public RenderableObjectManager getRenderTree() {

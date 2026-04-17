@@ -1,5 +1,6 @@
 package official.sketchBook.engine.game_object_related.vehicle;
 
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -27,7 +28,7 @@ import static official.sketchBook.game.util_related.constants.PhysicsConstants.P
 public class SubmarineNode
     implements
     MovableObjectII,
-        SimpleLiquidInteractableObjectII,
+    SimpleLiquidInteractableObjectII,
     PhysicalObjectII,
     VehicleSection,
     RenderableObjectII,
@@ -138,7 +139,56 @@ public class SubmarineNode
             physicsWorld
         );
 
+        calculateNodeDimensions();
+
         recalculateMass();
+
+        System.out.println(transformC.width);
+    }
+
+    public void calculateNodeDimensions() {
+        if (physicalParts == null || physicalParts.isEmpty()) return;
+
+        float minX = Float.MAX_VALUE;
+        float minY = Float.MAX_VALUE;
+        float maxX = -Float.MAX_VALUE;
+        float maxY = -Float.MAX_VALUE;
+
+        boolean hasValidPart = false;
+
+        for (SubmarinePart part : physicalParts) {
+            // Garante que a parte já calculou seus próprios limites internos
+            if (!part.isBoundsCalculated()) {
+                SubmarinePart.calculateAndStoreBounds(part);
+            }
+
+            // Se após a tentativa de cálculo ainda não houver bounds, ignoramos
+            if (!part.isBoundsCalculated()) continue;
+
+            hasValidPart = true;
+
+            // Comparamos os limites da parte com o acumulador do Node
+            if (part.internalMinX < minX) minX = part.internalMinX;
+            if (part.internalMinY < minY) minY = part.internalMinY;
+            if (part.internalMaxX > maxX) maxX = part.internalMaxX;
+            if (part.internalMaxY > maxY) maxY = part.internalMaxY;
+        }
+
+        if (!hasValidPart) return;
+
+        // Convertendo de metros (Box2D) para Pixels (PPM) para o TransformComponent
+        float worldWidth = maxX - minX;
+        float worldHeight = maxY - minY;
+
+        // Atualizamos o TransformComponent
+        // Nota: O 'x' e 'y' aqui representam o "canto inferior esquerdo" relativo à origem da Body
+        transformC.width = worldWidth * PPM;
+        transformC.height = worldHeight * PPM;
+
+        // Opcional: Se você quiser que o transformC.x/y reflita o offset do bounding box
+        // em relação ao centro da Body:
+        // transformC.x = minX * PPM;
+        // transformC.y = minY * PPM;
     }
 
     private void initComponents() {
@@ -335,11 +385,22 @@ public class SubmarineNode
 
     }
 
+    BitmapFont font = new BitmapFont();
+
     @Override
     public void render(SpriteBatch batch) {
+        font.draw(
+            batch,
+            "testando sub",
+            transformC.x,
+            transformC.y
+        );
 
+        System.out.println(inScreen);
 
     }
+
+    //TODO depurar o inScreen
 
     @Override
     public boolean canRender() {
@@ -391,7 +452,7 @@ public class SubmarineNode
 
     @Override
     public void disposeGraphics() {
-        if(graphicsDisposed) return;
+        if (graphicsDisposed) return;
 
         managerC.disposeGraphics();
 

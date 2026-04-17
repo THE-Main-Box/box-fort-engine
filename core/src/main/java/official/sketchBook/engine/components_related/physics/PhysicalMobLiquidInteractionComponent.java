@@ -86,6 +86,11 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     }
 
+    @Override
+    public void initObject() {
+
+    }
+
     private void updateSimulation() {
         //Valida se podemos realizar a simulação
         final boolean shouldSimulate = canInteract && !liquidBuffer.isEmpty();
@@ -388,7 +393,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         disposed = true;
     }
 
-    @Override
+
     public void nullifyReferences() {
         liquidBuffer = null;
         liquidIdSet = null;

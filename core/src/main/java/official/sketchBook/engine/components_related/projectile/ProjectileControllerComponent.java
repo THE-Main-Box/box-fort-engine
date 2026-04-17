@@ -75,6 +75,11 @@ public class ProjectileControllerComponent implements Component {
         moveC.dataComponent.rAxis.cleanAcceleration();
     }
 
+    @Override
+    public void initObject() {
+
+    }
+
     /// Insere a velocidade de disparo na pipeline de aceleração
     public void launch() {
         moveC.dataComponent.xAxis.setMovement(launchSpeedX);
@@ -156,7 +161,6 @@ public class ProjectileControllerComponent implements Component {
         disposed = true;
     }
 
-    @Override
     public void nullifyReferences() {
         projectile = null;
         moveC = null;

@@ -34,7 +34,10 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
         autoCorrect = true,
         autoApplySubMovement = true;
 
-    private AxisData xAxis, yAxis;
+    private final AxisData
+        xAxis,
+        yAxis,
+        rAxis;
 
     public VehiclePassengerPhysicsComponent(
         VehiclePassenger object,
@@ -58,6 +61,7 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
 
         this.xAxis = moveC.dataComponent.xAxis;
         this.yAxis = moveC.dataComponent.yAxis;
+        this.rAxis = moveC.dataComponent.rAxis;
     }
 
     @Override

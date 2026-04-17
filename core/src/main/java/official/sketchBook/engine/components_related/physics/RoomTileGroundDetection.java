@@ -69,6 +69,11 @@ public class RoomTileGroundDetection implements Component {
         detectRoomTileAt();
     }
 
+    @Override
+    public void initObject() {
+
+    }
+
 
     private void checkRoomSanity() {
         PlayableRoom current = roomObject.getOwnerRoom();
@@ -137,7 +142,7 @@ public class RoomTileGroundDetection implements Component {
         disposed = true;
     }
 
-    @Override
+
     public void nullifyReferences() {
         roomObject = null;
 

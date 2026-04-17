@@ -76,7 +76,7 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRende
     }
 
     @Override
-    protected void initObject() {
+    public void initObject() {
 
     }
 

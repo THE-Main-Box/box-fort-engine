@@ -47,6 +47,11 @@ public class RayCastGroundDetectionComponent implements Component {
         detectGround();
     }
 
+    @Override
+    public void initObject() {
+
+    }
+
     private void detectGround() {
         TransformComponent transformC = object.getTransformC();
 
@@ -107,7 +112,7 @@ public class RayCastGroundDetectionComponent implements Component {
         disposed = true;
     }
 
-    @Override
+
     public void nullifyReferences() {
         validGroundType = null;
         object = null;

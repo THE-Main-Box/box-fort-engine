@@ -65,7 +65,6 @@ public abstract class KeyBoundControllerComponent implements Component {
     public void dispose() {
         if (disposed) return;
         cleanList();
-        nullifyReferences();
 
         disposed = true;
     }

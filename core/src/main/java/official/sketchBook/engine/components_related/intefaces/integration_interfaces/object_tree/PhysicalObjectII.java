@@ -1,10 +1,11 @@
 package official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree;
 
 import com.badlogic.gdx.physics.box2d.Body;
+import official.sketchBook.engine.components_related.intefaces.base_interfaces.UpdatableObject;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 
-public interface PhysicalObjectII {
+public interface PhysicalObjectII extends UpdatableObject {
 
     /// Callback de sincronização de dados de coordenadas
     void onObjectAndBodyPosSync();

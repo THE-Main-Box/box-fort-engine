@@ -1,5 +1,6 @@
 package official.sketchBook.engine.world_gen;
 
+import official.sketchBook.engine.components_related.intefaces.base_interfaces.ManagedUpdatableObject;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseGameObject;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
@@ -111,12 +112,12 @@ public class PlayableRoomManager {
      * Filtra quem deve ser destruído e quem deve ser notificado da mudança.
      */
     public void transitionRoomObjects(
-        List<BaseGameObject> currentActiveObjects,
+        List<ManagedUpdatableObject> currentActiveObjects,
         PlayableRoom oldRoom,
         PlayableRoom nextRoom
     ) {
         for (int i = currentActiveObjects.size() - 1; i >= 0; i--) {
-            BaseGameObject obj = currentActiveObjects.get(i);
+            ManagedUpdatableObject obj = currentActiveObjects.get(i);
 
             if (obj instanceof BaseRoomGameObject) {
                 handleObjectScope(

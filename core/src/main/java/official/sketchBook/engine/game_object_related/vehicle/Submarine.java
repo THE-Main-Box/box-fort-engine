@@ -16,7 +16,7 @@ public class Submarine extends BaseRoomGameObject implements
     Vehicle,
     MultiRenderableObjectII{
 
-    private final List<SubmarineNode> submarineNodes;
+    private final List<SubmarineNode> submarineNodeList;
 
     public int renderIndex;
 
@@ -28,7 +28,7 @@ public class Submarine extends BaseRoomGameObject implements
     public Submarine(
         PhysicalGameObjectDataManager worldDataManager,
         PlayableRoom ownerRoom,
-        List<SubmarineNode> submarineNodes
+        List<SubmarineNode> submarineNodeList
     ) {
         super(
             worldDataManager,
@@ -36,15 +36,15 @@ public class Submarine extends BaseRoomGameObject implements
             RoomObjectScope.GLOBAL
         );
 
-        this.submarineNodes = submarineNodes;
+        this.submarineNodeList = submarineNodeList;
 
         initObject();
     }
 
     @Override
-    protected void initObject() {
-        for (int i = 0; i < submarineNodes.size(); i++) {
-            SubmarineNode node = submarineNodes.get(i);
+    public void initObject() {
+        for (int i = 0; i < submarineNodeList.size(); i++) {
+            VehicleSection node = submarineNodeList.get(i);
             node.initObject();
             node.setVehicle(this);
         }
@@ -54,8 +54,8 @@ public class Submarine extends BaseRoomGameObject implements
     public void update(float delta) {
         updateComponents(delta);
 
-        for (int i = 0; i < submarineNodes.size(); i++) {
-            submarineNodes.get(i).update(delta);
+        for (int i = 0; i < submarineNodeList.size(); i++) {
+            submarineNodeList.get(i).update(delta);
         }
     }
 
@@ -63,22 +63,22 @@ public class Submarine extends BaseRoomGameObject implements
     public void postUpdate() {
         postUpdateComponents();
 
-        for (int i = 0; i < submarineNodes.size(); i++) {
-            submarineNodes.get(i).postUpdate();
+        for (int i = 0; i < submarineNodeList.size(); i++) {
+            submarineNodeList.get(i).postUpdate();
         }
     }
 
     @Override
     public void updateVisuals(float delta) {
-        for(int i = 0; i < submarineNodes.size(); i++){
-            submarineNodes.get(i).updateVisuals(delta);
+        for(int i = 0; i < submarineNodeList.size(); i++){
+            submarineNodeList.get(i).updateVisuals(delta);
         }
     }
 
     @Override
     public void render(SpriteBatch batch) {
-        for(int i = 0; i < submarineNodes.size(); i++){
-            submarineNodes.get(i).render(batch);
+        for(int i = 0; i < submarineNodeList.size(); i++){
+            submarineNodeList.get(i).render(batch);
         }
     }
 
@@ -89,8 +89,8 @@ public class Submarine extends BaseRoomGameObject implements
 
     @Override
     protected void disposeGeneralData() {
-        for (int i = 0; i < submarineNodes.size(); i++) {
-            submarineNodes.get(i).dispose();
+        for (int i = 0; i < submarineNodeList.size(); i++) {
+            submarineNodeList.get(i).dispose();
         }
     }
 
@@ -103,8 +103,8 @@ public class Submarine extends BaseRoomGameObject implements
     public void disposeGraphics() {
         if(graphicsDisposed) return;
 
-        for(int i = 0; i < submarineNodes.size(); i++){
-            submarineNodes.get(i).disposeGraphics();
+        for(int i = 0; i < submarineNodeList.size(); i++){
+            submarineNodeList.get(i).disposeGraphics();
         }
 
         graphicsDisposed = true;
@@ -112,7 +112,7 @@ public class Submarine extends BaseRoomGameObject implements
 
     @Override
     public List<SubmarineNode> getSections() {
-        return submarineNodes;
+        return submarineNodeList;
     }
 
     @Override
@@ -135,7 +135,7 @@ public class Submarine extends BaseRoomGameObject implements
         this.inScreen = inScreen;
     }
 
-    //TODO: ENTREGAR UM TRANSFORMC QUE CONTENHA OS DADOS DO SUBMARINO
+    //TODO: ENTREGAR UM TRANSFORMC QUE CONTENHA OS DADOS DO SUBMARINO se possivel
 
     @Override
     public TransformComponent getTransformC() {
@@ -144,7 +144,7 @@ public class Submarine extends BaseRoomGameObject implements
 
     @Override
     public List<SubmarineNode> getRenderableObjList() {
-        return submarineNodes;
+        return submarineNodeList;
     }
 
 
@@ -165,6 +165,6 @@ public class Submarine extends BaseRoomGameObject implements
 
     @Override
     public List<SubmarineNode> getLiquidIObj() {
-        return submarineNodes;
+        return submarineNodeList;
     }
 }

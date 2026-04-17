@@ -34,6 +34,11 @@ public class ComponentManagerComponent implements Component {
         }
     }
 
+    @Override
+    public void initObject() {
+
+    }
+
     public <T extends Component> void remove(
         Class<T> type,
         boolean removeFromUpdateList,
@@ -90,11 +95,6 @@ public class ComponentManagerComponent implements Component {
         toPostUpdate.clear();
 
         disposed = true;
-    }
-
-    @Override
-    public void nullifyReferences() {
-
     }
 
 

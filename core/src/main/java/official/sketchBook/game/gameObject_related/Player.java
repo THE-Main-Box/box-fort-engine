@@ -97,7 +97,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     @Override
-    protected void initObject() {
+    public void initObject() {
 
         //Controlador
         initControllerComponent();

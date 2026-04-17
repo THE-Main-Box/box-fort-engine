@@ -175,8 +175,8 @@ public class SubmarinePart implements Disposable {
         return section;
     }
 
-    public void setSection(VehicleSection section) {
-        if (this.section == section || section == null || this.section != null) return;
-        this.section = section;
+    public void setSection(SubmarineNode node) {
+        if (this.section == node || node == null || this.section != null) return;
+        this.section = node;
     }
 }

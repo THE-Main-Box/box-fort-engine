@@ -128,6 +128,12 @@ public class JumpComponent implements Component {
         updateLandedFlag();
     }
 
+    @Override
+    public void initObject() {
+
+
+    }
+
     private void updateLandedFlag() {
         boolean currentlyOnGround = object.isOnGround();
 
@@ -300,7 +306,6 @@ public class JumpComponent implements Component {
         disposed = true;
     }
 
-    @Override
     public void nullifyReferences() {
         object = null;
         body = null;

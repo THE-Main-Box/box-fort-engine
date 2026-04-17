@@ -81,6 +81,11 @@ public class MovementComponent implements Component {
 
     }
 
+    @Override
+    public void initObject() {
+
+    }
+
     protected void applyMovementToMob(float delta) {
         mob.getTransformC().x += dataComponent
             .xAxis.velocity * delta

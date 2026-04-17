@@ -310,6 +310,11 @@ public class PhysicsComponent implements Component {
     }
 
     @Override
+    public void initObject() {
+
+    }
+
+    @Override
     public void dispose() {
         if (disposed || object.getBody() == null) return;
 

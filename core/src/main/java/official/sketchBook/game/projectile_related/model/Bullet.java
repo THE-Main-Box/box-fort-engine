@@ -208,4 +208,9 @@ public class Bullet extends PhysicalProjectile {
     protected void disposeCriticalData() {
 
     }
+
+    @Override
+    public void initObject() {
+
+    }
 }

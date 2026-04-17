@@ -62,6 +62,11 @@ public class ProjectileMovementLockComponent implements Component {
 
     }
 
+    @Override
+    public void initObject() {
+
+    }
+
     public void updateConstraints() {
         unlockMovement();
 
@@ -139,7 +144,6 @@ public class ProjectileMovementLockComponent implements Component {
         disposed = true;
     }
 
-    @Override
     public void nullifyReferences() {
         moveC = null;
         controllerC = null;

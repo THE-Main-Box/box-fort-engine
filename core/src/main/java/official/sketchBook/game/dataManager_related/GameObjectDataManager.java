@@ -1,13 +1,9 @@
 package official.sketchBook.game.dataManager_related;
 
-import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
-import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
-import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
 import official.sketchBook.engine.game_object_related.vehicle.Submarine;
 import official.sketchBook.engine.game_object_related.vehicle.SubmarineNode;
 import official.sketchBook.engine.game_object_related.vehicle.SubmarinePart;
@@ -151,11 +147,11 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             )
         );
 
-//        Submarine baseSubmarine = new Submarine(
-//            this,
-//            currentRoom,
-//            nodeList
-//        );
+        Submarine baseSubmarine = new Submarine(
+            this,
+            currentRoom,
+            nodeList
+        );
 
     }
 
@@ -372,7 +368,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         // assim decidindo e agindo,
         // se eles vão para a próxima sala ou se serão marcados para serem destruídos
         roomManager.transitionRoomObjects(
-            gameObjectList,
+            updatableObjectList,
             oldRoom,
             newRoom
         );
