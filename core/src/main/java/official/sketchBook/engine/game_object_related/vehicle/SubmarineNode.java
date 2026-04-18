@@ -142,8 +142,6 @@ public class SubmarineNode
         calculateNodeDimensions();
 
         recalculateMass();
-
-        System.out.println(transformC.width);
     }
 
     public void calculateNodeDimensions() {
@@ -157,17 +155,15 @@ public class SubmarineNode
         boolean hasValidPart = false;
 
         for (SubmarinePart part : physicalParts) {
-            // Garante que a parte já calculou seus próprios limites internos
             if (!part.isBoundsCalculated()) {
                 SubmarinePart.calculateAndStoreBounds(part);
             }
 
-            // Se após a tentativa de cálculo ainda não houver bounds, ignoramos
             if (!part.isBoundsCalculated()) continue;
 
             hasValidPart = true;
 
-            // Comparamos os limites da parte com o acumulador do Node
+            // Os bounds já estão em METROS, então comparamos direto
             if (part.internalMinX < minX) minX = part.internalMinX;
             if (part.internalMinY < minY) minY = part.internalMinY;
             if (part.internalMaxX > maxX) maxX = part.internalMaxX;
@@ -176,19 +172,14 @@ public class SubmarineNode
 
         if (!hasValidPart) return;
 
-        // Convertendo de metros (Box2D) para Pixels (PPM) para o TransformComponent
-        float worldWidth = maxX - minX;
-        float worldHeight = maxY - minY;
+        // Agora sim convertemos UMA VEZ SÓ de metros pra pixels
+        float worldWidth = (maxX - minX) * PPM;  // ← Conversão única e correta
+        float worldHeight = (maxY - minY) * PPM;
 
-        // Atualizamos o TransformComponent
-        // Nota: O 'x' e 'y' aqui representam o "canto inferior esquerdo" relativo à origem da Body
-        transformC.width = worldWidth * PPM;
-        transformC.height = worldHeight * PPM;
-
-        // Opcional: Se você quiser que o transformC.x/y reflita o offset do bounding box
-        // em relação ao centro da Body:
-        // transformC.x = minX * PPM;
-        // transformC.y = minY * PPM;
+//        transformC.width = worldWidth / 4;
+        transformC.width = worldWidth;
+//        transformC.height = worldHeight / 4;
+        transformC.height = worldHeight;
     }
 
     private void initComponents() {
@@ -396,7 +387,7 @@ public class SubmarineNode
             transformC.y
         );
 
-        System.out.println(inScreen);
+        System.out.println(inScreen + " | " + transformC.width);
 
     }
 

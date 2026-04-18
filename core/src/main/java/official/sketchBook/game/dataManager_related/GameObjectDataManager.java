@@ -127,7 +127,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         );
 
         float
-            subX = 150,
+            subX = 50,
             subY = 60;
 
         List<SubmarinePart> subParts = getBaseSubmarineParts();
@@ -158,6 +158,10 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     private static List<SubmarinePart> getBaseSubmarineParts() {
         List<SubmarinePart> subParts = new ArrayList<>();
 
+        float
+            width = 16,
+            height = 10;
+
         int
             categoryBit = VEHICLE.bit(),
             maskBit = VEHICLE_PASSENGER.bit();
@@ -170,8 +174,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             0,
             25,
             0,
-            120,
-            10,
+            width,
+            height,
             categoryBit,
             maskBit,
             true,
@@ -184,8 +188,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             0,
             -25,
             0,
-            120,
-            10,
+            width,
+            height,
             categoryBit,
             maskBit,
             true,
