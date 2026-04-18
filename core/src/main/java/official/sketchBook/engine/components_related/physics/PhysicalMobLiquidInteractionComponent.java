@@ -6,6 +6,7 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.MovementDataComponent;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
+import official.sketchBook.game.gameObject_related.Player;
 
 import java.util.*;
 
@@ -72,6 +73,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         //Restauramos a flag ao estado de poder interagir
         canInteract = canInteractBuffer;
         updateStoredMovement = false;
+
     }
 
     @Override
@@ -313,6 +315,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     public void setCanInteract(boolean canInteract) {
         if (this.canInteract == canInteract) return;
+
         this.canInteract = canInteract;
     }
 

@@ -376,18 +376,8 @@ public class SubmarineNode
 
     }
 
-    BitmapFont font = new BitmapFont();
-
     @Override
     public void render(SpriteBatch batch) {
-        font.draw(
-            batch,
-            "testando sub",
-            transformC.x,
-            transformC.y
-        );
-
-        System.out.println(inScreen + " | " + transformC.width);
 
     }
 

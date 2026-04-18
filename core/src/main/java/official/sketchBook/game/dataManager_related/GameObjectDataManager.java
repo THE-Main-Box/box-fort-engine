@@ -159,7 +159,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         List<SubmarinePart> subParts = new ArrayList<>();
 
         float
-            width = 16,
+            width = 120,
             height = 10;
 
         int
