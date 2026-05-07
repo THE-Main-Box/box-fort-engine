@@ -16,9 +16,11 @@ import official.sketchBook.engine.components_related.physics.MovableObjectPhysic
 import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.components_related.system_utils.RenderableAndDefaultComponentManagerComponent;
+import official.sketchBook.engine.components_related.vehicle.VehicleBaseComponent;
 import official.sketchBook.game.util_related.constants.DebugConstants;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createExternalBody;
@@ -41,6 +43,8 @@ public class SubmarineNode
 
     /// Lista de partes físicas
     private final List<SubmarinePart> physicalParts;
+
+    private final List<VehicleBaseComponent> vehicleComponentList;
 
     /// Dado de massa atual
     private final MassData massData = new MassData();
@@ -96,6 +100,8 @@ public class SubmarineNode
         this.physicsWorld = physicsWorld;
 
         this.physicalParts = physicalParts;
+
+        this.vehicleComponentList = new ArrayList<>();
 
         for (SubmarinePart part : this.physicalParts) {
             part.setSection(this);
@@ -382,9 +388,26 @@ public class SubmarineNode
 
     @Override
     public void render(SpriteBatch batch) {
-        if(!DebugConstants.show_hit_boxes) return;
+        if (!DebugConstants.show_hit_boxes) return;
         vehicle.worldDataManager.toRender.add(
             this.transformC
+        );
+    }
+
+    public void addVehicleComponent(
+        VehicleBaseComponent component,
+        boolean toRender,
+        boolean toUpdate,
+        boolean toPostUpdate
+    ) {
+        this.vehicleComponentList.add(component);
+
+        if (toRender) this.managerC.addToRender(component);
+
+        this.managerC.add(
+            component,
+            toUpdate,
+            toPostUpdate
         );
     }
 
@@ -466,6 +489,11 @@ public class SubmarineNode
             parts.dispose();
         }
 
+        for (VehicleBaseComponent component : vehicleComponentList) {
+            component.dispose();
+        }
+
+        vehicleComponentList.clear();
         physicalParts.clear();
         physicsWorld.destroyBody(internalBody);
 
