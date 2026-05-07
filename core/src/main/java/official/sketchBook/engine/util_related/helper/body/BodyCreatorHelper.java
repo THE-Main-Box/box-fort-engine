@@ -4,9 +4,82 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
 public class BodyCreatorHelper {
+
+    /**
+     * Factory que cria e anexa fixtures na body a partir de um FixtureData.
+     * Sempre retorna a lista de fixtures criadas, seja 1 (círculo/retângulo) ou N (cápsula).
+     * Retorna lista vazia se o FixtureData for inválido.
+     */
+    public static List<Fixture> createFixturesFromData(FixtureData data, Body target) {
+        List<Fixture> created = new ArrayList<>();
+
+        if (data.isCapsule()) {
+            int before = target.getFixtureList().size;
+
+            createCapsuleFixture(
+                target,
+                data.width,
+                data.height,
+                data.offsetX + data.globalOffsetX,
+                data.offsetY + data.globalOffsetY,
+                data.density,
+                data.friction,
+                data.restitution,
+                data.categoryBit,
+                data.maskBit
+            );
+
+            for (int k = before; k < target.getFixtureList().size; k++) {
+                Fixture fix = target.getFixtureList().get(k);
+                fix.setSensor(data.isSensor());
+                created.add(fix);
+            }
+
+            return created;
+        }
+
+        Shape shape = null;
+
+        if (data.isCircle()) {
+            shape = createCircleShape(
+                data.radius,
+                data.offsetX + data.globalOffsetX,
+                data.offsetY + data.globalOffsetY
+            );
+        } else if (data.isRectangle()) {
+            shape = createBoxShape(
+                data.width,
+                data.height,
+                data.offsetX + data.globalOffsetX,
+                data.offsetY + data.globalOffsetY
+            );
+        }
+
+        if (shape == null) return created;
+
+        FixtureDef def = createFixture(
+            shape,
+            data.density,
+            data.friction,
+            data.restitution,
+            data.categoryBit,
+            data.maskBit
+        );
+
+        def.isSensor = data.isSensor();
+
+        created.add(target.createFixture(def));
+
+        shape.dispose();
+
+        return created;
+    }
 
     /**
      * Criação de uma body Quadrangular
@@ -33,7 +106,7 @@ public class BodyCreatorHelper {
         short category,
         short mask
     ) {
-        if(world == null) return null;
+        if (world == null) return null;
 
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = type;
@@ -94,7 +167,7 @@ public class BodyCreatorHelper {
         short category,
         short mask
     ) {
-        if(world == null) return null;
+        if (world == null) return null;
 
         BodyDef bodyDef = new BodyDef();        //Criamos os valores padrão para o corpo
         bodyDef.type = type;                    //Definimos o tipo do corpo

@@ -117,80 +117,13 @@ public class SubmarinePartBodyCreateHelper {
             for (int j = 0; j < part.fixtureDataList.size(); j++) {
                 FixtureData data = part.fixtureDataList.get(j);
 
-                // CAPSULE (não retorna Shape)
-                if (data.isCapsule()) {
+                List<Fixture> fixtures = BodyCreatorHelper.createFixturesFromData(data, internal);
 
-                    int before = internal.getFixtureList().size;
-
-                    BodyCreatorHelper.createCapsuleFixture(
-                        internal,
-                        data.width,
-                        data.height,
-                        (data.offsetX + data.globalOffsetX),
-                        (data.offsetY + data.globalOffsetY),
-                        data.density,
-                        data.friction,
-                        data.restitution,
-                        data.categoryBit,
-                        data.maskBit
-                    );
-
-                    // captura fixtures criadas
-                    for (int k = before; k < internal.getFixtureList().size; k++) {
-                        Fixture fix = internal.getFixtureList().get(k);
-
-                        fix.setSensor(data.isSensor());
-
-                        fix.setUserData(
-                            new GameObjectTag(ObjectType.VEHICLE, part)
-                        );
-
-                        part.internalFixtureList.add(fix);
-                    }
-
-                    continue;
+                for (int k = 0; k < fixtures.size(); k++) {
+                    Fixture fix = fixtures.get(k);
+                    fix.setUserData(new GameObjectTag(ObjectType.VEHICLE, part));
+                    part.internalFixtureList.add(fix);
                 }
-
-                // CIRCLE / RECTANGLE
-                Shape shape = null;
-
-                if (data.isCircle()) {
-                    shape = BodyCreatorHelper.createCircleShape(
-                        data.radius,
-                        (data.offsetX + data.globalOffsetX),
-                        (data.offsetY + data.globalOffsetY)
-                    );
-                } else if (data.isRectangle()) {
-                    shape = BodyCreatorHelper.createBoxShape(
-                        data.width,
-                        data.height,
-                        (data.offsetX + data.globalOffsetX),
-                        (data.offsetY + data.globalOffsetY)
-                    );
-                }
-
-                if (shape == null) continue;
-
-                FixtureDef def = BodyCreatorHelper.createFixture(
-                    shape,
-                    data.density,
-                    data.friction,
-                    data.restitution,
-                    data.categoryBit,
-                    data.maskBit
-                );
-
-                def.isSensor = data.isSensor();
-
-                Fixture fix = internal.createFixture(def);
-
-                part.internalFixtureList.add(fix);
-
-                fix.setUserData(
-                    new GameObjectTag(ObjectType.VEHICLE, part)
-                );
-
-                shape.dispose();
             }
 
             SubmarinePart.calculateAndStoreBounds(part);
