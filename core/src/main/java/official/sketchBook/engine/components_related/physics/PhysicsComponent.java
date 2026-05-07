@@ -24,11 +24,10 @@ public class PhysicsComponent implements Component {
     /// Buffer de velocidade a ser aplicado no corpo
     protected final Vector2 tmpVel;
 
-    /// Buffer de diferença de largura
-    private final float halfWidth;
-    /// Buffer de diferença de altura
-    private final float halfHeight;
-
+    /// Buffer de diferença de dimensões
+    public float
+        halfWidth,      //Meia largura
+        halfHeight;     //Meia altura
 
     /// Dita com quem podemos colidir
     private final short maskBit;
@@ -327,6 +326,7 @@ public class PhysicsComponent implements Component {
     public void nullifyReferences() {
         this.object = null;
         this.transformC = null;
+
     }
 
     public short getMaskBit() {

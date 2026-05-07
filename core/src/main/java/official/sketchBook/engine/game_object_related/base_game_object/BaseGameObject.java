@@ -12,7 +12,7 @@ public abstract class BaseGameObject implements ManagedUpdatableObject {
     protected boolean disposed = false;
 
     /// Manager dono do objeto, onde ele será gerenciado
-    protected final BaseGameObjectDataManager worldDataManager;
+    public final BaseGameObjectDataManager worldDataManager;
 
     protected ComponentManagerComponent managerC;
 

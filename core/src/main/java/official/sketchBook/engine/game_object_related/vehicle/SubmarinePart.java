@@ -18,7 +18,7 @@ public class SubmarinePart implements Disposable {
     /// Tag para facilitar leitura e identificação
     public final String tag;
 
-    private VehicleSection section;
+    private SubmarineNode section;
 
     /// Lista de fixtures para criar as sessões para a body do sub
     public final List<FixtureData> fixtureDataList;

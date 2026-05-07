@@ -1,15 +1,14 @@
 package official.sketchBook.engine.game_object_related.vehicle;
 
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.MassData;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Disposable;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.SimpleLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.SimpleLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
@@ -17,6 +16,7 @@ import official.sketchBook.engine.components_related.physics.MovableObjectPhysic
 import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.components_related.system_utils.RenderableAndDefaultComponentManagerComponent;
+import official.sketchBook.game.util_related.constants.DebugConstants;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 
 import java.util.List;
@@ -37,7 +37,7 @@ public class SubmarineNode
     private World physicsWorld;
 
     /// Referência ao veículo dono desse node
-    private Vehicle vehicle;
+    private Submarine vehicle;
 
     /// Lista de partes físicas
     private final List<SubmarinePart> physicalParts;
@@ -101,7 +101,6 @@ public class SubmarineNode
             part.setSection(this);
         }
 
-        /// TODO: Adicionar sistema para determinar as dimensões padrão do node
         transformC = new TransformComponent(
             centerX,
             centerY,
@@ -123,6 +122,9 @@ public class SubmarineNode
     public void initObject() {
         initComponents();
         generateBody();
+
+        physicsC.halfWidth = transformC.getHalfWidth();
+        physicsC.halfHeight = transformC.getHalfHeight();
     }
 
     private void generateBody() {
@@ -276,6 +278,8 @@ public class SubmarineNode
         );
         internalBody.setLinearVelocity(body.getLinearVelocity());
 
+        physicsC.postUpdate();
+
         updateVelocity();
     }
 
@@ -378,10 +382,11 @@ public class SubmarineNode
 
     @Override
     public void render(SpriteBatch batch) {
-
+        if(!DebugConstants.show_hit_boxes) return;
+        vehicle.worldDataManager.toRender.add(
+            this.transformC
+        );
     }
-
-    //TODO depurar o inScreen
 
     @Override
     public boolean canRender() {
@@ -427,8 +432,12 @@ public class SubmarineNode
     }
 
     public void setVehicle(Vehicle vehicle) {
-        if (vehicle == this.vehicle || vehicle == null || this.vehicle != null) return;
-        this.vehicle = vehicle;
+        if (vehicle == this.vehicle ||
+            !(vehicle instanceof Submarine) ||
+            this.vehicle != null
+        )
+            return;
+        this.vehicle = (Submarine) vehicle;
     }
 
     @Override

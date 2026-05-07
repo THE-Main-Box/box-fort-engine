@@ -11,6 +11,7 @@ import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomG
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
+import official.sketchBook.game.util_related.constants.DebugConstants;
 
 import java.util.*;
 
@@ -224,6 +225,7 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRende
         for (int i = 0; i < regionList.size(); i++){
             regionList.get(i).render(batch);
 
+            if(!DebugConstants.show_hit_boxes) return;
             worldDataManager.toRender.add(
                 regionList.get(i).getTransformC()
             );

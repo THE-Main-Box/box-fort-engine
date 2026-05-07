@@ -44,7 +44,7 @@ public class Submarine extends BaseRoomGameObject implements
     @Override
     public void initObject() {
         for (int i = 0; i < submarineNodeList.size(); i++) {
-            VehicleSection node = submarineNodeList.get(i);
+            SubmarineNode node = submarineNodeList.get(i);
             node.initObject();
             node.setVehicle(this);
         }
