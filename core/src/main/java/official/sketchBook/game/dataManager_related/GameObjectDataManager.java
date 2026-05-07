@@ -3,6 +3,7 @@ package official.sketchBook.game.dataManager_related;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
+import official.sketchBook.engine.components_related.vehicle.VehicleDoor;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.vehicle.Submarine;
 import official.sketchBook.engine.game_object_related.vehicle.SubmarineNode;
@@ -14,6 +15,7 @@ import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.listeners.MovableObjectContactListener;
 import official.sketchBook.engine.util_related.contact_listener.listeners.ProjectileContactListener;
 import official.sketchBook.engine.util_related.contact_listener.listeners.VehicleContactListener;
+import official.sketchBook.engine.util_related.helper.body.FixtureData;
 import official.sketchBook.engine.util_related.pools.GlobalProjectilePool;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
@@ -134,23 +136,57 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         List<SubmarineNode> nodeList = new ArrayList<>();
 
+        SubmarineNode node_1 = new SubmarineNode(
+            physicsWorld,
+            subParts,
+            subX,
+            subY,
+            0,
+            0,
+            false,
+            false
+        );
+
+//        System.out.println(door.doorFixList.size());
+
         nodeList.add(
-            new SubmarineNode(
-                physicsWorld,
-                subParts,
-                subX,
-                subY,
-                0,
-                0,
-                false,
-                false
-            )
+          node_1
         );
 
         Submarine baseSubmarine = new Submarine(
             this,
             currentRoom,
             nodeList
+        );
+
+        VehicleDoor door = new VehicleDoor(
+            node_1,
+            new FixtureData(
+                0,
+                0,
+                0,
+                0,
+                0,
+                55,
+                0,
+                0,
+                9,
+                40,
+                VEHICLE.bit(),
+                VEHICLE_PASSENGER.bit(),
+                false,
+                false
+            ),
+            false,
+            false,
+            true
+        );
+
+        node_1.addVehicleComponent(
+            door,
+            false,
+            false,
+            false
         );
 
     }

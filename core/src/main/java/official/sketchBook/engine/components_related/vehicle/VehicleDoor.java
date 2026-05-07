@@ -3,7 +3,9 @@ package official.sketchBook.engine.components_related.vehicle;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.InteractableObject;
 import official.sketchBook.engine.game_object_related.vehicle.VehicleSection;
+import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.enumerators.VehicleComponentType;
+import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
 
@@ -16,7 +18,7 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
     /// Lista de fixtures da porta
     public final List<Fixture> doorFixList;
 
-    ///Dados da fixture
+    /// Dados da fixture
     public final FixtureData fixData;
 
     /// Flags de estado interno
@@ -49,11 +51,15 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
 
         this.fixData = fixData;
         this.doorFixList = new ArrayList<>();
+
+        initObject();
     }
 
     @Override
     public void initObject() {
         super.initObject();
+
+//        System.out.println(ownerSection.getInternalBody());
 
         this.doorFixList.addAll(
             BodyCreatorHelper.createFixturesFromData(
@@ -61,11 +67,28 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
                 ownerSection.getInternalBody()
             )
         );
+
+
+        for (Fixture fix : doorFixList) {
+            fix.setUserData(
+                new GameObjectTag(
+                    ObjectType.VEHICLE,
+                    this
+                )
+            );
+        }
+
+        if(!canInteract()) return;
+        updateDoorState();
     }
 
     public void interact() {
         this.open = !open;      //Abre e fecha a porta a cada chamada
 
+        updateDoorState();
+    }
+
+    private void updateDoorState(){
         for (int i = 0; i < doorFixList.size(); i++) {
             this.doorFixList.get(i).setSensor(open);
         }
