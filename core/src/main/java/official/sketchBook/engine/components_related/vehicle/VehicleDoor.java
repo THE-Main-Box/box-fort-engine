@@ -2,7 +2,9 @@ package official.sketchBook.engine.components_related.vehicle;
 
 import com.badlogic.gdx.physics.box2d.Fixture;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.InteractableObject;
+import official.sketchBook.engine.components_related.objects.TangibleSwitchComponent;
 import official.sketchBook.engine.game_object_related.vehicle.VehicleSection;
+import official.sketchBook.engine.util_related.enumerators.CollisionLayers;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.enumerators.VehicleComponentType;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
@@ -21,6 +23,8 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
     /// Dados da fixture
     public final FixtureData fixData;
 
+    public short originalMaskBit;
+
     /// Flags de estado interno
     private boolean
         open;           //Se está aberta
@@ -29,6 +33,8 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
     public boolean
         broken,         //Se a porta está quebrada
         locked;         //Se a porta está trancada
+
+    private TangibleSwitchComponent tangibleComponent;
 
     public VehicleDoor(
         VehicleSection ownerSection,
@@ -53,13 +59,12 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
         this.doorFixList = new ArrayList<>();
 
         initObject();
+
     }
 
     @Override
     public void initObject() {
         super.initObject();
-
-//        System.out.println(ownerSection.getInternalBody());
 
         this.doorFixList.addAll(
             BodyCreatorHelper.createFixturesFromData(
@@ -67,7 +72,6 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
                 ownerSection.getInternalBody()
             )
         );
-
 
         for (Fixture fix : doorFixList) {
             fix.setUserData(
@@ -78,20 +82,20 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
             );
         }
 
-        if(!canInteract()) return;
-        updateDoorState();
+        tangibleComponent = new TangibleSwitchComponent(
+            doorFixList.get(0).getFilterData().maskBits,
+            open,
+            doorFixList
+        );
+
+        tangibleComponent.updateTangibleState();
     }
 
     public void interact() {
         this.open = !open;      //Abre e fecha a porta a cada chamada
 
-        updateDoorState();
-    }
-
-    private void updateDoorState(){
-        for (int i = 0; i < doorFixList.size(); i++) {
-            this.doorFixList.get(i).setSensor(open);
-        }
+        tangibleComponent.setTangible(open);
+        tangibleComponent.updateTangibleState();
     }
 
     public boolean canInteract() {

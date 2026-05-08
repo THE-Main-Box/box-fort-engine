@@ -53,7 +53,6 @@ public class Player extends AnimatedRenderableRoomGameObject
     /// Componente de pulo
     private JumpComponent jumpC;
 
-    private RayCastPool rayCastPoolInstance;
 
     private PhysicalMobLiquidInteractionComponent liquidInteractionC;
 
@@ -90,7 +89,6 @@ public class Player extends AnimatedRenderableRoomGameObject
             mirrorY
         );
 
-        this.rayCastPoolInstance = RayCastPool.getInstance(worldDataManager.getPhysicsWorld());
         this.animationRenderC.isRenderDimensionEqualsToObject = false;
 
         this.initObject();
@@ -162,7 +160,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     private void initGroundDetectionComponent() {
         this.groundDetection = new RayCastGroundDetectionComponent(
             this,
-            rayCastPoolInstance,
+            RayCastPool.getInstance(),
             ObjectType.ENVIRONMENT,
             ObjectType.VEHICLE
         );
@@ -413,6 +411,7 @@ public class Player extends AnimatedRenderableRoomGameObject
         moveC = null;
         jumpC = null;
         groundDetection = null;
+
     }
 
     public static void disposeStaticResources() {

@@ -17,6 +17,7 @@ import official.sketchBook.engine.util_related.contact_listener.listeners.Projec
 import official.sketchBook.engine.util_related.contact_listener.listeners.VehicleContactListener;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
 import official.sketchBook.engine.util_related.pools.GlobalProjectilePool;
+import official.sketchBook.engine.util_related.pools.RayCastPool;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.gameObject_related.Player;
@@ -61,6 +62,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
     private void initPools() {
         globalProjectilePool = new GlobalProjectilePool();
+        RayCastPool.getInstance(physicsWorld);
         this.initPoolFactories();
     }
 
