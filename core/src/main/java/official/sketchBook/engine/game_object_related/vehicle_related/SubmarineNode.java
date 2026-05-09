@@ -1,4 +1,4 @@
-package official.sketchBook.engine.game_object_related.vehicle;
+package official.sketchBook.engine.game_object_related.vehicle_related;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
@@ -511,5 +511,10 @@ public class SubmarineNode
         this.physicsC = null;
         this.liquidInteractionC = null;
 
+    }
+
+    @Override
+    public boolean hasDryArea() {
+        return true;
     }
 }

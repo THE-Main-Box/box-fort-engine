@@ -1,15 +1,12 @@
 package official.sketchBook.engine.util_related.contact_listener;
 
-import com.badlogic.gdx.physics.box2d.ContactListener;
-
 public class ContactUtils {
 
 
     public static class keys{
-        public static final String MOB_LISTENER = "movable_object_listener";
-        public static final String PROJECTILE_LISTENER = "projectile_listener";
-        public static final String LIQUID_LISTENER = "physical_liquid_listener";
-        public static final String VEHICLE_LISTENER = "vehicle_listener";
+        public static final String SLO_LISTENER = "self_listened";
+        public static final String MO_LISTENER = "movable_object";
+        public static final String VEHICLE_LISTENER = "vehicle";
     }
 
     public static synchronized void handleContactListener(

@@ -1,7 +1,7 @@
 package official.sketchBook.engine.components_related.vehicle;
 
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
-import official.sketchBook.engine.game_object_related.vehicle.VehicleSection;
+import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
 import official.sketchBook.engine.util_related.enumerators.VehicleComponentType;
 
 public abstract class VehicleBaseComponent implements Component {

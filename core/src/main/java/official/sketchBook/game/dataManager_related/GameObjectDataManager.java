@@ -5,15 +5,15 @@ import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.vehicle.VehicleDoor;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
-import official.sketchBook.engine.game_object_related.vehicle.Submarine;
-import official.sketchBook.engine.game_object_related.vehicle.SubmarineNode;
-import official.sketchBook.engine.game_object_related.vehicle.SubmarinePart;
+import official.sketchBook.engine.game_object_related.vehicle_related.Submarine;
+import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
+import official.sketchBook.engine.game_object_related.vehicle_related.SubmarinePart;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.engine.liquid_related.model.RoomLiquid;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
+import official.sketchBook.engine.util_related.contact_listener.listeners.AutoListenedPhysicalObjectContactListener;
 import official.sketchBook.engine.util_related.contact_listener.listeners.MovableObjectContactListener;
-import official.sketchBook.engine.util_related.contact_listener.listeners.ProjectileContactListener;
 import official.sketchBook.engine.util_related.contact_listener.listeners.VehicleContactListener;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
 import official.sketchBook.engine.util_related.pools.GlobalProjectilePool;
@@ -244,15 +244,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         ContactUtils.handleContactListener(
             this.contactListeners,
             false,
-            ContactUtils.keys.MOB_LISTENER,
+            ContactUtils.keys.MO_LISTENER,
             new MovableObjectContactListener()
-        );
-
-        ContactUtils.handleContactListener(
-            this.contactListeners,
-            false,
-            ContactUtils.keys.PROJECTILE_LISTENER,
-            new ProjectileContactListener()
         );
 
         ContactUtils.handleContactListener(
@@ -262,6 +255,12 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             new VehicleContactListener()
         );
 
+        ContactUtils.handleContactListener(
+            this.contactListeners,
+            false,
+            ContactUtils.keys.SLO_LISTENER,
+            new AutoListenedPhysicalObjectContactListener()
+        );
     }
 
     /// Atualiza o tracking da câmera baseado no jogador

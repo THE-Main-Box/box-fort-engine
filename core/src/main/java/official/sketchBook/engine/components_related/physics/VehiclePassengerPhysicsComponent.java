@@ -6,10 +6,7 @@ import official.sketchBook.engine.components_related.intefaces.base_interfaces.C
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.VehiclePassenger;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.AxisData;
-import official.sketchBook.engine.game_object_related.vehicle.VehicleSection;
-
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.FIXED_TIMESTAMP;
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
+import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
 
 public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsComponent implements Component {
 

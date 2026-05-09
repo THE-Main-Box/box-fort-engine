@@ -85,12 +85,12 @@ public class ContactActions {
         if (body == null) {
             // Resetamos a velocidade do eixo X
             if (leftBlocked || rightBlocked) {
-                xAxis.resetMovement();
+                xAxis.velocity = 0;
             }
 
             // Resetamos a velocidade do eixo Y
             if (upBlocked || downBlocked) {
-                yAxis.resetMovement();
+                yAxis.velocity = 0;
             }
         } else {
             tmpSpeed.set(body.getLinearVelocity());

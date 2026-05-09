@@ -2,8 +2,8 @@ package official.sketchBook.engine.util_related.helper.body;
 
 import com.badlogic.gdx.physics.box2d.*;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
-import official.sketchBook.engine.game_object_related.vehicle.SubmarineNode;
-import official.sketchBook.engine.game_object_related.vehicle.SubmarinePart;
+import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
+import official.sketchBook.engine.game_object_related.vehicle_related.SubmarinePart;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
 
