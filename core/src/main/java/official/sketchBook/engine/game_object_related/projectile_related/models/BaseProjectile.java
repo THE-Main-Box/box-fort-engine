@@ -1,4 +1,4 @@
-package official.sketchBook.engine.projectile_related.models;
+package official.sketchBook.engine.game_object_related.projectile_related.models;
 
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;

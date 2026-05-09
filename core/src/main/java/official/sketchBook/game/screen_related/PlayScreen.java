@@ -14,7 +14,7 @@ import official.sketchBook.engine.components_related.objects.MovementDataCompone
 import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadRenderSystem;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadUpdateSystem;
-import official.sketchBook.engine.projectile_related.util.Emitter;
+import official.sketchBook.engine.game_object_related.projectile_related.util.Emitter;
 import official.sketchBook.engine.screen_related.BaseScreen;
 import official.sketchBook.engine.util_related.pools.RayCastPool;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;

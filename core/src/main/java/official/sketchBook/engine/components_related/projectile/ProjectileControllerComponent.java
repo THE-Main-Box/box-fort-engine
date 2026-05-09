@@ -4,8 +4,8 @@ import com.badlogic.gdx.math.Vector2;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.system_utils.ComponentManagerComponent;
-import official.sketchBook.engine.projectile_related.models.BaseProjectile;
-import official.sketchBook.engine.projectile_related.util.CollisionDataBuffer;
+import official.sketchBook.engine.game_object_related.projectile_related.models.BaseProjectile;
+import official.sketchBook.engine.game_object_related.projectile_related.util.CollisionDataBuffer;
 import official.sketchBook.engine.util_related.enumerators.Direction;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
 

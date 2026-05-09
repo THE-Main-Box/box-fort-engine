@@ -6,6 +6,8 @@ public enum ObjectType {
     ENVIRONMENT,
     VEHICLE,
     DYNAMIC_DRY_AREA,
+    INTERACTABLE,
+    INTERACTABLE_TRIGGER,
     NONE,
     HURTBOX,
     LIQUID

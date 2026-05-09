@@ -7,7 +7,7 @@ import official.sketchBook.engine.components_related.physics.MovableObjectPhysic
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
-import official.sketchBook.engine.projectile_related.models.PhysicalProjectile;
+import official.sketchBook.engine.game_object_related.projectile_related.models.PhysicalProjectile;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;

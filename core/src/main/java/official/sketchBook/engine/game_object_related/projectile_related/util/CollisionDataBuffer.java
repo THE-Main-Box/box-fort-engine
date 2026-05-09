@@ -1,4 +1,4 @@
-package official.sketchBook.engine.projectile_related.util;
+package official.sketchBook.engine.game_object_related.projectile_related.util;
 
 import com.badlogic.gdx.math.Vector2;
 import official.sketchBook.engine.util_related.enumerators.Direction;

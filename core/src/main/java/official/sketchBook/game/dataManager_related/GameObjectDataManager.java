@@ -12,7 +12,7 @@ import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.engine.liquid_related.model.RoomLiquid;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
-import official.sketchBook.engine.util_related.contact_listener.listeners.AutoListenedPhysicalObjectContactListener;
+import official.sketchBook.engine.util_related.contact_listener.listeners.SelfListenedPhysicalObjectContactListener;
 import official.sketchBook.engine.util_related.contact_listener.listeners.MovableObjectContactListener;
 import official.sketchBook.engine.util_related.contact_listener.listeners.VehicleContactListener;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
@@ -187,8 +187,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         node_1.addVehicleComponent(
             door,
             false,
-            false,
-            false
+            true,
+            true
         );
 
     }
@@ -259,7 +259,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             this.contactListeners,
             false,
             ContactUtils.keys.SLO_LISTENER,
-            new AutoListenedPhysicalObjectContactListener()
+            new SelfListenedPhysicalObjectContactListener()
         );
     }
 

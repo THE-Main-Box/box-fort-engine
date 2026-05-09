@@ -11,6 +11,8 @@ public enum CollisionLayers {
     LIQUID_SUBMERGEABLE(1 << 7),
     VEHICLE(1 << 8),
     VEHICLE_PASSENGER(1 << 9),
+    INTERACTABLE(1 << 10),
+    INTERACTABLE_ACTIVATOR(1 << 11),
     NONE(0),
     ENTITIES(
         ALLY_ENTITY.bit() |

@@ -1,5 +1,8 @@
 package official.sketchBook.game.util_related.constants;
 
+import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
+import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.INTERACTABLE_ACTIVATOR;
+
 public class WorldConstants {
     /// Tamanho das tiles em pixels
     public static final int TILE_SIZE_PX = 8;
@@ -60,6 +63,19 @@ public class WorldConstants {
             MAX_SPEED_R = 0,
             X_DECELERATION = 999,
             Y_DECELERATION = 0;
+
+        public static final int
+            categoryBit = ALLY_ENTITY.bit() |
+            LIQUID_SUBMERGEABLE.bit() |
+            VEHICLE_PASSENGER.bit() |
+            INTERACTABLE_ACTIVATOR.bit(),
+
+        maskBit = SENSOR.bit() |
+            ENVIRONMENT.bit() |
+            PROJECTILES.bit() |
+            LIQUID.bit() |
+            VEHICLE.bit() |
+            INTERACTABLE.bit();
     }
 
     public static class SubmarineConstants {

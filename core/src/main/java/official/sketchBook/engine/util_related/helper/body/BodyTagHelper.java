@@ -53,4 +53,10 @@ public class BodyTagHelper {
         if (fixture == null || !(fixture.getUserData() instanceof GameObjectTag)) return null;
         return (GameObjectTag) fixture.getUserData();
     }
+
+    public static GameObjectTag resolveTag(Fixture fixture) {
+        GameObjectTag tag = getFromFixtureTag(fixture);
+        if (tag != null && tag.owner != null) return tag;
+        return getFromBodyTag(fixture);
+    }
 }

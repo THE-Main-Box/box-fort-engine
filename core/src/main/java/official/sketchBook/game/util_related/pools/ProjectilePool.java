@@ -2,7 +2,7 @@ package official.sketchBook.game.util_related.pools;
 
 import com.badlogic.gdx.utils.Array;
 import official.sketchBook.engine.data_manager_related.util.RenderableObjectManager;
-import official.sketchBook.engine.projectile_related.models.BaseProjectile;
+import official.sketchBook.engine.game_object_related.projectile_related.models.BaseProjectile;
 import official.sketchBook.engine.util_related.pools.CustomPool;
 import official.sketchBook.game.projectile_related.factories.ProjectileFactory;
 

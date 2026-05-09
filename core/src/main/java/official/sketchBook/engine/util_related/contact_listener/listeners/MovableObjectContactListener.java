@@ -32,17 +32,15 @@ public class MovableObjectContactListener implements MultiContactListener.SubCon
     private void handle(Contact contact, GameObjectTag tagA, GameObjectTag tagB) {
         if (contact == null || !contact.isTouching()) return;
 
-        // Obtemos a direção da perspectiva da Fixture A
+        if (contact.getFixtureA().isSensor() || contact.getFixtureB().isSensor()) return;
+
         Direction dirA = ContactActions.getCollisionDirection(contact);
 
-        // Processamos a Fixture A
         if (tagA != null && tagA.owner instanceof MovableObjectII) {
             ContactActions.handleBlockedMovement(dirA, (MovableObjectII) tagA.owner);
         }
 
-        // Processamos a Fixture B
         if (tagB != null && tagB.owner instanceof MovableObjectII) {
-            // Para a Fixture B, a colisão vem do lado oposto da Normal
             Direction dirB = dirA.getOpposite();
             ContactActions.handleBlockedMovement(dirB, (MovableObjectII) tagB.owner);
         }

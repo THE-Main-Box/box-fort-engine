@@ -234,8 +234,8 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         this.physicsC = new VehiclePassengerPhysicsComponent(
             this,
-            ALLY_ENTITY.bit() | LIQUID_SUBMERGEABLE.bit() | VEHICLE_PASSENGER.bit(),
-            SENSOR.bit() | ENVIRONMENT.bit() | PROJECTILES.bit() | LIQUID.bit() | VEHICLE.bit(),
+            WorldConstants.PlayerConstants.categoryBit,
+            WorldConstants.PlayerConstants.maskBit,
             0.5f,
             1f,
             0f

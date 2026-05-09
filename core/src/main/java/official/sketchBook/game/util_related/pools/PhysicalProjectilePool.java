@@ -3,7 +3,7 @@ package official.sketchBook.game.util_related.pools;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.data_manager_related.util.RenderableObjectManager;
 import official.sketchBook.game.projectile_related.factories.ProjectileFactory;
-import official.sketchBook.engine.projectile_related.models.PhysicalProjectile;
+import official.sketchBook.engine.game_object_related.projectile_related.models.PhysicalProjectile;
 
 public class PhysicalProjectilePool<T extends PhysicalProjectile> extends ProjectilePool<T> {
     private World world;
