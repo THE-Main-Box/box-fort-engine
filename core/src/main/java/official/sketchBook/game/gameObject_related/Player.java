@@ -92,6 +92,7 @@ public class Player extends AnimatedRenderableRoomGameObject
         this.animationRenderC.isRenderDimensionEqualsToObject = false;
 
         this.initObject();
+
     }
 
     @Override
