@@ -25,7 +25,6 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
         triggerFixData,
         fixData;
 
-    public short originalMaskBit;
 
     /// Flags de estado interno
     private boolean
@@ -37,6 +36,9 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
         locked;         //Se a porta está trancada
 
     private TangibleSwitchComponent tangibleComponent;
+
+    private boolean pendingStateUpdate = false;
+
 
     public VehicleDoor(
         VehicleSection ownerSection,
@@ -65,6 +67,7 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
 
         initObject();
 
+        quantity ++;
     }
 
     @Override
@@ -93,9 +96,6 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
             doorFixList
         );
 
-        tangibleComponent.updateTangibleState();
-
-
     }
 
     @Override
@@ -103,16 +103,20 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
         super.update(delta);
     }
 
+    public void interact() {
+        if (!canInteract()) return;
+        this.open = !open;
+        tangibleComponent.setTangible(!open);
+        pendingStateUpdate = true;
+
+    }
+
     @Override
     public void postUpdate() {
         super.postUpdate();
-    }
-
-    public void interact() {
-        this.open = !open;      //Abre e fecha a porta a cada chamada
-
-        tangibleComponent.setTangible(open);
+        if (!pendingStateUpdate) return;
         tangibleComponent.updateTangibleState();
+        pendingStateUpdate = false;
     }
 
     public boolean canInteract() {

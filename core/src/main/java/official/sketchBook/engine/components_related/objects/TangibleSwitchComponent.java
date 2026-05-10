@@ -33,11 +33,9 @@ public class TangibleSwitchComponent {
             Fixture fix = fixList.get(i);
 
             if (tangible) {
-                fix.setSensor(true);
-                fix.getFilterData().maskBits = CollisionLayers.NONE.bit();
-            } else {
-                fix.setSensor(false);
                 fix.getFilterData().maskBits = originalMaskBit;
+            } else {
+                fix.getFilterData().maskBits = CollisionLayers.NONE.bit();
             }
 
             fix.refilter();

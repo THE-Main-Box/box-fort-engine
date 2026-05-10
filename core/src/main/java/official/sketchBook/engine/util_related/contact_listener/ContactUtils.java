@@ -4,9 +4,11 @@ public class ContactUtils {
 
 
     public static class keys{
-        public static final String SLO_LISTENER = "self_listened";
-        public static final String MO_LISTENER = "movable_object";
+        public static final String SELF_LISTENER = "self_listened";
+        public static final String MOB_LISTENER = "movable_object";
         public static final String VEHICLE_LISTENER = "vehicle";
+        public static final String INTERACT_LISTENER = "interactable";
+        public static final String PROJECTILE_LISTENER = "projectile";
     }
 
     public static synchronized void handleContactListener(

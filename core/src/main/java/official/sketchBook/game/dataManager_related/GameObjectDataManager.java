@@ -12,9 +12,7 @@ import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.engine.liquid_related.model.RoomLiquid;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
-import official.sketchBook.engine.util_related.contact_listener.listeners.SelfListenedPhysicalObjectContactListener;
-import official.sketchBook.engine.util_related.contact_listener.listeners.MovableObjectContactListener;
-import official.sketchBook.engine.util_related.contact_listener.listeners.VehicleContactListener;
+import official.sketchBook.engine.util_related.contact_listener.listeners.*;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
 import official.sketchBook.engine.util_related.pools.GlobalProjectilePool;
 import official.sketchBook.engine.util_related.pools.RayCastPool;
@@ -148,7 +146,6 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             false
         );
 
-//        System.out.println(door.doorFixList.size());
 
         nodeList.add(
           node_1
@@ -163,9 +160,6 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         VehicleDoor door = new VehicleDoor(
             node_1,
             new FixtureData(
-                0,
-                0,
-                0,
                 0,
                 0,
                 55,
@@ -193,6 +187,42 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             ),
             false,
             false,
+            false
+        );
+
+        VehicleDoor door2 = new VehicleDoor(
+            node_1,
+            new FixtureData(
+                0,
+                0,
+                0,
+                0,
+                0,
+                -55,
+                0,
+                0,
+                9,
+                40,
+                VEHICLE.bit(),
+                VEHICLE_PASSENGER.bit(),
+                false,
+                false
+            ),
+            new FixtureData(
+                0,
+                0,
+                -55,
+                0,
+                0,
+                27,
+                40,
+                INTERACTABLE.bit(),
+                INTERACTABLE_TRIGGERER.bit(),
+                false,
+                true
+            ),
+            false,
+            false,
             true
         );
 
@@ -203,6 +233,12 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             true
         );
 
+        node_1.addVehicleComponent(
+            door2,
+            false,
+            true,
+            true
+        );
     }
 
     private static List<SubmarinePart> getBaseSubmarineParts() {
@@ -256,7 +292,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         ContactUtils.handleContactListener(
             this.contactListeners,
             false,
-            ContactUtils.keys.MO_LISTENER,
+            ContactUtils.keys.MOB_LISTENER,
             new MovableObjectContactListener()
         );
 
@@ -270,8 +306,15 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         ContactUtils.handleContactListener(
             this.contactListeners,
             false,
-            ContactUtils.keys.SLO_LISTENER,
+            ContactUtils.keys.SELF_LISTENER,
             new SelfListenedPhysicalObjectContactListener()
+        );
+
+        ContactUtils.handleContactListener(
+            this.contactListeners,
+            false,
+            ContactUtils.keys.PROJECTILE_LISTENER,
+            new ProjectileContactListener()
         );
     }
 

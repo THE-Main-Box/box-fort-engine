@@ -12,7 +12,7 @@ import official.sketchBook.game.util_related.pools.ProjectilePool;
 
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
 
-public abstract class PhysicalProjectile extends BaseProjectile implements PhysicalObjectII, SelfListenedPhysicalObjectII {
+public abstract class PhysicalProjectile extends BaseProjectile implements PhysicalObjectII{
     protected World world;
     protected Body body;
 
@@ -58,64 +58,4 @@ public abstract class PhysicalProjectile extends BaseProjectile implements Physi
         return body;
     }
 
-    public void beginContact(Contact contact, GameObjectTag tagA, GameObjectTag tagB) {
-        onBeginContact(this, contact, tagA, tagB);
-    }
-
-    public void endContact(Contact contact, GameObjectTag tagA, GameObjectTag tagB) {
-        onEndContact(this, contact, tagA, tagB);
-    }
-
-    public void preSolve(Contact contact, Manifold oldManifold, GameObjectTag tagA, GameObjectTag tagB) {
-        onPreSolve(this, contact, oldManifold, tagA, tagB);
-    }
-
-    public void postSolve(Contact contact, ContactImpulse impulse, GameObjectTag tagA, GameObjectTag tagB) {
-        onPostSolve(this, contact, impulse, tagA, tagB);
-    }
-
-    private static void onBeginContact(PhysicalProjectile self, Contact contact, GameObjectTag tagA, GameObjectTag tagB) {
-        ProjectileControllerComponent controller = self.getControllerC();
-        if (controller.isContinuousDetection()) return;
-
-        controller.markStartOfCollision(
-            tagB,
-            ContactActions.getCollisionDirection(contact),
-            self.body.getPosition(),
-            contact.getFixtureB().getBody().getPosition(),
-            contact.getWorldManifold().getNormal()
-        );
-    }
-
-    private static void onEndContact(PhysicalProjectile self, Contact contact, GameObjectTag tagA, GameObjectTag tagB) {
-        ProjectileControllerComponent controller = self.getControllerC();
-
-        controller.markEndOfCollision(
-            tagB,
-            ContactActions.getCollisionDirection(contact),
-            self.body.getPosition(),
-            contact.getFixtureB().getBody().getPosition(),
-            contact.getWorldManifold().getNormal()
-        );
-    }
-
-    private static void onPreSolve(PhysicalProjectile self, Contact contact, Manifold oldManifold, GameObjectTag tagA, GameObjectTag tagB) {
-        ProjectileControllerComponent controller = self.getControllerC();
-        if (!controller.isContinuousDetection()) return;
-
-        controller.markStartOfCollision(
-            tagB,
-            ContactActions.getCollisionDirection(contact),
-            self.body.getPosition(),
-            contact.getFixtureB().getBody().getPosition(),
-            contact.getWorldManifold().getNormal()
-        );
-
-        if (controller.getLockC().shouldLockMovement(ContactActions.getCollisionDirection(contact))) {
-            contact.setRestitution(0);
-        }
-    }
-
-    private static void onPostSolve(PhysicalProjectile self, Contact contact, ContactImpulse impulse, GameObjectTag tagA, GameObjectTag tagB) {
-    }
 }
