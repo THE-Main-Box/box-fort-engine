@@ -3,7 +3,6 @@ package official.sketchBook.engine.components_related.vehicle;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.InteractableObjectII;
 import official.sketchBook.engine.components_related.objects.TangibleSwitchComponent;
-import official.sketchBook.engine.game_object_related.base_game_object.InteractComponent;
 import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
 import official.sketchBook.engine.util_related.enumerators.CollisionLayers;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
@@ -22,7 +21,9 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
     public final List<Fixture> doorFixList;
 
     /// Dados da fixture
-    public final FixtureData fixData;
+    public final FixtureData
+        triggerFixData,
+        fixData;
 
     public short originalMaskBit;
 
@@ -36,11 +37,11 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
         locked;         //Se a porta está trancada
 
     private TangibleSwitchComponent tangibleComponent;
-    private InteractComponent interactC;
 
     public VehicleDoor(
         VehicleSection ownerSection,
         FixtureData fixData,
+        FixtureData triggerFixData,
         boolean broken,
         boolean locked,
         boolean open
@@ -57,7 +58,9 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
         this.locked = locked;
         this.open = open;
 
+        this.triggerFixData = triggerFixData;
         this.fixData = fixData;
+
         this.doorFixList = new ArrayList<>();
 
         initObject();
@@ -92,40 +95,17 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
 
         tangibleComponent.updateTangibleState();
 
-        interactC = new InteractComponent(
-            this,
-            ownerSection.getInternalBody(),
-            new FixtureData(
-                0,
-                0,
-                0,
-                this.fixData.globalOffsetX,
-                this.fixData.globalOffsetY,
-                this.fixData.offsetX,
-                this.fixData.offsetY,
-                0,
-                this.fixData.width * 3f,
-                this.fixData.height,
-                CollisionLayers.INTERACTABLE.bit(),
-                CollisionLayers.INTERACTABLE_ACTIVATOR.bit(),
-                false,
-                true
-            )
-        );
-
 
     }
 
     @Override
     public void update(float delta) {
         super.update(delta);
-        interactC.update(delta);
     }
 
     @Override
     public void postUpdate() {
         super.postUpdate();
-        interactC.postUpdate();
     }
 
     public void interact() {
@@ -139,10 +119,9 @@ public class VehicleDoor extends VehicleBaseComponent implements InteractableObj
         return !broken && !locked;
     }
 
+
     @Override
-    public InteractComponent getInteractC() {
-        return interactC;
+    public FixtureData getTriggerFixData() {
+        return triggerFixData;
     }
-
-
 }

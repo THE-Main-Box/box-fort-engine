@@ -12,10 +12,6 @@ import static official.sketchBook.engine.util_related.helper.body.BodyTagHelper.
 public class SelfListenedPhysicalObjectContactListener implements MultiContactListener.SubContactListener {
     @Override
     public void beginContact(Contact contact, GameObjectTag tagA, GameObjectTag tagB) {
-
-        GameObjectTag tagFixA = getFromFixtureTag(contact.getFixtureA());
-        GameObjectTag tagFixB = getFromFixtureTag(contact.getFixtureB());
-
         if (tagA.owner instanceof SelfListenedPhysicalObjectII)
             ((SelfListenedPhysicalObjectII) tagA.owner).beginContact(contact, tagA, tagB);
 

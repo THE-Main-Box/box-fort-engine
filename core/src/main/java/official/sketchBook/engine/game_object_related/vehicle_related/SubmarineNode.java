@@ -3,14 +3,17 @@ package official.sketchBook.engine.game_object_related.vehicle_related;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.MassData;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Disposable;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.InteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.SimpleLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
+import official.sketchBook.engine.components_related.objects.InteractableObjectManagerComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.physics.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
@@ -23,6 +26,7 @@ import official.sketchBook.game.util_related.constants.WorldConstants;
 import java.util.ArrayList;
 import java.util.List;
 
+import static official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper.createVoidBody;
 import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createExternalBody;
 import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createInternalBody;
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
@@ -64,8 +68,11 @@ public class SubmarineNode
     /// Gerênciador de componentes lógicos de funcionamento de objeto
     private final RenderableAndDefaultComponentManagerComponent managerC;
 
+    private InteractableObjectManagerComponent interactableObjectManagerC;
+
     /// Body do submarino completo
     private Body
+        triggerBody,
         internalBody,
         body;
 
@@ -126,8 +133,8 @@ public class SubmarineNode
 
     /// Inicialização de objeto
     public void initObject() {
-        initComponents();
         generateBody();
+        initComponents();
 
         physicsC.halfWidth = transformC.getHalfWidth();
         physicsC.halfHeight = transformC.getHalfHeight();
@@ -140,11 +147,21 @@ public class SubmarineNode
             transformC,
             physicsWorld
         );
+
         this.body = createExternalBody(
             this,
             physicalParts,
             transformC,
             physicsWorld
+        );
+
+        Vector2 pos = internalBody.getPosition();
+
+        this.triggerBody = createVoidBody(
+            physicsWorld,
+            pos.x,
+            pos.y,
+            BodyDef.BodyType.KinematicBody
         );
 
         calculateNodeDimensions();
@@ -233,6 +250,9 @@ public class SubmarineNode
 
         physicsC = vPhysicsC;
 
+
+        interactableObjectManagerC = new InteractableObjectManagerComponent(triggerBody);
+
         this.managerC.add(
             moveC,
             true,
@@ -249,6 +269,12 @@ public class SubmarineNode
             physicsC,
             true,
             true
+        );
+
+        this.managerC.add(
+            interactableObjectManagerC,
+            false,
+            false
         );
     }
 
@@ -282,7 +308,13 @@ public class SubmarineNode
             body.getPosition(),
             body.getAngle()
         );
+
         internalBody.setLinearVelocity(body.getLinearVelocity());
+
+        triggerBody.setTransform(
+            internalBody.getPosition(),
+            internalBody.getAngle()
+        );
 
         physicsC.postUpdate();
 
@@ -403,6 +435,10 @@ public class SubmarineNode
         this.vehicleComponentList.add(component);
 
         if (toRender) this.managerC.addToRender(component);
+
+        if(component instanceof InteractableObjectII) {
+            this.interactableObjectManagerC.addToList((InteractableObjectII) component);
+        }
 
         this.managerC.add(
             component,

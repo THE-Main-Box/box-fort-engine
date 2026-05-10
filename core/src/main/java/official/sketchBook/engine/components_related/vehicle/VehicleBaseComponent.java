@@ -4,7 +4,7 @@ import official.sketchBook.engine.components_related.intefaces.base_interfaces.C
 import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
 import official.sketchBook.engine.util_related.enumerators.VehicleComponentType;
 
-public abstract class VehicleBaseComponent implements Component {
+public abstract class VehicleBaseComponent implements Component{
 
     /// Identificação
     protected final String

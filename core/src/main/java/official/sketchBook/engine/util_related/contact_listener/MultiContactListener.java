@@ -29,9 +29,9 @@ public class MultiContactListener implements ContactListener {
     public void beginContact(Contact contact) {
         GameObjectTag tagA = getFromBodyTag(contact.getFixtureA());
         GameObjectTag tagB = getFromBodyTag(contact.getFixtureB());
-
+        if (tagA == null || tagB == null) return;
         for (Map.Entry<String, SubContactListener> entry : listeners.entrySet()) {
-            entry.getValue().beginContact(contact, tagA, tagB);  // Delegando para cada listener
+            entry.getValue().beginContact(contact, tagA, tagB);
         }
     }
 
@@ -39,10 +39,9 @@ public class MultiContactListener implements ContactListener {
     public void endContact(Contact contact) {
         GameObjectTag tagA = getFromBodyTag(contact.getFixtureA());
         GameObjectTag tagB = getFromBodyTag(contact.getFixtureB());
-
-        // Chama endContact para cada listener registrado
+        if (tagA == null || tagB == null) return;
         for (Map.Entry<String, SubContactListener> entry : listeners.entrySet()) {
-            entry.getValue().endContact(contact, tagA, tagB);  // Delegando para cada listener
+            entry.getValue().endContact(contact, tagA, tagB);
         }
     }
 
@@ -50,22 +49,19 @@ public class MultiContactListener implements ContactListener {
     public void preSolve(Contact contact, Manifold oldManifold) {
         GameObjectTag tagA = getFromBodyTag(contact.getFixtureA());
         GameObjectTag tagB = getFromBodyTag(contact.getFixtureB());
-
-        // Chama preSolve para cada listener registrado
+        if (tagA == null || tagB == null) return;
         for (Map.Entry<String, SubContactListener> entry : listeners.entrySet()) {
-            entry.getValue().preSolve(contact, oldManifold,tagA, tagB);  // Delegando para cada listener
+            entry.getValue().preSolve(contact, oldManifold, tagA, tagB);
         }
-
     }
 
     @Override
     public void postSolve(Contact contact, ContactImpulse impulse) {
         GameObjectTag tagA = getFromBodyTag(contact.getFixtureA());
         GameObjectTag tagB = getFromBodyTag(contact.getFixtureB());
-
-        // Chama postSolve para cada listener registrado
+        if (tagA == null || tagB == null) return;
         for (Map.Entry<String, SubContactListener> entry : listeners.entrySet()) {
-            entry.getValue().postSolve(contact, impulse, tagA, tagB);  // Delegando para cada listener
+            entry.getValue().postSolve(contact, impulse, tagA, tagB);
         }
     }
 

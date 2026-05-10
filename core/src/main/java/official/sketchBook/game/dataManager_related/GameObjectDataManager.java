@@ -26,8 +26,7 @@ import official.sketchBook.game.projectile_related.factories.ProjectilePoolFacto
 import java.util.ArrayList;
 import java.util.List;
 
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.VEHICLE;
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.VEHICLE_PASSENGER;
+import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
 import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_HEIGHT;
 import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_WIDTH;
 
@@ -178,6 +177,19 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
                 VEHICLE_PASSENGER.bit(),
                 false,
                 false
+            ),
+            new FixtureData(
+                0,
+                0,
+                55,
+                0,
+                0,
+                27,
+                40,
+                INTERACTABLE.bit(),
+                INTERACTABLE_TRIGGERER.bit(),
+                false,
+                true
             ),
             false,
             false,

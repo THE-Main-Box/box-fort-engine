@@ -11,6 +11,14 @@ import static official.sketchBook.game.util_related.constants.PhysicsConstants.P
 
 public class BodyCreatorHelper {
 
+    public static Body createVoidBody(World world, float x, float y, BodyDef.BodyType bodyType){
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyDef.BodyType.KinematicBody;
+        bodyDef.position.set(x, y);
+
+        return world.createBody(bodyDef);
+    }
+
     /**
      * Factory que cria e anexa fixtures na body a partir de um FixtureData.
      * Sempre retorna a lista de fixtures criadas, seja 1 (círculo/retângulo) ou N (cápsula).

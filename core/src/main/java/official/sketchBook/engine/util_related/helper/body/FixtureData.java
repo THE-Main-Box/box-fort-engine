@@ -29,6 +29,36 @@ public class FixtureData {
         isSensor;
 
     public FixtureData(
+        float globalOffsetX,
+        float globalOffsetY,
+        float offsetX,
+        float offsetY,
+        float radius,
+        float width,
+        float height,
+        short categoryBit,
+        short maskBit,
+        boolean isCircle,
+        boolean isSensor
+    ) {
+        this.density = 0;
+        this.restitution = 0;
+        this.friction = 0;
+
+        this.globalOffsetX = globalOffsetX;
+        this.globalOffsetY = globalOffsetY;
+        this.offsetX = offsetX;
+        this.offsetY = offsetY;
+        this.radius = radius;
+        this.width = width;
+        this.height = height;
+        this.categoryBit = categoryBit;
+        this.maskBit = maskBit;
+        this.isCircle = isCircle;
+        this.isSensor = isSensor;
+    }
+
+    public FixtureData(
         float density,
         float restitution,
         float friction,

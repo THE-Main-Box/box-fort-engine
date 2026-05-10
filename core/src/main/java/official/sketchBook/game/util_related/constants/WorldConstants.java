@@ -1,7 +1,7 @@
 package official.sketchBook.game.util_related.constants;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.INTERACTABLE_ACTIVATOR;
+import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.INTERACTABLE_TRIGGERER;
 
 public class WorldConstants {
     /// Tamanho das tiles em pixels
@@ -68,7 +68,7 @@ public class WorldConstants {
             categoryBit = ALLY_ENTITY.bit() |
             LIQUID_SUBMERGEABLE.bit() |
             VEHICLE_PASSENGER.bit() |
-            INTERACTABLE_ACTIVATOR.bit(),
+            INTERACTABLE_TRIGGERER.bit(),
 
         maskBit = SENSOR.bit() |
             ENVIRONMENT.bit() |
