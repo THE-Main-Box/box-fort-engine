@@ -1,5 +1,6 @@
 package official.sketchBook.engine.components_related.objects;
 
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.InteractableObjectII;
@@ -11,19 +12,32 @@ import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import java.util.ArrayList;
 import java.util.List;
 
+import static official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper.createVoidBody;
 import static official.sketchBook.engine.util_related.helper.body.BodyTagHelper.getFromFixtureTag;
 
 public class InteractableObjectManagerComponent implements Component, SelfListenedPhysicalObjectII {
-    private final List<InteractableObjectII>
+    private List<InteractableObjectII>
         interactableList;
 
-    public final Body triggerBody;
+    private Body
+        referenceBody,
+        triggerBody;
 
     public InteractableObjectManagerComponent(
-        Body triggerBody
+        Body referenceBody
     ) {
         this.interactableList = new ArrayList<>();
-        this.triggerBody = triggerBody;
+
+        this.referenceBody = referenceBody;
+
+        Vector2 pos = referenceBody.getPosition();
+
+        this.triggerBody = createVoidBody(
+            referenceBody.getWorld(),
+            pos.x,
+            pos.y,
+            BodyDef.BodyType.KinematicBody
+        );
 
         triggerBody.setUserData(
             new GameObjectTag(
@@ -39,6 +53,10 @@ public class InteractableObjectManagerComponent implements Component, SelfListen
 
     @Override
     public void postUpdate() {
+        triggerBody.setTransform(
+            referenceBody.getPosition(),
+            referenceBody.getAngle()
+        );
     }
 
     public void addToList(InteractableObjectII object) {
@@ -74,6 +92,12 @@ public class InteractableObjectManagerComponent implements Component, SelfListen
     @Override
     public void dispose() {
         interactableList.clear();
+
+        triggerBody.getWorld().destroyBody(triggerBody);
+
+        referenceBody = null;
+        triggerBody = null;
+        interactableList = null;
     }
 
     @Override

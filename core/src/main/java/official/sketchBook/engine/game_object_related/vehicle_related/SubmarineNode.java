@@ -155,15 +155,6 @@ public class SubmarineNode
             physicsWorld
         );
 
-        Vector2 pos = internalBody.getPosition();
-
-        this.triggerBody = createVoidBody(
-            physicsWorld,
-            pos.x,
-            pos.y,
-            BodyDef.BodyType.KinematicBody
-        );
-
         calculateNodeDimensions();
 
         recalculateMass();
@@ -251,7 +242,7 @@ public class SubmarineNode
         physicsC = vPhysicsC;
 
 
-        interactableObjectManagerC = new InteractableObjectManagerComponent(triggerBody);
+        interactableObjectManagerC = new InteractableObjectManagerComponent(internalBody);
 
         this.managerC.add(
             moveC,
@@ -274,7 +265,7 @@ public class SubmarineNode
         this.managerC.add(
             interactableObjectManagerC,
             false,
-            false
+            true
         );
     }
 
@@ -310,11 +301,6 @@ public class SubmarineNode
         );
 
         internalBody.setLinearVelocity(body.getLinearVelocity());
-
-        triggerBody.setTransform(
-            internalBody.getPosition(),
-            internalBody.getAngle()
-        );
 
         physicsC.postUpdate();
 
