@@ -9,6 +9,8 @@ public interface InteractableObjectII {
     /// Se podemos interagir com o objeto
     boolean canInteract();
 
+    boolean isInRange();
+
     FixtureData getTriggerFixData();
 
 }

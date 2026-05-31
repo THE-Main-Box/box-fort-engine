@@ -49,11 +49,16 @@ public abstract class VehicleBaseComponent implements Component{
     @Override
     public void dispose() {
         if (disposed) return;
+        executeDispose();
         nullifyReferences();
         disposed = true;
     }
 
-    private void nullifyReferences() {
+    protected void executeDispose(){
+
+    }
+
+    protected void nullifyReferences() {
 
     }
 
