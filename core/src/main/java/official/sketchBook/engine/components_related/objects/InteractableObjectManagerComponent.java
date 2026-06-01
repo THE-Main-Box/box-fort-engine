@@ -60,27 +60,6 @@ public class InteractableObjectManagerComponent implements Component, SelfListen
     }
 
     public void addToList(InteractableObjectII object) {
-
-        if(object.getTriggerFixData() == null) return;
-
-        //Criamos as fixtures triggers de evento do objeto interativo atual e armazenamos ela
-        List<Fixture> fixList = BodyCreatorHelper.createFixturesFromData(
-            object.getTriggerFixData(),
-            triggerBody
-        );
-
-        //Percorremos a lista de fixtures trigger criadas e settamos a sua userData
-        // para direcionar para o objeto correto
-        for (int j = 0; j < fixList.size(); j++) {
-
-            fixList.get(j).setUserData(
-                new GameObjectTag(
-                    ObjectType.INTERACTABLE,
-                    object
-                )
-            );
-        }
-
         interactableList.add(object);
     }
 

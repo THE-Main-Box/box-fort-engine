@@ -8,6 +8,7 @@ public interface VehicleSection extends PhysicalObjectII {
     Vehicle getVehicle();
 
     Body getInternalBody();
+    Body getTriggerBody();
 
     float getVelX();
     float getVelY();

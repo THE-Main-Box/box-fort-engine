@@ -9,6 +9,8 @@ import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
 
+import java.util.List;
+
 public class VehicleDoor extends VehicleInteractableComponent {
     public static int quantity;
 
@@ -53,22 +55,6 @@ public class VehicleDoor extends VehicleInteractableComponent {
     @Override
     public void initObject() {
         super.initObject();
-
-        this.fixList.addAll(
-            BodyCreatorHelper.createFixturesFromData(
-                fixData,
-                ownerSection.getInternalBody()
-            )
-        );
-
-        for (Fixture fix : fixList) {
-            fix.setUserData(
-                new GameObjectTag(
-                    ObjectType.VEHICLE,
-                    this
-                )
-            );
-        }
 
         tangibleComponent = new TangibleSwitchComponent(
             fixList.get(0).getFilterData().maskBits,

@@ -468,6 +468,11 @@ public class SubmarineNode
         return vehicle;
     }
 
+    @Override
+    public Body getTriggerBody() {
+        return triggerBody;
+    }
+
     public float getVelX() {
         return velX;
     }
