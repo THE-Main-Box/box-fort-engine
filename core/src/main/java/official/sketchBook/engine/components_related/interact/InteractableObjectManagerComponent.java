@@ -1,4 +1,4 @@
-package official.sketchBook.engine.components_related.objects;
+package official.sketchBook.engine.components_related.interact;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
@@ -7,7 +7,6 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.SelfListenedPhysicalObjectII;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
-import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 
 import java.util.ArrayList;
 import java.util.List;

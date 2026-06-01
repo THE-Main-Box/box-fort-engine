@@ -3,7 +3,6 @@ package official.sketchBook.engine.game_object_related.vehicle_related;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.MassData;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Disposable;
@@ -13,7 +12,7 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.SimpleLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
-import official.sketchBook.engine.components_related.objects.InteractableObjectManagerComponent;
+import official.sketchBook.engine.components_related.interact.InteractableObjectManagerComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.physics.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
@@ -26,7 +25,6 @@ import official.sketchBook.game.util_related.constants.WorldConstants;
 import java.util.ArrayList;
 import java.util.List;
 
-import static official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper.createVoidBody;
 import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createExternalBody;
 import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createInternalBody;
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
