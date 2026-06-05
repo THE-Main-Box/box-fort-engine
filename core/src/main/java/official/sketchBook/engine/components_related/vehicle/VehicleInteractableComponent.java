@@ -130,8 +130,11 @@ public abstract class VehicleInteractableComponent extends VehicleBaseComponent 
     protected void nullifyReferences() {
         super.nullifyReferences();
         triggerFixData = null;
+
         fixData = null;
         fixList = null;
+
         buffedPosInMeters = null;
+        buffedDimensionsInMeters = null;
     }
 }
