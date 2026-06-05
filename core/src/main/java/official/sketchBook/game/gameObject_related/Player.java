@@ -8,6 +8,7 @@ import official.sketchBook.engine.animation_rendering_related.ObjectAnimationPla
 import official.sketchBook.engine.animation_rendering_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.*;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
+import official.sketchBook.engine.components_related.interact.InteractTriggerComponent;
 import official.sketchBook.engine.components_related.movement.JumpComponent;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.physics.*;
@@ -35,7 +36,8 @@ public class Player extends AnimatedRenderableRoomGameObject
     RoomGroundInteractableObject,
     JumpCapableObjectII,
     SimpleLiquidInteractableObjectII,
-    VehiclePassenger {
+    VehiclePassenger,
+    InteractionTriggerer {
 
     private boolean inScreen = true;
 
@@ -53,8 +55,9 @@ public class Player extends AnimatedRenderableRoomGameObject
     /// Componente de pulo
     private JumpComponent jumpC;
 
-
     private PhysicalMobLiquidInteractionComponent liquidInteractionC;
+
+    private InteractTriggerComponent triggerC;
 
     /// Corpo físico
     private Body body;
@@ -118,6 +121,8 @@ public class Player extends AnimatedRenderableRoomGameObject
         //Detecção de colisão
         initGroundDetectionComponent();
 
+        initTriggerComponent();
+
         this.liquidInteractionC.setVolume(
             transformC.width * transformC.height
         );
@@ -128,6 +133,16 @@ public class Player extends AnimatedRenderableRoomGameObject
 //        this.liquidInteractionC.setCanInteractWithLiquid(false);
 
 
+    }
+
+    private void initTriggerComponent(){
+        this.triggerC = new InteractTriggerComponent(this);
+
+        this.managerC.add(
+            triggerC,
+            false,
+            false
+        );
     }
 
     private void initAnimationControllerComponent() {
@@ -412,6 +427,7 @@ public class Player extends AnimatedRenderableRoomGameObject
         moveC = null;
         jumpC = null;
         groundDetection = null;
+        triggerC = null;
 
     }
 
@@ -465,4 +481,15 @@ public class Player extends AnimatedRenderableRoomGameObject
     public VehiclePassengerPhysicsComponent getVehiclePassengerPhysicsC() {
         return (VehiclePassengerPhysicsComponent) physicsC;
     }
+
+    @Override
+    public InteractTriggerComponent getTriggerC() {
+        return triggerC;
+    }
+
+    @Override
+    public Vector2 getCoordinatesInMeters() {
+        return this.body.getPosition();
+    }
+
 }

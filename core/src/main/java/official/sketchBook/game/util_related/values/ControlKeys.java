@@ -13,7 +13,6 @@ public class ControlKeys {
     public static int jump = Input.Keys.SPACE;
     public static int recharge = Input.Keys.D;
 
-    public static int use = Input.Keys.Z;
     public static int secondaryUse = Input.Keys.X;
 
     public static int interact = Input.Keys.S;

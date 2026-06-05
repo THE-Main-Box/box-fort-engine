@@ -4,10 +4,7 @@ import official.sketchBook.engine.components_related.base_components.KeyBoundCon
 import official.sketchBook.engine.components_related.physics.VehiclePassengerPhysicsComponent;
 import official.sketchBook.engine.util_related.enumerators.Direction;
 import official.sketchBook.game.gameObject_related.Player;
-import official.sketchBook.game.util_related.constants.PhysicsConstants;
 import official.sketchBook.game.util_related.values.ControlKeys;
-
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.UPS_TARGET;
 
 public class PlayerControllerComponent extends KeyBoundControllerComponent {
 
@@ -16,7 +13,6 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     private float accelToApply = 100;
 
     private boolean
-        submarineAlterPos = false,
         upPressed = false,
         downPressed = false,
         leftPressed = false,
@@ -37,11 +33,13 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
         this.bindKey(ControlKeys.dir_left, this::left);
         this.bindKey(ControlKeys.dir_right, this::right);
         this.bindKey(ControlKeys.jump, this::jump);
-        this.bindKey(ControlKeys.use, this::use);
+        this.bindKey(ControlKeys.interact, this::interact);
     }
 
-    public void use(boolean pressed){
+    public void interact(boolean pressed){
         if(!pressed) return;
+
+        player.getTriggerC().interact();
     }
 
     public void up(boolean pressed) {

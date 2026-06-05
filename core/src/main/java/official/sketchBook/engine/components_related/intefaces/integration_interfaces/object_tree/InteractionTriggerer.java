@@ -8,5 +8,4 @@ public interface InteractionTriggerer {
     InteractTriggerComponent getTriggerC();
 
     Vector2 getCoordinatesInMeters();
-    Vector2 getDimensionsInMeters();
 }

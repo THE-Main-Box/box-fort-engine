@@ -110,11 +110,6 @@ public abstract class VehicleInteractableComponent extends VehicleBaseComponent 
     }
 
     @Override
-    public Vector2 getDimensionsInMeters() {
-        return buffedDimensionsInMeters;
-    }
-
-    @Override
     public FixtureData getTriggerFixData() {
         return triggerFixData;
     }
