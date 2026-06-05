@@ -7,7 +7,8 @@ import com.badlogic.gdx.physics.box2d.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.toMeters;
+
 
 public class BodyCreatorHelper {
 
@@ -119,8 +120,8 @@ public class BodyCreatorHelper {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = type;
         bodyDef.position.set(                   //Define posição no mundo
-            position.x / PPM,
-            position.y / PPM
+            toMeters(position.x),
+            toMeters(position.y)
         );
 
         bodyDef.angle = rotation * MathUtils.degreesToRadians;
@@ -180,8 +181,8 @@ public class BodyCreatorHelper {
         BodyDef bodyDef = new BodyDef();        //Criamos os valores padrão para o corpo
         bodyDef.type = type;                    //Definimos o tipo do corpo
         bodyDef.position.set(                   //Definimos a posição dentro do world
-            position.x / PPM,
-            position.y / PPM
+            toMeters(position.x),
+            toMeters(position.y)
         );
 
         Body body = world.createBody(
@@ -221,12 +222,12 @@ public class BodyCreatorHelper {
         CircleShape shape = new CircleShape();  //Inicia um formato em circulo
 
         shape.setRadius(                        //Define o raio
-            radius / PPM
+            toMeters(radius)
         );
         shape.setPosition(                      //Define a posição da forma
             new Vector2(
-                rX / PPM,
-                rY / PPM
+                toMeters(rX),
+                toMeters(rY)
             )
         );
 
@@ -269,8 +270,8 @@ public class BodyCreatorHelper {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = type;
         bodyDef.position.set(
-            position.x / PPM,
-            position.y / PPM
+            toMeters(position.x),
+            toMeters(position.y)
         );
         bodyDef.angle = rotation * MathUtils.degreesToRadians;
 
@@ -310,44 +311,44 @@ public class BodyCreatorHelper {
         float halfLength = isHorizontal ? width / 2f : height / 2f;
 
         // offsets em metros
-        float ox = offsetX / PPM;
-        float oy = offsetY / PPM;
+        float ox = toMeters(offsetX);
+        float oy = toMeters(offsetY);
 
         // círculos (já com offset aplicado)
         Vector2 circleOffset1 = isHorizontal
-            ? new Vector2((-halfLength + radius) / PPM + ox, oy)
-            : new Vector2(ox, (-halfLength + radius) / PPM + oy);
+            ? new Vector2(toMeters(-halfLength + radius) + ox, oy)
+            : new Vector2(ox, toMeters(-halfLength + radius) + oy);
 
         Vector2 circleOffset2 = isHorizontal
-            ? new Vector2((halfLength - radius) / PPM + ox, oy)
-            : new Vector2(ox, (halfLength - radius) / PPM + oy);
+            ? new Vector2(toMeters(halfLength - radius) + ox, oy)
+            : new Vector2(ox, toMeters(halfLength - radius) + oy);
 
         // edges (já com offset aplicado)
         Vector2 edgeStart1 = isHorizontal
-            ? new Vector2((-halfLength + radius) / PPM + ox, (radius / PPM) + oy)
-            : new Vector2((-radius / PPM) + ox, (-halfLength + radius) / PPM + oy);
+            ? new Vector2(toMeters(-halfLength + radius) + ox, toMeters(radius) + oy)
+            : new Vector2(toMeters(-radius) + ox, toMeters(-halfLength + radius) + oy);
 
         Vector2 edgeEnd1 = isHorizontal
-            ? new Vector2((halfLength - radius) / PPM + ox, (radius / PPM) + oy)
-            : new Vector2((-radius / PPM) + ox, (halfLength - radius) / PPM + oy);
+            ? new Vector2(toMeters(halfLength - radius) + ox, toMeters(radius) + oy)
+            : new Vector2(toMeters(-radius) + ox, toMeters(halfLength - radius) + oy);
 
         Vector2 edgeStart2 = isHorizontal
-            ? new Vector2((-halfLength + radius) / PPM + ox, (-radius / PPM) + oy)
-            : new Vector2((radius / PPM) + ox, (-halfLength + radius) / PPM + oy);
+            ? new Vector2(toMeters(-halfLength + radius) + ox, toMeters(-radius) + oy)
+            : new Vector2(toMeters(radius) + ox, toMeters(-halfLength + radius) + oy);
 
         Vector2 edgeEnd2 = isHorizontal
-            ? new Vector2((halfLength - radius) / PPM + ox, (-radius / PPM) + oy)
-            : new Vector2((radius / PPM) + ox, (halfLength - radius) / PPM + oy);
+            ? new Vector2(toMeters(halfLength - radius) + ox, toMeters(-radius) + oy)
+            : new Vector2(toMeters(radius) + ox, toMeters(halfLength - radius) + oy);
 
         // círculos
         CircleShape circle1 = new CircleShape();
-        circle1.setRadius(radius / PPM);
+        circle1.setRadius(toMeters(radius));
         circle1.setPosition(circleOffset1);
         body.createFixture(createFixture(circle1, density, friction, restitution, category, mask));
         circle1.dispose();
 
         CircleShape circle2 = new CircleShape();
-        circle2.setRadius(radius / PPM);
+        circle2.setRadius(toMeters(radius));
         circle2.setPosition(circleOffset2);
         body.createFixture(createFixture(circle2, density, friction, restitution, category, mask));
         circle2.dispose();
@@ -447,11 +448,12 @@ public class BodyCreatorHelper {
         PolygonShape shape = new PolygonShape();
 
         shape.setAsBox(
-            (width / 2) / PPM,
-            (height / 2) / PPM,
+            toMeters(width / 2),
+            toMeters(height / 2),
             new Vector2(
-                rX / PPM,
-                rY / PPM),
+                toMeters(rX),
+                toMeters(rY)
+            ),
             0
         );
 

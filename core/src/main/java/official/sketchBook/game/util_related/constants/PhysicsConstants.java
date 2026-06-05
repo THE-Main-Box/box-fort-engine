@@ -31,4 +31,12 @@ public class PhysicsConstants {
         FIXED_TIMESTAMP = 1 / UPS_TARGET;
     }
 
+    public static float toMeters(float pixels){
+        return pixels / PPM;
+    }
+
+    public static float toPixels(float meters){
+        return meters * PPM;
+    }
+
 }

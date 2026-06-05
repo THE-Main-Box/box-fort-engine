@@ -3,11 +3,11 @@ package official.sketchBook.engine.components_related.physics;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalGameObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.*;
+
 
 public class PhysicsComponent implements Component {
 
@@ -118,10 +118,10 @@ public class PhysicsComponent implements Component {
     public final float limitAndConvertSpeedToMeters(float speedToApply, float maxSpeed, float currentSpeed) {
         if (speedToApply != 0) {
             return Math.max(
-                -maxSpeed / PPM,
+                -toMeters(maxSpeed),
                 Math.min(
-                    speedToApply / PPM,
-                    maxSpeed / PPM
+                    toMeters(speedToApply),
+                    toMeters(maxSpeed)
                 )
             );
         }
@@ -140,10 +140,10 @@ public class PhysicsComponent implements Component {
     /// Coloca o objeto na posição da body
     public void syncObjectToBodyPos() {
         transformC.x = (
-            (tmpPos.x * PPM) - halfWidth
+            toPixels(tmpPos.x) - halfWidth
         );
         transformC.y = (
-            (tmpPos.y * PPM) - halfHeight
+            toPixels(tmpPos.y) - halfHeight
         );
 
         float bodyAngleDeg = object.getBody().getAngle() * MathUtils.radiansToDegrees;
@@ -219,8 +219,8 @@ public class PhysicsComponent implements Component {
         updateVelBuffer();
 
         /// Conversão feita uma vez
-        float maxXInMeters = maxX / PPM;
-        float maxYInMeters = maxY / PPM;
+        float maxXInMeters = toMeters(maxX);
+        float maxYInMeters = toMeters(maxY);
 
         float limitedX = Math.max(-maxXInMeters, Math.min(tmpVel.x, maxXInMeters));
         float limitedY = Math.max(-maxYInMeters, Math.min(tmpVel.y, maxYInMeters));
@@ -242,7 +242,10 @@ public class PhysicsComponent implements Component {
     /// Use quando tem valores em píxels (como do MovementComponent)
     public final void setVelocityFromPixels(float vxPixels, float vyPixels) {
         if (disposed || object.getBody() == null) return;
-        object.getBody().setLinearVelocity(vxPixels / PPM, vyPixels / PPM);
+        object.getBody().setLinearVelocity(
+            toMeters(vxPixels),
+            toMeters(vyPixels)
+        );
     }
 
     /// Zera a velocidade do corpo (parada completa)
@@ -278,8 +281,9 @@ public class PhysicsComponent implements Component {
     /// Obtém a velocidade atual do corpo em píxels por segundo
     public final Vector2 getVelocityInPixels() {
         updateVelBuffer();
-        tmpVel.scl(PPM);
-        return tmpVel;
+        return tmpVel.scl(
+            PPM
+        );
     }
 
     public Vector2 getTmpVel() {

@@ -7,7 +7,8 @@ import official.sketchBook.engine.components_related.objects.AxisData;
 import official.sketchBook.engine.components_related.objects.TimerComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.toMeters;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.toPixels;
 
 public class JumpComponent implements Component {
 
@@ -97,8 +98,8 @@ public class JumpComponent implements Component {
         //Se a gravidade aplicada for diferente que a gravidade especial
         this.superJump = superJump;
 
-        this.jumpForce = jumpForce / PPM;
-        this.fallSpeedAfterJCancel = fallSpeedAfterJCancel / PPM;
+        this.jumpForce = toMeters(jumpForce);
+        this.fallSpeedAfterJCancel = toMeters(fallSpeedAfterJCancel);
 
         setGravityValues(
             defGravityScale,
@@ -177,7 +178,7 @@ public class JumpComponent implements Component {
     private void updateJumpingFallingFlags() {
         boolean onGround = object.isOnGround();
         float vy = physicsC.getTmpVel().y;
-        moveC.dataComponent.yAxis.velocity = vy * PPM;
+        moveC.dataComponent.yAxis.velocity = toPixels(vy);
 
         if (onGround) {
             jumping = false;
@@ -290,7 +291,7 @@ public class JumpComponent implements Component {
                 coyoteTimer.reset();
             }
         } else {
-            if (jumping && yAxis.velocity / PPM> fallSpeedAfterJCancel) {
+            if (jumping && toMeters(yAxis.velocity)> fallSpeedAfterJCancel) {
                 body.setLinearVelocity(
                     physicsC.getTmpVel().x,
                     fallSpeedAfterJCancel

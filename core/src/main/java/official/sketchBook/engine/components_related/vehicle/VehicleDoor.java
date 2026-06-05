@@ -16,7 +16,6 @@ public class VehicleDoor extends VehicleInteractableComponent {
 
     /// Flags de estado
     public boolean
-        inRange,
         open,           //Se está aberta
         broken,         //Se a porta está quebrada
         locked;         //Se a porta está trancada
@@ -83,11 +82,6 @@ public class VehicleDoor extends VehicleInteractableComponent {
         if (!pendingStateUpdate) return;
         tangibleComponent.updateTangibleState();
         pendingStateUpdate = false;
-    }
-
-    @Override
-    public boolean isInRange() {
-        return inRange;
     }
 
     public boolean canInteract() {

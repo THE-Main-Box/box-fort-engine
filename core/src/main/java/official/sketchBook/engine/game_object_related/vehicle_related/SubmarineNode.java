@@ -27,7 +27,7 @@ import java.util.List;
 
 import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createExternalBody;
 import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createInternalBody;
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.toPixels;
 
 public class SubmarineNode
     implements
@@ -187,8 +187,8 @@ public class SubmarineNode
         if (!hasValidPart) return;
 
         // Agora sim convertemos UMA VEZ SÓ de metros pra pixels
-        float worldWidth = (maxX - minX) * PPM;  // ← Conversão única e correta
-        float worldHeight = (maxY - minY) * PPM;
+        float worldWidth = toPixels(maxX - minX);
+        float worldHeight = toPixels(maxY - minY);
 
 //        transformC.width = worldWidth / 4;
         transformC.width = worldWidth;
@@ -349,8 +349,8 @@ public class SubmarineNode
             float centerY = (part.internalMinY + part.internalMaxY) / 2f;
 
             // Volume e massa da parte
-            float width = (part.internalMaxX - part.internalMinX) * PPM;
-            float height = (part.internalMaxY - part.internalMinY) * PPM;
+            float width = toPixels(part.internalMaxX - part.internalMinX);
+            float height = toPixels(part.internalMaxY - part.internalMinY);
             float volume = width * height;
             float mass = part.getTotalMass();
 

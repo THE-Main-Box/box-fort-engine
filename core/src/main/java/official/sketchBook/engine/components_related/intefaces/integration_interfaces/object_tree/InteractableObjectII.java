@@ -1,5 +1,6 @@
 package official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree;
 
+import com.badlogic.gdx.math.Vector2;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
 
 public interface InteractableObjectII {
@@ -9,8 +10,10 @@ public interface InteractableObjectII {
     /// Se podemos interagir com o objeto
     boolean canInteract();
 
-    boolean isInRange();
 
     FixtureData getTriggerFixData();
+
+    Vector2 getCoordinatesInMeters();
+    Vector2 getDimensionsInMeters();
 
 }

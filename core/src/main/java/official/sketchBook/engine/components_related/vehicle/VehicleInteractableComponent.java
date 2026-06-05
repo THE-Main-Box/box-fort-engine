@@ -13,6 +13,8 @@ import official.sketchBook.engine.util_related.helper.body.FixtureData;
 import java.util.ArrayList;
 import java.util.List;
 
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.toMeters;
+
 public abstract class VehicleInteractableComponent extends VehicleBaseComponent implements InteractableObjectII {
     /// Dados da fixture
     public FixtureData
@@ -22,8 +24,10 @@ public abstract class VehicleInteractableComponent extends VehicleBaseComponent 
     /// Lista de fixtures do objeto
     public List<Fixture> fixList;
 
-    ///Buffer de posição
-    private Vector2 buffedPos;
+    /// Buffer de dados relacionados à Transform
+    private Vector2
+        buffedDimensionsInMeters,
+        buffedPosInMeters;
 
     public VehicleInteractableComponent(
         String name,
@@ -45,7 +49,8 @@ public abstract class VehicleInteractableComponent extends VehicleBaseComponent 
 
         this.fixList = new ArrayList<>();
 
-        this.buffedPos = new Vector2();
+        this.buffedPosInMeters = new Vector2();
+        this.buffedDimensionsInMeters = new Vector2();
 
     }
 
@@ -54,6 +59,15 @@ public abstract class VehicleInteractableComponent extends VehicleBaseComponent 
         super.initObject();
         initPhysicalFixtures();
         initTriggerFixtures();
+
+        this.buffedDimensionsInMeters.set(
+            toMeters(
+                fixData.width
+            ),
+            toMeters(
+                fixData.height
+            )
+        );
     }
 
     private void initPhysicalFixtures() {
@@ -78,15 +92,26 @@ public abstract class VehicleInteractableComponent extends VehicleBaseComponent 
         }
     }
 
-    public Vector2 getObjectPosMeters() {
-        buffedPos.set(
+    public Vector2 getCoordinatesInMeters() {
+        buffedPosInMeters.set(
             ownerSection.getBody().getPosition()
         );
 
-        buffedPos.x += fixData.globalOffsetX + fixData.offsetX;
-        buffedPos.y += fixData.globalOffsetY + fixData.offsetY;
+        buffedPosInMeters.x += toMeters(
+            fixData.globalOffsetX
+                + fixData.offsetX
+        );
+        buffedPosInMeters.y += toMeters(
+            fixData.globalOffsetY
+                + fixData.offsetY
+        );
 
-        return buffedPos;
+        return buffedPosInMeters;
+    }
+
+    @Override
+    public Vector2 getDimensionsInMeters() {
+        return buffedDimensionsInMeters;
     }
 
     @Override
@@ -107,6 +132,6 @@ public abstract class VehicleInteractableComponent extends VehicleBaseComponent 
         triggerFixData = null;
         fixData = null;
         fixList = null;
-        buffedPos = null;
+        buffedPosInMeters = null;
     }
 }
