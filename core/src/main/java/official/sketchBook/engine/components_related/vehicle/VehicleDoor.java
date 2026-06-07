@@ -1,15 +1,9 @@
 package official.sketchBook.engine.components_related.vehicle;
 
-import com.badlogic.gdx.physics.box2d.Fixture;
 import official.sketchBook.engine.components_related.objects.TangibleSwitchComponent;
 import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
-import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.enumerators.VehicleComponentType;
-import official.sketchBook.engine.util_related.helper.GameObjectTag;
-import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
-
-import java.util.List;
 
 public class VehicleDoor extends VehicleInteractableComponent {
     public static int quantity;

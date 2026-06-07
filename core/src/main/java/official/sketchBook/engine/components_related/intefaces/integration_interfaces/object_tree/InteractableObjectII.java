@@ -10,10 +10,8 @@ public interface InteractableObjectII {
     /// Se podemos interagir com o objeto
     boolean canInteract();
 
-
     FixtureData getTriggerFixData();
 
     Vector2 getCoordinatesInMeters();
-    Vector2 getDimensionsInMeters();
 
 }

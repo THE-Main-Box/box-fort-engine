@@ -36,10 +36,13 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
         this.bindKey(ControlKeys.interact, this::interact);
     }
 
-    public void interact(boolean pressed){
-        if(!pressed) return;
+    public void interact(boolean pressed) {
+        if (pressed) {
+            player.getTriggerC().onInteractPress();
+        } else {
+            player.getTriggerC().onInteractRelease();
+        }
 
-        player.getTriggerC().interact();
     }
 
     public void up(boolean pressed) {
