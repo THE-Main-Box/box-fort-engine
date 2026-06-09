@@ -157,6 +157,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             nodeList
         );
 
+        System.out.println(node_1.getTriggerBody() == null);
+
         VehicleDoor door = new VehicleDoor(
             node_1,
             new FixtureData(

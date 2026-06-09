@@ -176,31 +176,31 @@ public class PlayScreen extends BaseScreen {
             );
         }
 
-        if (Gdx.input.isKeyPressed(
-            Input.Keys.S
-        )) {
-            Bullet bullet = (Bullet) testEmitter.obtain();
-
-            if(bullet == null) return;
-
-            MovementComponent moveC = bullet.getMoveC();
-            MovementDataComponent data = moveC.dataComponent;
-            data.gravityAffected = true;
-            data.xAxis.canMove = true;
-            data.yAxis.canMove = true;
-            data.rAxis.canMove = true;
-
-            ProjectileControllerComponent controller = bullet.getControllerC();
-            controller.continuousDetection = false;
-            controller.moveOnStart = true;
-            controller.launchSpeedR = 100f;
-
-            bullet.activate(
-                300,
-                30,
-                45
-            );
-        }
+//        if (Gdx.input.isKeyPressed(
+//            Input.Keys.S
+//        )) {
+//            Bullet bullet = (Bullet) testEmitter.obtain();
+//
+//            if(bullet == null) return;
+//
+//            MovementComponent moveC = bullet.getMoveC();
+//            MovementDataComponent data = moveC.dataComponent;
+//            data.gravityAffected = true;
+//            data.xAxis.canMove = true;
+//            data.yAxis.canMove = true;
+//            data.rAxis.canMove = true;
+//
+//            ProjectileControllerComponent controller = bullet.getControllerC();
+//            controller.continuousDetection = false;
+//            controller.moveOnStart = true;
+//            controller.launchSpeedR = 100f;
+//
+//            bullet.activate(
+//                300,
+//                30,
+//                45
+//            );
+//        }
 
     }
 

@@ -70,7 +70,6 @@ public class SubmarineNode
 
     /// Body do submarino completo
     private Body
-        triggerBody,
         internalBody,
         body;
 
@@ -238,7 +237,6 @@ public class SubmarineNode
         vPhysicsC.autoConstraintR = false;
 
         physicsC = vPhysicsC;
-
 
         interactableObjectManagerC = new InteractableObjectManagerComponent(internalBody);
 
@@ -468,7 +466,7 @@ public class SubmarineNode
 
     @Override
     public Body getTriggerBody() {
-        return triggerBody;
+        return interactableObjectManagerC.getTriggerBody();
     }
 
     public float getVelX() {

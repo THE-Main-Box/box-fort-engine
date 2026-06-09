@@ -67,6 +67,10 @@ public class InteractableObjectManagerComponent implements Component, SelfListen
 
     }
 
+    public Body getTriggerBody() {
+        return triggerBody;
+    }
+
     @Override
     public void dispose() {
         interactableList.clear();
