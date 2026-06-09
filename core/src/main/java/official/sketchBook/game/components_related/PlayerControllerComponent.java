@@ -39,8 +39,10 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
     public void interact(boolean pressed) {
         if (pressed) {
             player.getTriggerC().onInteractPress();
+            System.out.println("Interact press");
         } else {
             player.getTriggerC().onInteractRelease();
+            System.out.println("Interact release");
         }
 
     }

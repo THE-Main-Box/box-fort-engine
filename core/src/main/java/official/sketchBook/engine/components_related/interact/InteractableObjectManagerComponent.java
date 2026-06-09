@@ -83,22 +83,41 @@ public class InteractableObjectManagerComponent implements Component, SelfListen
         GameObjectTag fixTagA = getFromFixtureTag(contact.getFixtureA());
         GameObjectTag fixTagB = getFromFixtureTag(contact.getFixtureB());
 
-        GameObjectTag interactTag = null;
+        InteractableObjectII interactable = extractInteractable(fixTagA, fixTagB);
+        InteractTriggerComponent trigger = extractTrigger(fixTagA, fixTagB);
 
-        if (fixTagA != null && fixTagA.owner instanceof InteractableObjectII) {
-            interactTag = fixTagA;
-        } else if (fixTagB != null && fixTagB.owner instanceof InteractableObjectII) {
-            interactTag = fixTagB;
-        }
+        if (interactable == null || trigger == null) return;
 
-        if (interactTag == null) return;
-
-        ((InteractableObjectII) interactTag.owner).interact();
+        trigger.addInteractable(interactable);
     }
 
     @Override
     public void endContact(Contact contact, GameObjectTag tagA, GameObjectTag tagB) {
+        GameObjectTag fixTagA = getFromFixtureTag(contact.getFixtureA());
+        GameObjectTag fixTagB = getFromFixtureTag(contact.getFixtureB());
 
+        InteractableObjectII interactable = extractInteractable(fixTagA, fixTagB);
+        InteractTriggerComponent trigger = extractTrigger(fixTagA, fixTagB);
+
+        if (interactable == null || trigger == null) return;
+
+        trigger.removeInteractable(interactable);
+    }
+
+    private InteractableObjectII extractInteractable(GameObjectTag tagA, GameObjectTag tagB) {
+        if (tagA != null && tagA.owner instanceof InteractableObjectII)
+            return (InteractableObjectII) tagA.owner;
+        if (tagB != null && tagB.owner instanceof InteractableObjectII)
+            return (InteractableObjectII) tagB.owner;
+        return null;
+    }
+
+    private InteractTriggerComponent extractTrigger(GameObjectTag tagA, GameObjectTag tagB) {
+        if (tagA != null && tagA.owner instanceof InteractTriggerComponent)
+            return (InteractTriggerComponent) tagA.owner;
+        if (tagB != null && tagB.owner instanceof InteractTriggerComponent)
+            return (InteractTriggerComponent) tagB.owner;
+        return null;
     }
 
     @Override
