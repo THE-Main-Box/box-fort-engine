@@ -4,6 +4,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.InteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.InteractionTriggerer;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.SelfListenedPhysicalObjectII;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper.createVoidBody;
+import static official.sketchBook.engine.util_related.helper.body.BodyTagHelper.getFromBodyTag;
 import static official.sketchBook.engine.util_related.helper.body.BodyTagHelper.getFromFixtureTag;
 
 public class InteractableObjectManagerComponent implements Component, SelfListenedPhysicalObjectII {
@@ -88,11 +90,16 @@ public class InteractableObjectManagerComponent implements Component, SelfListen
         GameObjectTag fixTagB = getFromFixtureTag(contact.getFixtureB());
 
         InteractableObjectII interactable = extractInteractable(fixTagA, fixTagB);
-        InteractTriggerComponent trigger = extractTrigger(fixTagA, fixTagB);
+        if (interactable == null) return;
 
-        if (interactable == null || trigger == null) return;
+        // triggerer vem do body, não da fixture
+        GameObjectTag bodyTagA = getFromBodyTag(contact.getFixtureA());
+        GameObjectTag bodyTagB = getFromBodyTag(contact.getFixtureB());
 
-        trigger.addInteractable(interactable);
+        InteractionTriggerer triggerer = extractTriggerer(bodyTagA, bodyTagB);
+        if (triggerer == null) return;
+
+        triggerer.getTriggerC().addInteractable(interactable);
     }
 
     @Override
@@ -101,11 +108,15 @@ public class InteractableObjectManagerComponent implements Component, SelfListen
         GameObjectTag fixTagB = getFromFixtureTag(contact.getFixtureB());
 
         InteractableObjectII interactable = extractInteractable(fixTagA, fixTagB);
-        InteractTriggerComponent trigger = extractTrigger(fixTagA, fixTagB);
+        if (interactable == null) return;
 
-        if (interactable == null || trigger == null) return;
+        GameObjectTag bodyTagA = getFromBodyTag(contact.getFixtureA());
+        GameObjectTag bodyTagB = getFromBodyTag(contact.getFixtureB());
 
-        trigger.removeInteractable(interactable);
+        InteractionTriggerer triggerer = extractTriggerer(bodyTagA, bodyTagB);
+        if (triggerer == null) return;
+
+        triggerer.getTriggerC().removeInteractable(interactable);
     }
 
     private InteractableObjectII extractInteractable(GameObjectTag tagA, GameObjectTag tagB) {
@@ -116,11 +127,11 @@ public class InteractableObjectManagerComponent implements Component, SelfListen
         return null;
     }
 
-    private InteractTriggerComponent extractTrigger(GameObjectTag tagA, GameObjectTag tagB) {
-        if (tagA != null && tagA.owner instanceof InteractTriggerComponent)
-            return (InteractTriggerComponent) tagA.owner;
-        if (tagB != null && tagB.owner instanceof InteractTriggerComponent)
-            return (InteractTriggerComponent) tagB.owner;
+    private InteractionTriggerer extractTriggerer(GameObjectTag tagA, GameObjectTag tagB) {
+        if (tagA != null && tagA.owner instanceof InteractionTriggerer)
+            return (InteractionTriggerer) tagA.owner;
+        if (tagB != null && tagB.owner instanceof InteractionTriggerer)
+            return (InteractionTriggerer) tagB.owner;
         return null;
     }
 

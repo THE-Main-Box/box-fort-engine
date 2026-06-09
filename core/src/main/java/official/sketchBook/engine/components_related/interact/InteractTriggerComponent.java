@@ -46,16 +46,20 @@ public class InteractTriggerComponent implements Component {
 
     /// Adiciona um objeto e notifica uma atualização
     public void addInteractable(InteractableObjectII interactable) {
+        //Se a lista não possuir o objeto a ser mandado
         if (interactableList.contains(interactable)) return;
+        //Adicionamos
         interactableList.add(interactable);
+        //Marcamos para atualizar a pipeline
         nearestDirty = true;
     }
 
     /// Remove um objeto e notifica uma atualização
     public void removeInteractable(InteractableObjectII interactable) {
+        //Se o objeto existir e foi removido
         if (!interactableList.remove(interactable)) return;
+        //Marcamos para atualizar a pipeline
         nearestDirty = true;
-
         //Se o que foi removido foi o que estava mais próximo e estávamos segurando para interagir,
         // cancelamos a interação
         if (holding && cachedNearest == interactable) cancelHold();
@@ -69,21 +73,29 @@ public class InteractTriggerComponent implements Component {
 
         //Atualizamos o objeto mais próximo
         InteractableObjectII nearest = getNearestInteractable();
+        //Se não tivermos um objeto interativo próximo, early exit
         if (nearest == null) return;
 
         //Se o objeto for um que usa hold para interagir
         if (nearest instanceof HoldInteractableObjectII) {
+            //Obtemos o objeto interativo por segurar o botão de interação
             HoldInteractableObjectII hold = (HoldInteractableObjectII) nearest;
+            //Se o hold está marcado para também interagir ao apertar para interagir
+            //(Além da interação por tempo)
             if (hold.isTriggerInteract()) nearest.interact();
+            //Atualizamos o tempo alvo do temporizador
             holdTimer.setTargetTime(hold.getHoldTimer());
+            //Resetamos e iniciamos o próprio
             holdTimer.reset();
             holdTimer.start();
+            //Marcamos a flag de input
             holding = true;
-        } else {
+        } else {//Caso o objet for um interativo simples, interagimos logo
             nearest.interact();
         }
     }
 
+    ///Chamamos para quando soltamos o input
     public void onInteractRelease() {
         cancelHold();
     }
@@ -112,6 +124,10 @@ public class InteractTriggerComponent implements Component {
             nearest.interact();
             cancelHold();
         }
+    }
+
+    @Override
+    public void postUpdate() {
     }
 
     // --- Nearest ---
@@ -148,14 +164,14 @@ public class InteractTriggerComponent implements Component {
 
     // --- Helpers ---
 
+    ///Cancelamos o hold state
     private void cancelHold() {
+        //Marcamos a flag de input como false
         holding = false;
+
+        //Paramos e resetamos o temporizador
         holdTimer.stop();
         holdTimer.reset();
-    }
-
-    @Override
-    public void postUpdate() {
     }
 
     @Override

@@ -140,7 +140,7 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         this.managerC.add(
             triggerC,
-            false,
+            true,
             false
         );
     }
@@ -344,10 +344,6 @@ public class Player extends AnimatedRenderableRoomGameObject
     @Override
     public void update(float delta) {
         super.update(delta);
-
-        InteractableObjectII interact = triggerC.getNearestInteractable();
-        if (interact != null)
-            System.out.println(interact.getClass().getSimpleName());
 
 //        System.out.println(moveC.dataComponent.xAxis.velocity);
     }
