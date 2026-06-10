@@ -61,6 +61,7 @@ public class ContactActions {
     public static void handleBlockedMovement(Direction dir, MovableObjectII mob) {
         if (dir == Direction.STILL || mob == null) return;
 
+
         MovementComponent moveC = mob.getMoveC();
         Body body = mob instanceof PhysicalGameObjectII ?
             ((PhysicalGameObjectII) mob).getBody() :
@@ -113,6 +114,15 @@ public class ContactActions {
                 );
             }
         }
+    }
+
+    public static boolean shouldCollide(Contact contact) {
+        short catA = contact.getFixtureA().getFilterData().categoryBits;
+        short maskA = contact.getFixtureA().getFilterData().maskBits;
+        short catB = contact.getFixtureB().getFilterData().categoryBits;
+        short maskB = contact.getFixtureB().getFilterData().maskBits;
+
+        return (catA & maskB) != 0 && (catB & maskA) != 0;
     }
 
     public static void applyDefaultFrictionLogic(Contact contact) {

@@ -9,11 +9,13 @@ import official.sketchBook.engine.util_related.contact_listener.MultiContactList
 import official.sketchBook.engine.util_related.enumerators.Direction;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
 
+import static official.sketchBook.engine.util_related.contact_listener.ContactActions.shouldCollide;
+
 public class MovableObjectContactListener implements MultiContactListener.SubContactListener {
 
     @Override
     public void beginContact(Contact contact, GameObjectTag tagA, GameObjectTag tagB) {
-        handle(contact, tagA, tagB);
+//        handle(contact, tagA, tagB);
     }
 
     @Override
@@ -32,8 +34,11 @@ public class MovableObjectContactListener implements MultiContactListener.SubCon
     private void handle(Contact contact, GameObjectTag tagA, GameObjectTag tagB) {
         if (contact == null || !contact.isTouching()) return;
 
+        // Ignora se qualquer fixture for sensor
         if (contact.getFixtureA().isSensor() || contact.getFixtureB().isSensor()) return;
 
+        // Ignora se as fixtures não colidem entre si pelas mask/category bits
+        if (!shouldCollide(contact)) return;
         Direction dirA = ContactActions.getCollisionDirection(contact);
 
         if (tagA != null && tagA.owner instanceof MovableObjectII) {
