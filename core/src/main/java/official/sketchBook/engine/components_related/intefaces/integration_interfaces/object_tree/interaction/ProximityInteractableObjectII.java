@@ -2,7 +2,7 @@ package official.sketchBook.engine.components_related.intefaces.integration_inte
 
 import java.util.List;
 
-public interface NearInteractableObjectII extends InteractableObjectII{
+public interface ProximityInteractableObjectII extends InteractableObjectII{
     List<InteractionTriggerer> getNearList();
 
     default void onTriggererEnter(InteractionTriggerer triggerer) {

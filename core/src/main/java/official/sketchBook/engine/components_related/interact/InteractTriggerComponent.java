@@ -5,7 +5,7 @@ import official.sketchBook.engine.components_related.intefaces.base_interfaces.C
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.HoldInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.InteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.InteractionTriggerer;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.NearInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.ProximityInteractableObjectII;
 import official.sketchBook.engine.components_related.objects.TimerComponent;
 
 import java.util.ArrayList;
@@ -60,9 +60,9 @@ public class InteractTriggerComponent implements Component {
         nearestDirty = true;
 
         //Se for um objeto marcado para interagir com base na proximidade com um triggerer
-        if (interactable instanceof NearInteractableObjectII)
+        if (interactable instanceof ProximityInteractableObjectII)
             //Chamamos para lidar com a entrada na area de interação
-            ((NearInteractableObjectII) interactable).onTriggererEnter(triggererObject);
+            ((ProximityInteractableObjectII) interactable).onTriggererEnter(triggererObject);
     }
 
     /// Remove um objeto e notifica uma atualização
@@ -76,9 +76,9 @@ public class InteractTriggerComponent implements Component {
         if (holding && cachedNearest == interactable) cancelHold();
 
         //Se for um objeto que pode interagir com base na proximidade, com um triggerer
-        if (interactable instanceof NearInteractableObjectII)
+        if (interactable instanceof ProximityInteractableObjectII)
             //Chamamos para lidar com a saída da area de interação
-            ((NearInteractableObjectII) interactable).onTriggererExit(triggererObject);
+            ((ProximityInteractableObjectII) interactable).onTriggererExit(triggererObject);
     }
 
     // --- Input ---
@@ -100,7 +100,7 @@ public class InteractTriggerComponent implements Component {
             //(Além da interação por tempo)
             if (hold.isTriggerInteract()) nearest.interact();
             //Atualizamos o tempo alvo do temporizador
-            holdTimer.setTargetTime(hold.getHoldTimer());
+            holdTimer.setTargetTime(hold.getHoldTime());
             //Resetamos e iniciamos o próprio
             holdTimer.reset();
             holdTimer.start();
@@ -151,7 +151,9 @@ public class InteractTriggerComponent implements Component {
         //Caso o tempo para interagir já tiver passado
         if (holdTimer.isFinished()) {
             //Chamamos para interagir
-            nearest.interact();
+            (
+                (HoldInteractableObjectII) nearest
+            ).interactOnHold();
             //Cancelamos o hold, já que este cumpriu seu papel
             cancelHold();
         }

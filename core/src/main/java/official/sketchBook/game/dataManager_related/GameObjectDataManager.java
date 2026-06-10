@@ -159,6 +159,18 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         System.out.println(node_1.getTriggerBody() == null);
 
+        /*
+        * To-do: para as portas, um sistema de criação será interessante, a base de orientações
+        *  Em sumo a idéia é simples, temos as dimensões, altura e largura,
+        *  com base nisso usaremos as dimensões,
+        *  para podermos determinar o offset vertical e horizontal com base na posição já determinada, caso necessário,
+        *   mas iremos usar claramente para a orientação da fixture sensor,
+        *  caso haja, e não só caso haja,
+        *  mas irá nos ajudar em muitas outras circunstancias,
+        *  como determinar o quanto devemos puxar, empurrar, ou levantar ou abaixar,
+        *   a fixture sensor
+        * */
+
         VehicleDoor door = new VehicleDoor(
             node_1,
             new FixtureData(
@@ -177,10 +189,10 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             new FixtureData(
                 0,
                 0,
-                55,
+                55 - 9,
                 0,
                 0,
-                27,
+                9 * 4,
                 40,
                 INTERACTABLE.bit(),
                 INTERACTABLE_TRIGGERER.bit(),
@@ -213,10 +225,10 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             new FixtureData(
                 0,
                 0,
-                -55,
+                -55 +9,
                 0,
                 0,
-                27,
+                9*4,
                 40,
                 INTERACTABLE.bit(),
                 INTERACTABLE_TRIGGERER.bit(),

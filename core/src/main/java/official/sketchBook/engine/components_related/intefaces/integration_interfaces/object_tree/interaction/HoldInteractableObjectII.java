@@ -1,11 +1,13 @@
 package official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction;
 
 public interface HoldInteractableObjectII extends InteractableObjectII {
-    float getHoldTimer();
+    void interactOnHold();
+
+    float getHoldTime();
 
     boolean isTriggerInteract();
 
     default boolean isHoldInteractable(){
-        return getHoldTimer() > 0;
+        return getHoldTime() > 0;
     }
 }
