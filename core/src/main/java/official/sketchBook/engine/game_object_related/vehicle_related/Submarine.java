@@ -1,7 +1,7 @@
 package official.sketchBook.engine.game_object_related.vehicle_related;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MultiLiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.MultiLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.MultiRenderableObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;

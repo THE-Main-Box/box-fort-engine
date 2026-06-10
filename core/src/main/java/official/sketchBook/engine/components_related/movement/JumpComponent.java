@@ -2,7 +2,7 @@ package official.sketchBook.engine.components_related.movement;
 
 import com.badlogic.gdx.physics.box2d.Body;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.JumpCapableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.JumpCapableObjectII;
 import official.sketchBook.engine.components_related.objects.AxisData;
 import official.sketchBook.engine.components_related.objects.TimerComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;

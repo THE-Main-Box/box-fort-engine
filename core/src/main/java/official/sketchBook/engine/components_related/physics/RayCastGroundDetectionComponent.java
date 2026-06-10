@@ -2,7 +2,7 @@ package official.sketchBook.engine.components_related.physics;
 
 import com.badlogic.gdx.physics.box2d.Fixture;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.PhysicalObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.ray_cast.RayCastData;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;

@@ -6,7 +6,13 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import official.sketchBook.engine.animation_rendering_related.ObjectAnimationPlayer;
 import official.sketchBook.engine.animation_rendering_related.SpriteSheetDataHandler;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.*;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.InteractionTriggerer;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.JumpCapableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.MovableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.PhysicalGameObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.RoomGroundInteractableObject;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.VehiclePassenger;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.components_related.interact.InteractTriggerComponent;
 import official.sketchBook.engine.components_related.movement.JumpComponent;
@@ -25,7 +31,6 @@ import official.sketchBook.game.components_related.PlayerControllerComponent;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 import official.sketchBook.game.util_related.path.GameAssetsPaths;
 
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
 import static official.sketchBook.game.components_related.PlayerAnimationInitializerComponent.initAnimations;
 
 public class Player extends AnimatedRenderableRoomGameObject

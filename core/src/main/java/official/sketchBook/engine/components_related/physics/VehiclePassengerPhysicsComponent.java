@@ -3,7 +3,7 @@ package official.sketchBook.engine.components_related.physics;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.VehiclePassenger;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.VehiclePassenger;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.AxisData;
 import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;

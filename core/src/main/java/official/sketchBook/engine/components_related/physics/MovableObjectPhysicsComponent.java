@@ -1,7 +1,7 @@
 package official.sketchBook.engine.components_related.physics;
 
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MovableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.MovableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.PhysicalObjectII;
 import official.sketchBook.engine.components_related.objects.AxisData;
 
 public class MovableObjectPhysicsComponent extends PhysicsComponent {

@@ -1,4 +1,4 @@
-package official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree;
+package official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics;
 
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;

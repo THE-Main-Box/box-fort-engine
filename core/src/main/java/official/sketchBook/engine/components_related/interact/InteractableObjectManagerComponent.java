@@ -3,9 +3,9 @@ package official.sketchBook.engine.components_related.interact;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.InteractableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.InteractionTriggerer;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.SelfListenedPhysicalObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.InteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.InteractionTriggerer;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.SelfListenedPhysicalObjectII;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
 

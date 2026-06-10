@@ -2,11 +2,10 @@ package official.sketchBook.engine.components_related.physics;
 
 import com.badlogic.gdx.math.MathUtils;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.SimpleLiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.MovementDataComponent;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
-import official.sketchBook.game.gameObject_related.Player;
 
 import java.util.*;
 

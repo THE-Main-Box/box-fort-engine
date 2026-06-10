@@ -2,7 +2,7 @@ package official.sketchBook.engine.components_related.vehicle;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Fixture;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.InteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.InteractableObjectII;
 import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.enumerators.VehicleComponentType;

@@ -3,7 +3,7 @@ package official.sketchBook.engine.util_related.contact_listener.listeners;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.Manifold;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.VehiclePassenger;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.VehiclePassenger;
 import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
 import official.sketchBook.engine.util_related.contact_listener.MultiContactListener;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;

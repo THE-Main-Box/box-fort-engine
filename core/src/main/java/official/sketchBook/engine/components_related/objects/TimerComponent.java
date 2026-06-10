@@ -57,6 +57,17 @@ public class TimerComponent {
         return targetTime;
     }
 
+    ///Obtém o tempo que falta para completar
+    public float getTimeRemaining() {
+        return targetTime - timeElapsed;
+    }
+
+    ///Obtém o progresso em porcentos
+    public float getProgress() {
+        if (targetTime <= 0) return 0;
+        return timeElapsed / targetTime;
+    }
+
     public void setTargetTime(float targetTime) {
         setTargetTimeSafe(targetTime);
     }

@@ -1,13 +1,9 @@
 package official.sketchBook.engine.game_object_related.projectile_related.models;
 
 import com.badlogic.gdx.physics.box2d.*;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.SelfListenedPhysicalObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.PhysicalObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.PhysicalObjectII;
 import official.sketchBook.engine.components_related.physics.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
-import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
-import official.sketchBook.engine.util_related.contact_listener.ContactActions;
-import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.game.util_related.pools.ProjectilePool;
 
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;

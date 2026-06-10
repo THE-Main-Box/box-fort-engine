@@ -1,4 +1,4 @@
-package official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree;
+package official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid;
 
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;

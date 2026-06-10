@@ -2,8 +2,8 @@ package official.sketchBook.engine.liquid_related.model;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.Fixture;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.MultiLiquidInteractableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.SimpleLiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.MultiLiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.MultiRenderableObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;

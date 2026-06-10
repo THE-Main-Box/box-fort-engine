@@ -3,11 +3,9 @@ package official.sketchBook.engine.util_related.contact_listener.listeners;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.Manifold;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.SelfListenedPhysicalObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.SelfListenedPhysicalObjectII;
 import official.sketchBook.engine.util_related.contact_listener.MultiContactListener;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
-
-import static official.sketchBook.engine.util_related.helper.body.BodyTagHelper.getFromFixtureTag;
 
 public class SelfListenedPhysicalObjectContactListener implements MultiContactListener.SubContactListener {
     @Override
