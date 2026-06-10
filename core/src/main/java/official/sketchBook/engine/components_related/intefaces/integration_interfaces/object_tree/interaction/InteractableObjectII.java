@@ -7,7 +7,7 @@ public interface InteractableObjectII {
     /// Chamada de lógica de interação
     void interact();
 
-    /// Se podemos interagir com o objeto
+    /// Se podemos interagir com o objeto, usado externamente para validar se é viável a interação
     boolean canInteract();
 
     FixtureData getTriggerFixData();

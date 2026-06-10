@@ -62,7 +62,7 @@ public class InteractTriggerComponent implements Component {
         //Se for um objeto marcado para interagir com base na proximidade com um triggerer
         if (interactable instanceof NearInteractableObjectII)
             //Chamamos para lidar com a entrada na area de interação
-            ((NearInteractableObjectII) interactable).onTriggererEnter();
+            ((NearInteractableObjectII) interactable).onTriggererEnter(triggererObject);
     }
 
     /// Remove um objeto e notifica uma atualização
@@ -78,7 +78,7 @@ public class InteractTriggerComponent implements Component {
         //Se for um objeto que pode interagir com base na proximidade, com um triggerer
         if (interactable instanceof NearInteractableObjectII)
             //Chamamos para lidar com a saída da area de interação
-            ((NearInteractableObjectII) interactable).onTriggererExit();
+            ((NearInteractableObjectII) interactable).onTriggererExit(triggererObject);
     }
 
     // --- Input ---
