@@ -15,7 +15,7 @@ public class ControlKeys {
 
     public static int secondaryUse = Input.Keys.X;
 
-    public static int interact = Input.Keys.S;
+    public static int interact = Input.Keys.D;
 
     // redefinir uma tecla
     public static void setKey(String action, int newKey) {

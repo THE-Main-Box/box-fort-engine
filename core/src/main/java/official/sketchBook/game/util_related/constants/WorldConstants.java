@@ -55,7 +55,7 @@ public class WorldConstants {
             JUMP_BUFF_T = 0.2f;
 
         public static final float
-            MAX_MOVE_SPEED_X = 200,
+            MAX_MOVE_SPEED_X = 100,
             MAX_MOVE_SPEED_Y = 200,
             MAX_MOVE_SPEED_R = 0,
             MAX_SPEED_X = 500,
