@@ -135,6 +135,9 @@ public class SubmarineNode
 
         physicsC.halfWidth = transformC.getHalfWidth();
         physicsC.halfHeight = transformC.getHalfHeight();
+
+        recalculateMass();
+
     }
 
     private void generateBody() {
@@ -154,7 +157,6 @@ public class SubmarineNode
 
         calculateNodeDimensions();
 
-        recalculateMass();
     }
 
     public void calculateNodeDimensions() {
@@ -189,9 +191,7 @@ public class SubmarineNode
         float worldWidth = toPixels(maxX - minX);
         float worldHeight = toPixels(maxY - minY);
 
-//        transformC.width = worldWidth / 4;
         transformC.width = worldWidth;
-//        transformC.height = worldHeight / 4;
         transformC.height = worldHeight;
     }
 
@@ -221,8 +221,6 @@ public class SubmarineNode
         );
 
         liquidInteractionC = new PhysicalMobLiquidInteractionComponent(this);
-
-        liquidInteractionC.setCanInteract(false);
 
         MovableObjectPhysicsComponent vPhysicsC = new MovableObjectPhysicsComponent(
             this,
@@ -271,7 +269,7 @@ public class SubmarineNode
 
     @Override
     public void onLiquidEnter() {
-
+        System.out.println(liquidInteractionC.getMass() / liquidInteractionC.getVolume());
     }
 
     @Override
@@ -347,8 +345,9 @@ public class SubmarineNode
             float centerY = (part.internalMinY + part.internalMaxY) / 2f;
 
             // Volume e massa da parte
-            float width = toPixels(part.internalMaxX - part.internalMinX);
-            float height = toPixels(part.internalMaxY - part.internalMinY);
+            float width = part.internalMaxX - part.internalMinX;
+            float height = part.internalMaxY - part.internalMinY;
+
             float volume = width * height;
             float mass = part.getTotalMass();
 

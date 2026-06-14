@@ -113,7 +113,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         data = new LiquidData(
             "water",
             1,
-            1f,
+            999f,
             20f,
             999f,
             999f,
@@ -156,8 +156,6 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             currentRoom,
             nodeList
         );
-
-        System.out.println(node_1.getTriggerBody() == null);
 
         /*
         * To-do: para as portas, um sistema de criação será interessante, a base de orientações
@@ -267,6 +265,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             maskBit = VEHICLE_PASSENGER.bit();
 
         SubmarinePart corridor = new SubmarinePart(1, "corridor_test");
+
+        corridor.baseMass = 0.1f;
 
         corridor.addInternalFixture(
             0,
