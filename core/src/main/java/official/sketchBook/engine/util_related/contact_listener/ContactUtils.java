@@ -8,6 +8,7 @@ public class ContactUtils {
         public static final String MOB_LISTENER = "movable_object";
         public static final String VEHICLE_LISTENER = "vehicle";
         public static final String INTERACT_LISTENER = "interactable";
+        public static final String LIQUID_LISTENER = "liquid";
         public static final String PROJECTILE_LISTENER = "projectile";
     }
 

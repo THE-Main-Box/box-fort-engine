@@ -24,6 +24,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     private List<LiquidData> liquidBuffer = new ArrayList<>();
     private Set<Integer> liquidIdSet = new HashSet<>();
 
+    private Map<Integer, Integer> liquidContactCount = new HashMap<>();
+
     /// flags de constraints e auxiliares
     private boolean
         canInteractBuffer = false,
@@ -49,6 +51,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     private boolean disposed = false;
 
+
     public PhysicalMobLiquidInteractionComponent(SimpleLiquidInteractableObjectII object) {
         this.object = object;
         this.moveC = object.getMoveC();
@@ -56,8 +59,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         this.intermediary = new MovementDataComponent();
         this.updateCurrentStoredMovementValues();
     }
-
     // --- Pipeline ---
+
 
     private void updateStoredMovement() {
         if (!updateStoredMovement) return;
@@ -83,7 +86,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         applyPhysics(shouldSimulate);
         updateStoredMovement();
     }
-
     /// Realizamos as aplicações relacionadas a simulação do liquido
     private void applyPhysics(boolean shouldSimulate) {
         if (!shouldSimulate) return;
@@ -98,6 +100,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         object.inLiquidUpdate();
     }
+
     /// Aplica apenas as constraints do intermediary no moveC, sem tocar na velocidade
     private void applyConstraints() {
         moveC.dataComponent.xAxis.weightFactor = intermediary.xAxis.weightFactor;
@@ -115,7 +118,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         moveC.dataComponent.gravityAffected = intermediary.gravityAffected;
         moveC.dataComponent.gravityScale = intermediary.gravityScale;
     }
-
     /// Aplica flutuabilidade diretamente no moveC
     private void applyBoyancy() {
         if (neutralBuoyancy) {
@@ -135,6 +137,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             moveC.dataComponent.yAxis.velocity + currentBoyancy
         );
     }
+
     /// Aplica as mudanças de estado quando entra ou sai de um liquido
     private void applyChange(boolean shouldSimulate) {
         if (shouldSimulate && !inLiquid) {
@@ -169,25 +172,38 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             moveC.dataComponent.yAxis.velocity + currentBoyancy
         );
     }
-
     // --- Liquid buffer ---
+
 
     public void addLiquid(LiquidData liquid) {
         if (liquid == null) return;
-        if (!liquidIdSet.add(liquid.id)) return;
-        liquidBuffer.add(liquid);
-        needsRecalculation = true;
+        int count = liquidContactCount.getOrDefault(liquid.id, 0);
+        liquidContactCount.put(liquid.id, count + 1);
+        if (count == 0) { // primeira fixture entrando
+            if (liquidIdSet.add(liquid.id)) {
+                liquidBuffer.add(liquid);
+                needsRecalculation = true;
+            }
+        }
     }
 
     public void removeLiquid(LiquidData liquid) {
         if (liquid == null) return;
-        if (!liquidIdSet.remove(liquid.id)) return;
-        for (int i = liquidBuffer.size() - 1; i >= 0; i--) {
-            if (liquidBuffer.get(i).id == liquid.id) {
-                liquidBuffer.remove(i);
-                needsRecalculation = true;
-                return;
+        if (!liquidContactCount.containsKey(liquid.id)) return;
+        int count = liquidContactCount.get(liquid.id) - 1;
+        if (count <= 0) { // última fixture saindo
+            liquidContactCount.remove(liquid.id);
+            if (liquidIdSet.remove(liquid.id)) {
+                for (int i = liquidBuffer.size() - 1; i >= 0; i--) {
+                    if (liquidBuffer.get(i).id == liquid.id) {
+                        liquidBuffer.remove(i);
+                        needsRecalculation = true;
+                        return;
+                    }
+                }
             }
+        } else {
+            liquidContactCount.put(liquid.id, count);
         }
     }
 
@@ -311,6 +327,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         if (disposed) return;
         liquidBuffer.clear();
         liquidIdSet.clear();
+        liquidContactCount.clear();
         nullifyReferences();
         disposed = true;
     }
@@ -318,6 +335,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     public void nullifyReferences() {
         liquidBuffer = null;
         liquidIdSet = null;
+        liquidContactCount = null;
         moveC = null;
         object = null;
     }

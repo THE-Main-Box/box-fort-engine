@@ -1,28 +1,37 @@
 package official.sketchBook.engine.liquid_related.model;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.physics.box2d.Fixture;
+import com.badlogic.gdx.physics.box2d.*;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.MultiLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.SelfListenedPhysicalObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.MultiRenderableObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
+import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
+import official.sketchBook.engine.util_related.helper.GameObjectTag;
+import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
+import official.sketchBook.engine.util_related.helper.body.FixtureData;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.util_related.constants.DebugConstants;
 
 import java.util.*;
 
-public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRenderableObjectII {
+import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.LIQUID;
+import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.LIQUID_SUBMERGEABLE;
+
+public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRenderableObjectII{
 
     public final List<LiquidRegion> regionList;
     public final List<Fixture> fixtureList;
 
     private LiquidData liquidData;
+    private Body liquidBody;
 
-    private Set<SimpleLiquidInteractableObjectII>
+    private final Set<SimpleLiquidInteractableObjectII>
         currentInsideBuffer = new HashSet<>(),
         insideSet = new HashSet<>();
 
@@ -31,7 +40,6 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRende
 
     private boolean
         inScreen;
-
 
     public RoomLiquid(
         PhysicalGameObjectDataManager worldDataManager,
@@ -52,6 +60,45 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRende
 
         computeBounds(); // <<< otimização
         initObject();
+    }
+
+    @Override
+    public void initObject() {
+        World world = getPhysicalManager().getPhysicsWorld();
+
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyDef.BodyType.StaticBody;
+        bodyDef.position.set(0, 0);
+
+        liquidBody = world.createBody(bodyDef);
+        liquidBody.setUserData(new GameObjectTag(ObjectType.LIQUID, this));
+
+        for (int i = 0; i < regionList.size(); i++) {
+            LiquidRegion r = regionList.get(i);
+
+            FixtureData data = new FixtureData(
+                0, 0,
+                r.getX() + r.getWidth() / 2f,  // centro X
+                r.getY() + r.getHeight() / 2f, // centro Y
+                0,
+                r.getWidth(),
+                r.getHeight(),
+                LIQUID.bit(),
+                LIQUID_SUBMERGEABLE.bit(),
+                false,
+                true // sensor
+            );
+
+            List<Fixture> fixtures = BodyCreatorHelper.createFixturesFromData(data, liquidBody);
+
+            for (int j = 0; j < fixtures.size(); j++) {
+                fixtures.get(j).setUserData(
+                    new GameObjectTag(ObjectType.LIQUID, this)
+                );
+            }
+
+            fixtureList.addAll(fixtures);
+        }
     }
 
     /// Calcula AABB geral do líquido
@@ -77,15 +124,10 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRende
     }
 
     @Override
-    public void initObject() {
-
-    }
-
-    @Override
     public void update(float delta) {
         super.update(delta);
 
-        checkRoomObjectLiquidInteraction();
+//        checkRoomObjectLiquidInteraction();
     }
 
     private void checkRoomObjectLiquidInteraction(){
@@ -188,11 +230,13 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRende
     @Override
     protected void disposeCriticalData() {
         super.disposeCriticalData();
-
-        this.regionList.clear();
-        this.fixtureList.clear();
-
-        this.liquidData = null;
+        regionList.clear();
+        fixtureList.clear();
+        if (liquidBody != null) {
+            liquidBody.getWorld().destroyBody(liquidBody);
+            liquidBody = null;
+        }
+        liquidData = null;
     }
 
     public PhysicalGameObjectDataManager getPhysicalManager() {

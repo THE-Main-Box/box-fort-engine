@@ -330,6 +330,13 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             ContactUtils.keys.PROJECTILE_LISTENER,
             new ProjectileContactListener()
         );
+
+        ContactUtils.handleContactListener(
+            this.contactListeners,
+            false,
+            ContactUtils.keys.LIQUID_LISTENER,
+            new LiquidContactListener()
+        );
     }
 
     /// Atualiza o tracking da câmera baseado no jogador

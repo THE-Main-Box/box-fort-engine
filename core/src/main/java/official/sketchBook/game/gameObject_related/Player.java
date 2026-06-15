@@ -471,11 +471,12 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     @Override
     public void onLiquidEnter() {
+        System.out.println("entrooooo");
     }
 
     @Override
     public void inLiquidUpdate() {
-
+        System.out.println("saiuuuu");
     }
 
     @Override
