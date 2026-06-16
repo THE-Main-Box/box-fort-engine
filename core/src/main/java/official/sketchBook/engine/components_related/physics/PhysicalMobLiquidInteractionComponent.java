@@ -119,6 +119,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         moveC.dataComponent.gravityAffected = intermediary.gravityAffected;
         moveC.dataComponent.gravityScale = intermediary.gravityScale;
     }
+
     private void applyBoyancy() {
         if (neutralBuoyancy) {
             resetBoyancy();
@@ -128,38 +129,21 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         float submersionFraction = calculateSubmersionFraction();
         if (submersionFraction <= 0f) return;
 
-        float currentVelY = moveC.dataComponent.yAxis.velocity;
-        float maxVel = moveC.dataComponent.yAxis.maxMoveVel;
-
-        // Fator de velocidade vertical — reduz empuxo quando há momentum vertical forte
-        // Subindo rápido ou caindo rápido, o empuxo é reduzido
-        float velocityFactor = 1f - MathUtils.clamp(
-            Math.abs(currentVelY) / maxVel,
-            0f,
-            0.8f  // nunca zera completamente o empuxo
-        );
+        // Quanto menos submerso, mais resistência no eixo Y
+        float surfaceResistance = (1f - submersionFraction) * intermediary.yAxis.deceleration;
+        moveC.dataComponent.yAxis.deceleration = intermediary.yAxis.deceleration + surfaceResistance;
 
         float currentBoyancy = MathUtils.clamp(
-            (boyancyEffect + boyancyEffectModifier) * submersionFraction * velocityFactor,
+            (boyancyEffect + boyancyEffectModifier) * submersionFraction,
             -moveC.dataComponent.yAxis.maxMoveVel,
             moveC.dataComponent.yAxis.maxMoveVel
         );
 
         if (Math.abs(currentBoyancy) < BOYANCY_THRESHOLD) return;
 
-        float newVelocity = currentVelY + currentBoyancy;
-
-        // Amortecimento na zona de interface água/ar
-        if (submersionFraction > 0f && submersionFraction < 0.6f) {
-            float dampingFactor = MathUtils.clamp(
-                submersionFraction / 0.6f,
-                0.05f,
-                1f
-            );
-            newVelocity *= dampingFactor;
-        }
-
-        moveC.dataComponent.yAxis.setMovement(newVelocity);
+        moveC.dataComponent.yAxis.setMovement(
+            moveC.dataComponent.yAxis.velocity + currentBoyancy
+        );
     }
 
     private float calculateSubmersionFraction() {

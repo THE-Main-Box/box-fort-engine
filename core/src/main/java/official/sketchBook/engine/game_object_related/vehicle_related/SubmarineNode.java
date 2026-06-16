@@ -265,12 +265,10 @@ public class SubmarineNode
 
     @Override
     public void onLiquidExit() {
-        System.out.println("NODE saiu do liquido");
     }
 
     @Override
     public void onLiquidEnter() {
-        System.out.println("NODE entrou - velY body: " + body.getLinearVelocity().y);
     }
 
     @Override
