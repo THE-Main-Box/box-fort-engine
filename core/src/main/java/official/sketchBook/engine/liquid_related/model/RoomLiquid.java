@@ -121,6 +121,8 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRende
             if (rx + rw > maxX) maxX = rx + rw;
             if (ry + rh > maxY) maxY = ry + rh;
         }
+
+        liquidData.surfaceY = maxY; // maxY já está em pixels
     }
 
     @Override

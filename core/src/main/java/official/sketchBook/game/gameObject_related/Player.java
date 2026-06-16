@@ -132,7 +132,7 @@ public class Player extends AnimatedRenderableRoomGameObject
             transformC.width * transformC.height
         );
 
-        this.liquidInteractionC.setMass(240f);
+        this.liquidInteractionC.setMass(450f);
 
         this.liquidInteractionC.setNeutralBuoyancy(false);
 
@@ -471,12 +471,10 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     @Override
     public void onLiquidEnter() {
-        System.out.println("entrooooo");
     }
 
     @Override
     public void inLiquidUpdate() {
-        System.out.println("saiuuuu");
     }
 
     @Override

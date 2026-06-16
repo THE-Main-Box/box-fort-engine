@@ -113,7 +113,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         data = new LiquidData(
             "water",
             1,
-            999f,
+            2f,
             20f,
             999f,
             999f,
@@ -266,7 +266,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         SubmarinePart corridor = new SubmarinePart(1, "corridor_test");
 
-        corridor.baseMass = 0.1f;
+        corridor.baseMass = 0.09f;
 
         corridor.addInternalFixture(
             0,

@@ -5,6 +5,7 @@ import official.sketchBook.engine.components_related.intefaces.base_interfaces.C
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.MovementDataComponent;
+import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 
 import java.util.*;
@@ -118,23 +119,68 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         moveC.dataComponent.gravityAffected = intermediary.gravityAffected;
         moveC.dataComponent.gravityScale = intermediary.gravityScale;
     }
-    /// Aplica flutuabilidade diretamente no moveC
     private void applyBoyancy() {
         if (neutralBuoyancy) {
             resetBoyancy();
             return;
         }
 
+        float submersionFraction = calculateSubmersionFraction();
+        if (submersionFraction <= 0f) return;
+
+        float currentVelY = moveC.dataComponent.yAxis.velocity;
+        float maxVel = moveC.dataComponent.yAxis.maxMoveVel;
+
+        // Fator de velocidade vertical — reduz empuxo quando há momentum vertical forte
+        // Subindo rápido ou caindo rápido, o empuxo é reduzido
+        float velocityFactor = 1f - MathUtils.clamp(
+            Math.abs(currentVelY) / maxVel,
+            0f,
+            0.8f  // nunca zera completamente o empuxo
+        );
+
         float currentBoyancy = MathUtils.clamp(
-            boyancyEffect + boyancyEffectModifier,
+            (boyancyEffect + boyancyEffectModifier) * submersionFraction * velocityFactor,
             -moveC.dataComponent.yAxis.maxMoveVel,
             moveC.dataComponent.yAxis.maxMoveVel
         );
 
         if (Math.abs(currentBoyancy) < BOYANCY_THRESHOLD) return;
 
-        moveC.dataComponent.yAxis.setMovement(
-            moveC.dataComponent.yAxis.velocity + currentBoyancy
+        float newVelocity = currentVelY + currentBoyancy;
+
+        // Amortecimento na zona de interface água/ar
+        if (submersionFraction > 0f && submersionFraction < 0.6f) {
+            float dampingFactor = MathUtils.clamp(
+                submersionFraction / 0.6f,
+                0.05f,
+                1f
+            );
+            newVelocity *= dampingFactor;
+        }
+
+        moveC.dataComponent.yAxis.setMovement(newVelocity);
+    }
+
+    private float calculateSubmersionFraction() {
+        TransformComponent t = object.getTransformC();
+        if (t == null || liquidBuffer.isEmpty()) return 1f;
+
+        float surfaceY = liquidBuffer.get(0).surfaceY;
+        float objectBottomY = t.y;
+        float objectTopY = t.y + t.height;
+
+        // Totalmente submerso
+        if (objectTopY <= surfaceY) return 1f;
+
+        // Totalmente fora
+        if (objectBottomY >= surfaceY) return 0f;
+
+        // Parcialmente submerso
+        return MathUtils.clamp(
+            (surfaceY - objectBottomY) / t.height,
+            0f,
+            1f
         );
     }
 
@@ -143,6 +189,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         if (shouldSimulate && !inLiquid) {
             inLiquid = true;
             object.onLiquidEnter();
+
         } else if (!shouldSimulate && inLiquid) {
             inLiquid = false;
             restartStoredMovementValues();
@@ -152,26 +199,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         }
     }
 
-    /// Aplica flutuabilidade no intermediary
-    private void applyLiquidEffects() {
-        if (neutralBuoyancy) {
-            intermediary.gravityAffected = false;
-            resetBoyancy();
-        }
-
-        float currentBoyancy = MathUtils.clamp(
-            boyancyEffect + boyancyEffectModifier,
-            -intermediary.yAxis.maxMoveVel,
-            intermediary.yAxis.maxMoveVel
-        );
-
-        if (Math.abs(currentBoyancy) < BOYANCY_THRESHOLD) return;
-
-        // Soma a flutuabilidade na velocidade atual do moveC e aplica no intermediary
-        intermediary.yAxis.setMovement(
-            moveC.dataComponent.yAxis.velocity + currentBoyancy
-        );
-    }
     // --- Liquid buffer ---
 
 

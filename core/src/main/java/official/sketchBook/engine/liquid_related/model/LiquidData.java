@@ -8,6 +8,8 @@ public class LiquidData {
     /// Id de referência
     public final int id;
 
+    public float surfaceY;
+
     /// Valores de propriedade de liquido
     public final float
         density,        //Densidade do liquido, irá determinar o quão fácil ou difícil é para um objeto boiar
