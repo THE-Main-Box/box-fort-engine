@@ -148,7 +148,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
 
         nodeList.add(
-          node_1
+            node_1
         );
 
         Submarine baseSubmarine = new Submarine(
@@ -158,16 +158,16 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         );
 
         /*
-        * To-do: para as portas, um sistema de criação será interessante, a base de orientações
-        *  Em sumo a idéia é simples, temos as dimensões, altura e largura,
-        *  com base nisso usaremos as dimensões,
-        *  para podermos determinar o offset vertical e horizontal com base na posição já determinada, caso necessário,
-        *   mas iremos usar claramente para a orientação da fixture sensor,
-        *  caso haja, e não só caso haja,
-        *  mas irá nos ajudar em muitas outras circunstancias,
-        *  como determinar o quanto devemos puxar, empurrar, ou levantar ou abaixar,
-        *   a fixture sensor
-        * */
+         * To-do: para as portas, um sistema de criação será interessante, a base de orientações
+         *  Em sumo a idéia é simples, temos as dimensões, altura e largura,
+         *  com base nisso usaremos as dimensões,
+         *  para podermos determinar o offset vertical e horizontal com base na posição já determinada, caso necessário,
+         *   mas iremos usar claramente para a orientação da fixture sensor,
+         *  caso haja, e não só caso haja,
+         *  mas irá nos ajudar em muitas outras circunstancias,
+         *  como determinar o quanto devemos puxar, empurrar, ou levantar ou abaixar,
+         *   a fixture sensor
+         * */
 
         VehicleDoor door = new VehicleDoor(
             node_1,
@@ -223,10 +223,10 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             new FixtureData(
                 0,
                 0,
-                -55 +9,
+                -55 + 9,
                 0,
                 0,
-                9*4,
+                9 * 4,
                 40,
                 INTERACTABLE.bit(),
                 INTERACTABLE_TRIGGERER.bit(),
@@ -267,6 +267,11 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         SubmarinePart corridor = new SubmarinePart(1, "corridor_test");
 
         corridor.baseMass = 0.001f;
+        corridor.internalMarginDown
+            = corridor.internalMarginUp
+            = corridor.internalMarginLeft
+            = corridor.internalMarginRight
+            = 2;
 
         corridor.addInternalFixture(
             0,

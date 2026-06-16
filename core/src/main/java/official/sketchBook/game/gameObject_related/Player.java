@@ -134,7 +134,7 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         this.liquidInteractionC.setMass(200f);
 
-        this.liquidInteractionC.setNeutralBuoyancy(false);
+        this.liquidInteractionC.setNeutralFloating(false);
 
 //        this.liquidInteractionC.setCanInteractWithLiquid(false);
 
