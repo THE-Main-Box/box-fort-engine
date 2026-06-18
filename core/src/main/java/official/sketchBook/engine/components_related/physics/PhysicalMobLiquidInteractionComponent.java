@@ -169,8 +169,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         if (t == null || liquidBuffer.isEmpty()) return 1f;
 
         float surfaceY = liquidBuffer.get(0).surfaceY;
-        float objectBottomY = t.y;
-        float objectTopY = t.y + t.height;
+        float objectBottomY = t.getCenterY() - t.getHalfHeight();
+        float objectTopY = t.getCenterY() + t.getHalfHeight();
 
         if (objectTopY <= surfaceY) return 1f;
         if (objectBottomY >= surfaceY) return 0f;
