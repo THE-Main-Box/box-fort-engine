@@ -319,7 +319,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             this.contactListeners,
             false,
             ContactUtils.keys.VEHICLE_LISTENER,
-            new VehicleContactListener()
+            new SubmarineContactListener()
         );
 
         ContactUtils.handleContactListener(

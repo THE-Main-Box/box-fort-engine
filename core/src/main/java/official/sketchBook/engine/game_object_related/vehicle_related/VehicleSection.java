@@ -13,5 +13,5 @@ public interface VehicleSection extends PhysicalObjectII {
     float getVelX();
     float getVelY();
 
-    boolean hasDryArea();
+    boolean hasInternalArea();
 }

@@ -535,7 +535,7 @@ public class SubmarineNode
     }
 
     @Override
-    public boolean hasDryArea() {
+    public boolean hasInternalArea() {
         return true;
     }
 }

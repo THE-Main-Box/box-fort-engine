@@ -4,6 +4,7 @@ import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.VehiclePassenger;
+import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
 import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
 import official.sketchBook.engine.util_related.contact_listener.MultiContactListener;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
@@ -11,7 +12,7 @@ import official.sketchBook.engine.util_related.helper.GameObjectTag;
 
 import static official.sketchBook.engine.util_related.helper.body.BodyTagHelper.getFixtureTagFromContact;
 
-public class VehicleContactListener implements MultiContactListener.SubContactListener {
+public class SubmarineContactListener implements MultiContactListener.SubContactListener {
 
     @Override
     public void beginContact(Contact contact, GameObjectTag tagA, GameObjectTag tagB) {
@@ -42,9 +43,9 @@ public class VehicleContactListener implements MultiContactListener.SubContactLi
         // A body precisa ser um veículo
         if (sectionTag.type != ObjectType.VEHICLE) return false;
 
-        if (!(sectionTag.owner instanceof VehicleSection)) return false;
+        if (!(sectionTag.owner instanceof SubmarineNode)) return false;
 
-        if(!((VehicleSection) sectionTag.owner).hasDryArea()) return false;
+        if(!((SubmarineNode) sectionTag.owner).hasInternalArea()) return false;
 
         // O passageiro precisa ser um VehiclePassenger
         if (!(passengerTag.owner instanceof VehiclePassenger)) return false;
@@ -55,7 +56,7 @@ public class VehicleContactListener implements MultiContactListener.SubContactLi
         if (fixtureTag == null || fixtureTag.type != ObjectType.DYNAMIC_DRY_AREA) return false;
 
         VehiclePassenger passenger = (VehiclePassenger) passengerTag.owner;
-        VehicleSection section = (VehicleSection) sectionTag.owner;
+        SubmarineNode section = (SubmarineNode) sectionTag.owner;
 
         if (entering) {
             passenger.getVehiclePassengerPhysicsC().setCurrentSection(section);
