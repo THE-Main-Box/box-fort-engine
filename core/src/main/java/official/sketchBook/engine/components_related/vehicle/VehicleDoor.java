@@ -76,9 +76,8 @@ public class VehicleDoor extends VehicleInteractableComponent implements Proximi
         }
     }
 
-    public void interact() {
-        if (!canInteract()) return;
-        //Abrimos ou fechamos de acordo com a interação pedida
+    @Override
+    public void executeInteraction(InteractionTriggerer triggerer) {
         updateDoorOpenState(!this.open);
     }
 

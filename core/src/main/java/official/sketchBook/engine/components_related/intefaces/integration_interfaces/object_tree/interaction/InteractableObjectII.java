@@ -5,10 +5,15 @@ import official.sketchBook.engine.util_related.helper.body.FixtureData;
 
 public interface InteractableObjectII {
     /// Chamada de lógica de interação
-    void interact();
+    default void interact(InteractionTriggerer triggerer){
+        if(canInteract())
+            executeInteraction(triggerer);
+    }
 
     /// Se podemos interagir com o objeto, usado externamente para validar se é viável a interação
     boolean canInteract();
+
+    void executeInteraction(InteractionTriggerer triggerer);
 
     FixtureData getTriggerFixData();
 

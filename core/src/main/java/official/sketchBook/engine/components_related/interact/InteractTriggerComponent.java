@@ -98,7 +98,7 @@ public class InteractTriggerComponent implements Component {
             HoldInteractableObjectII hold = (HoldInteractableObjectII) nearest;
             //Se o hold está marcado para também interagir ao apertar para interagir
             //(Além da interação por tempo)
-            if (hold.isTriggerInteract()) nearest.interact();
+            if (hold.isTriggerInteract()) nearest.interact(this.triggererObject);
             //Atualizamos o tempo alvo do temporizador
             holdTimer.setTargetTime(hold.getHoldTime());
             //Resetamos e iniciamos o próprio
@@ -107,7 +107,7 @@ public class InteractTriggerComponent implements Component {
             //Marcamos a flag de input
             holding = true;
         } else {//Caso o objet for um interativo simples, interagimos logo
-            nearest.interact();
+            nearest.interact(triggererObject);
         }
     }
 
