@@ -1,6 +1,6 @@
-package official.sketchBook.engine.components_related.special_input_system.input_classes;
+package official.sketchBook.engine.components_related.input_system.input_classes;
 
-import official.sketchBook.engine.components_related.special_input_system.infra.InputCommandType;
+import official.sketchBook.engine.components_related.input_system.infra.InputCommandType;
 
 public class NumValueInputCommand extends BaseInputValue<Float> {
 

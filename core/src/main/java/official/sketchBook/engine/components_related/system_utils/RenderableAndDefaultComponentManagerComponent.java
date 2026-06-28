@@ -32,10 +32,15 @@ public class RenderableAndDefaultComponentManagerComponent extends ComponentMana
         }
     }
 
-    public <T extends RenderableObjectII> void remove(
+    @Override
+    public <T extends Component> void remove(
         Class<T> type,
+        boolean removeFromUpdateList,
+        boolean removeFromPostUpdateList,
         boolean autoDispose
     ) {
+        super.remove(type, removeFromUpdateList, removeFromPostUpdateList, autoDispose);
+
         for (int i = toRender.size() - 1; i >= 0; i--) {
             RenderableObjectII c = toRender.get(i);
             if (type.isInstance(c)) {
@@ -47,11 +52,9 @@ public class RenderableAndDefaultComponentManagerComponent extends ComponentMana
 
     public void addToRender(Component component) {
         if (!(component instanceof RenderableObjectII)) return;
-
         this.toRender.add(
             (RenderableObjectII) component
         );
-
     }
 
     public void disposeGraphics() {
@@ -65,5 +68,4 @@ public class RenderableAndDefaultComponentManagerComponent extends ComponentMana
 
         graphicsDisposed = true;
     }
-
 }

@@ -1,8 +1,6 @@
 package official.sketchBook.engine.components_related.system_utils;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +9,8 @@ public class ComponentManagerComponent implements Component {
 
     private final List<Component>
         toUpdate,
-        toPostUpdate;
+        toPostUpdate,
+        allComponents;     // refer�ncia de todos os componentes, para garantir dispose correto
 
     private boolean
         disposed = false;
@@ -19,10 +18,10 @@ public class ComponentManagerComponent implements Component {
     public ComponentManagerComponent() {
         toUpdate = new ArrayList<>();
         toPostUpdate = new ArrayList<>();
+        allComponents = new ArrayList<>();
     }
 
     public void update(float delta) {
-        // Loop simples sem iterador
         for (int i = 0; i < toUpdate.size(); i++) {
             toUpdate.get(i).update(delta);
         }
@@ -36,7 +35,6 @@ public class ComponentManagerComponent implements Component {
 
     @Override
     public void initObject() {
-
     }
 
     public <T extends Component> void remove(
@@ -49,7 +47,6 @@ public class ComponentManagerComponent implements Component {
             for (int i = toUpdate.size() - 1; i >= 0; i--) {
                 Component c = toUpdate.get(i);
                 if (type.isInstance(c)) {
-                    if (autoDispose) c.dispose();
                     toUpdate.remove(i);
                 }
             }
@@ -59,22 +56,31 @@ public class ComponentManagerComponent implements Component {
             for (int i = toPostUpdate.size() - 1; i >= 0; i--) {
                 Component c = toPostUpdate.get(i);
                 if (type.isInstance(c)) {
-                    if (autoDispose) c.dispose();
                     toPostUpdate.remove(i);
                 }
             }
         }
-    }
 
+        for (int i = allComponents.size() - 1; i >= 0; i--) {
+            Component c = allComponents.get(i);
+            if (type.isInstance(c)) {
+                if (autoDispose) c.dispose();
+                allComponents.remove(i);
+            }
+        }
+    }
 
     public void add(
         Component component,
         boolean toUpdate,
         boolean toPostUpdate
     ) {
+        allComponents.add(component);
+
         if (toUpdate) {
             this.toUpdate.add(component);
         }
+
         if (toPostUpdate) {
             this.toPostUpdate.add(component);
         }
@@ -83,19 +89,14 @@ public class ComponentManagerComponent implements Component {
     public void dispose() {
         if (disposed) return;
 
-        for (Component component : toUpdate) {
-            component.dispose();
-        }
-
-        for (Component component : toPostUpdate) {
-            component.dispose();
+        for (int i = 0; i < allComponents.size(); i++) {
+            allComponents.get(i).dispose();
         }
 
         toUpdate.clear();
         toPostUpdate.clear();
+        allComponents.clear();
 
         disposed = true;
     }
-
-
 }

@@ -1,4 +1,4 @@
-package official.sketchBook.engine.components_related.special_input_system.infra;
+package official.sketchBook.engine.components_related.input_system.infra;
 
 public interface InputCommand <T>{
     ///Nome para contexto
