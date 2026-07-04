@@ -79,7 +79,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         // Armazena os valores originais de movimenta��o na primeira oportunidade
         this.updateCurrentStoredMovementValues();
         this.liquidUpdateLimiter = new UpdateRateLimiter(
-            PhysicsConstants.UPS_TARGET * 0.4f,
+            PhysicsConstants.LIQUID_INTERACTION_SIM_UPDATE_RATE,
             true
         );
     }
