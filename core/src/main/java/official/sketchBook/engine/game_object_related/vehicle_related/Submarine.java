@@ -122,7 +122,7 @@ public class Submarine extends BaseRoomGameObject implements
 
     @Override
     public boolean canRender() {
-        return true;
+        return inScreen;
     }
 
     @Override

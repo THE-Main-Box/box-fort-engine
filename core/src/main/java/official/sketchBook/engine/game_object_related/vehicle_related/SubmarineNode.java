@@ -1,5 +1,6 @@
 package official.sketchBook.engine.game_object_related.vehicle_related;
 
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -27,6 +28,7 @@ import java.util.List;
 
 import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createExternalBody;
 import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createInternalBody;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.toMeters;
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.toPixels;
 
 public class SubmarineNode
@@ -395,11 +397,14 @@ public class SubmarineNode
 
     @Override
     public void updateVisuals(float delta) {
-
+        this.managerC.updateVisuals(delta);
     }
 
     @Override
     public void render(SpriteBatch batch) {
+        //Chama o sistema de renderização dos componentes renderizáveis
+        this.managerC.render(batch);
+
         if (!DebugConstants.show_hit_boxes) return;
         vehicle.worldDataManager.toRender.add(
             this.transformC
@@ -414,7 +419,7 @@ public class SubmarineNode
     ) {
         this.vehicleComponentList.add(component);
 
-        if (toRender) this.managerC.addToRender(component);
+        if (toRender && component instanceof RenderableObjectII) this.managerC.addToRender(component);
 
         if(component instanceof InteractableObjectII) {
             this.interactableObjectManagerC.addToList((InteractableObjectII) component);
@@ -429,7 +434,7 @@ public class SubmarineNode
 
     @Override
     public boolean canRender() {
-        return true;
+        return inScreen;
     }
 
     @Override

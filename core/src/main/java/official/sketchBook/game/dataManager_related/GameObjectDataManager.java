@@ -360,7 +360,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         // --- Adiciona ao node ---
 
-        node_1.addVehicleComponent(door, false, true, true);
+        node_1.addVehicleComponent(door, true, true, true);
         node_1.addVehicleComponent(door2, false, true, true);
         node_1.addVehicleComponent(controller, false, true, true);
 
