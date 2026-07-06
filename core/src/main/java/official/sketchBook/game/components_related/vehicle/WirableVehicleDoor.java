@@ -1,4 +1,4 @@
-package official.sketchBook.engine.components_related.vehicle;
+package official.sketchBook.game.components_related.vehicle;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.ControllableObjectII;

@@ -4,9 +4,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.system_utils.ControllerGroup;
-import official.sketchBook.engine.components_related.vehicle.VehicleControllerComponent;
-import official.sketchBook.engine.components_related.vehicle.VehicleDoor;
-import official.sketchBook.engine.components_related.vehicle.WirableVehicleDoor;
+import official.sketchBook.game.components_related.vehicle.VehicleControllerComponent;
+import official.sketchBook.game.components_related.vehicle.VehicleDoor;
+import official.sketchBook.game.components_related.vehicle.VehicleEngineComponent;
+import official.sketchBook.game.components_related.vehicle.WirableVehicleDoor;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.vehicle_related.Submarine;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
@@ -173,90 +174,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
          * */
 
 
-//        VehicleDoor door = new VehicleDoor(
-//            node_1,
-//            new FixtureData(
-//                0,
-//                0,
-//                55,
-//                0,
-//                0,
-//                9,
-//                40,
-//                VEHICLE.bit(),
-//                VEHICLE_PASSENGER.bit(),
-//                false,
-//                false
-//            ),
-//            new FixtureData(
-//                0,
-//                0,
-//                55 - 9,
-//                0,
-//                0,
-//                9 * 4,
-//                40,
-//                INTERACTABLE.bit(),
-//                INTERACTABLE_TRIGGERER.bit(),
-//                false,
-//                true
-//            ),
-//            false,
-//            false,
-//            false
-//        );
-//
-//        VehicleDoor door2 = new VehicleDoor(
-//            node_1,
-//            new FixtureData(
-//                0,
-//                0,
-//                0,
-//                0,
-//                0,
-//                -55,
-//                0,
-//                0,
-//                9,
-//                40,
-//                VEHICLE.bit(),
-//                VEHICLE_PASSENGER.bit(),
-//                false,
-//                false
-//            ),
-//            new FixtureData(
-//                0,
-//                0,
-//                -55 + 9,
-//                0,
-//                0,
-//                9 * 4,
-//                40,
-//                INTERACTABLE.bit(),
-//                INTERACTABLE_TRIGGERER.bit(),
-//                false,
-//                true
-//            ),
-//            false,
-//            false,
-//            true
-//        );
-//
-//        node_1.addVehicleComponent(
-//            door,
-//            false,
-//            true,
-//            true
-//        );
-//
-//        node_1.addVehicleComponent(
-//            door2,
-//            false,
-//            true,
-//            true
-//        );
-
-        WirableVehicleDoor door = new WirableVehicleDoor(
+        VehicleDoor door = new VehicleDoor(
             node_1,
             new FixtureData(
                 0,
@@ -289,9 +207,12 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             false
         );
 
-        WirableVehicleDoor door2 = new WirableVehicleDoor(
+        VehicleDoor door2 = new VehicleDoor(
             node_1,
             new FixtureData(
+                0,
+                0,
+                0,
                 0,
                 0,
                 -55,
@@ -352,11 +273,35 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             )
         );
 
-        // --- Grupo de portas ---
 
-        ControllerGroup doorsGroup = controller.addGroup("portas");
-        doorsGroup.add(door);
-        doorsGroup.add(door2);
+        VehicleEngineComponent engineRight = new VehicleEngineComponent(
+            node_1,
+            1f, 0f,     // empuxo pra direita no espaço local
+            10f,       // força máxima
+            1f,         // potência total
+            false       // começa desligado
+        );
+
+        VehicleEngineComponent engineLeft = new VehicleEngineComponent(
+            node_1,
+            -1f, 0f,    // empuxo pra esquerda no espaço local
+            500f,
+            1f,
+            false
+        );
+
+        // --- Grupo de motores direita ---
+        ControllerGroup engineRightGroup = controller.addGroup("motor_direita");
+        engineRightGroup.add(engineRight);
+
+        // --- Grupo de motores esquerda ---
+        ControllerGroup engineLeftGroup = controller.addGroup("motor_esquerda");
+        engineLeftGroup.add(engineLeft);
+
+        // --- Adiciona ao node ---
+        node_1.addVehicleComponent(engineRight, false, false, true);
+        node_1.addVehicleComponent(engineLeft, false, false, true);
+
 
         // --- Adiciona ao node ---
 

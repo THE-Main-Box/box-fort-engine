@@ -1,14 +1,13 @@
-package official.sketchBook.engine.components_related.vehicle;
+package official.sketchBook.game.components_related.vehicle;
 
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.InteractionTriggerer;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.WirableObjectII;
 import official.sketchBook.engine.components_related.system_utils.ControllerGroup;
+import official.sketchBook.engine.components_related.vehicle.VehicleInteractableComponent;
 import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
 import official.sketchBook.engine.util_related.enumerators.VehicleComponentType;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
 
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
 
 public class VehicleControllerComponent extends VehicleInteractableComponent {
 
