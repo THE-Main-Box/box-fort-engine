@@ -1,4 +1,4 @@
-package official.sketchBook.game.components_related;
+package official.sketchBook.game.components_related.player;
 
 import official.sketchBook.engine.animation_rendering_related.ObjectAnimationPlayer;
 import official.sketchBook.engine.animation_rendering_related.Sprite;

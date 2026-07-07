@@ -26,12 +26,12 @@ import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.engine.util_related.pools.RayCastPool;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
-import official.sketchBook.game.components_related.PlayerAnimationControllerComponent;
-import official.sketchBook.game.components_related.PlayerControllerComponent;
+import official.sketchBook.game.components_related.player.PlayerAnimationControllerComponent;
+import official.sketchBook.game.components_related.player.PlayerControllerComponent;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 import official.sketchBook.game.util_related.path.GameAssetsPaths;
 
-import static official.sketchBook.game.components_related.PlayerAnimationInitializerComponent.initAnimations;
+import static official.sketchBook.game.components_related.player.PlayerAnimationInitializerComponent.initAnimations;
 
 public class Player extends AnimatedRenderableRoomGameObject
     implements

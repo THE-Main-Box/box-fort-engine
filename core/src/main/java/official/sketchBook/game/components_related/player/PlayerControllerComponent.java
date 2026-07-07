@@ -1,4 +1,4 @@
-package official.sketchBook.game.components_related;
+package official.sketchBook.game.components_related.player;
 
 import com.badlogic.gdx.Input;
 import official.sketchBook.engine.components_related.base_components.KeyBoundControllerComponent;

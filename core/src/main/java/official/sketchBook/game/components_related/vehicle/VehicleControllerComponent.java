@@ -42,6 +42,8 @@ public class VehicleControllerComponent extends VehicleInteractableComponent {
 
     @Override
     public void executeInteraction(InteractionTriggerer triggerer) {
+        //TO-DO: Remover esse sistema temporário,
+        // e usar um sistema mais funcional e flexivel para lidar com o input
         PendingGroupInput.set(this);
     }
 
