@@ -31,7 +31,7 @@ public abstract class BaseGameObjectDataManager implements com.badlogic.gdx.util
     protected final Set<Class<? extends Disposable>> registeredClasses = new HashSet<>();
 
     protected ShapeRenderer shapeRenderer;
-    public List<TransformComponent> toRender = new ArrayList<>();
+    public static List<TransformComponent> toRender = new ArrayList<>();
 
 
     /// Flags de identificação de limpeza

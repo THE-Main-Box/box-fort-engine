@@ -274,39 +274,42 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         );
 
 
-        VehicleEngineComponent engineRight = new VehicleEngineComponent(
+        VehicleEngineComponent engine = new VehicleEngineComponent(
             node_1,
-            1f, 0f,     // empuxo pra direita no espaço local
-            10f,       // força máxima
-            1f,         // potência total
-            false       // começa desligado
-        );
-
-        VehicleEngineComponent engineLeft = new VehicleEngineComponent(
-            node_1,
-            -1f, 0f,    // empuxo pra esquerda no espaço local
-            500f,
+            1f,
+            0f,
+            0f,
+            0f,
+            10f,
+            -1f,
+            1f,
+            0f,
             1f,
             false
         );
 
-        // --- Grupo de motores direita ---
-        ControllerGroup engineRightGroup = controller.addGroup("motor_direita");
-        engineRightGroup.add(engineRight);
+        // --- Grupo frente: power 1.0 ---
+        ControllerGroup engineForwardGroup = controller.addGroup("motor_frente");
+        // --- Grupo ré: power -1.0 ---
+        ControllerGroup engineReverseGroup = controller.addGroup("motor_re");
 
-        // --- Grupo de motores esquerda ---
-        ControllerGroup engineLeftGroup = controller.addGroup("motor_esquerda");
-        engineLeftGroup.add(engineLeft);
+        //Adiciona o motor no grupo da frente
+        engineForwardGroup.add(engine);
+        //Adiciona o motor no grupo de ré
+        engineReverseGroup.add(engine);
+
+        //Seta a config do grupo da frente
+        engineForwardGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(1f, true));
+        //Seta a config do grupo de ré
+        engineReverseGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(-1f));
+
 
         // --- Adiciona ao node ---
-        node_1.addVehicleComponent(engineRight, false, false, true);
-        node_1.addVehicleComponent(engineLeft, false, false, true);
-
-
-        // --- Adiciona ao node ---
+        node_1.addVehicleComponent(engine, false, true, true);
 
         node_1.addVehicleComponent(door, true, true, true);
         node_1.addVehicleComponent(door2, false, true, true);
+
         node_1.addVehicleComponent(controller, false, true, true);
 
     }

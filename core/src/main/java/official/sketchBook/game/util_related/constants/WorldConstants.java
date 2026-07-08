@@ -49,7 +49,7 @@ public class WorldConstants {
 
         /// Valores de componente de salto
         public static final float
-            JUMP_FORCE = 400,
+            JUMP_FORCE = 40,
             FALL_SPEED_AFTER_JUMP_CANCEL = 100,
             COYOTE_T = 0.1f,
             JUMP_BUFF_T = 0.2f;
