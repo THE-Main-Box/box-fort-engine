@@ -21,6 +21,7 @@ public class ControllerGroup {
 
     public ControllerGroup(String name) {
         this.name = name;
+
         this.targets = new ArrayList<>();
         this.configMap = new IdentityHashMap<>();
     }
@@ -28,13 +29,15 @@ public class ControllerGroup {
     /// Adiciona um objeto ao grupo.
     /// Se for WirableConfigurable, registra sua config padr�o automaticamente.
     public void add(ControllableObjectII object) {
-        if (object == null) return;
-        targets.add(object);
+        if (object == null) return; //Se existir um objeto
+        targets.add(object);        //Adicionamos na lista de targets
 
-        /// Registra a config padr�o caso o objeto seja configur�vel
+        // Registra a config padr�o caso o objeto seja configur�vel
         if (object instanceof WirableConfigurable) {
+            //Obtém a config do objeto atual
             WiringConfig defaultConfig = ((WirableConfigurable) object).getCurrentConfiguration();
-            if (defaultConfig != null) {
+            if (defaultConfig != null) {        //Se o retorno for real
+                //Adicionamos a config
                 configMap.put(object, defaultConfig);
             }
         }
@@ -43,27 +46,37 @@ public class ControllerGroup {
     /// Atualiza a config de um objeto neste grupo.
     /// Usa o map diretamente — O(1) via refer�ncia, sem iterar a lista.
     public void setConfig(ControllableObjectII object, WiringConfig config) {
-        if (!configMap.containsKey(object)) return;
-        configMap.put(object, config);
+        //Verificamos se ele pode ser configurado, se sim prosseguimos
+        if (object instanceof WirableConfigurable)
+            configMap.put(object, config);
     }
 
     /// Aciona todos os objetos do grupo.
     /// Se configur�vel e houver config no map, aplica antes de acionar.
     public void trigger() {
+        //Percorremos a lista de objetos controláveis
         for (int i = 0; i < targets.size(); i++) {
+            //obtemos o controlável alvo
             ControllableObjectII target = targets.get(i);
 
+            //Se for um objeto configurável settamos dados presentes aqui
             if (target instanceof WirableConfigurable) {
+                //Obtemos a configuração presente
                 WiringConfig config = configMap.get(target);
+                //Se houver settamos
                 if (config != null) {
+                    //Atualizamos a config atual conforme desejado
                     ((WirableConfigurable) target).setCurrentConfiguration(config);
                 }
             }
 
+            //Chamamos a interação
             target.interactByWiring();
         }
     }
 
+    /// Removemos um objeto controlável
+    /// Removemos a config caso exista
     public void remove(ControllableObjectII object) {
         targets.remove(object);
         configMap.remove(object);
