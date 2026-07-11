@@ -1,6 +1,7 @@
 package official.sketchBook.engine.game_object_related.animated_renderable_game_object;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.OptmizedRenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.objects.AnimationRenderingComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
@@ -9,7 +10,7 @@ import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomG
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 
-public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObject implements RenderableObjectII {
+public abstract class AnimatedRenderableRoomGameObject extends BaseRoomGameObject implements OptmizedRenderableObjectII {
 
     protected AnimationRenderingComponent animationRenderC;
     protected TransformComponent transformC;

@@ -2,6 +2,7 @@ package official.sketchBook.game.components_related.vehicle;
 
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.ControllableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.WirableConfigurable;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.WirableObjectII;
@@ -12,6 +13,7 @@ import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSec
 import official.sketchBook.engine.util_related.enumerators.VehicleComponentType;
 
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.toMeters;
 
 public class VehicleEngineComponent extends VehicleBaseComponent implements
     WirableObjectII,
@@ -46,9 +48,6 @@ public class VehicleEngineComponent extends VehicleBaseComponent implements
     /// Taxa de acelera��o por segundo — quanto de pot�ncia ganha/perde por segundo
     private final float accelerationRate;
 
-    /// Delta bufferizado para uso no postUpdate
-    private float deltaTime;
-
     /// Se o motor est� ligado
     private boolean active;
 
@@ -58,6 +57,8 @@ public class VehicleEngineComponent extends VehicleBaseComponent implements
     /// Transform do motor — atualizado no postUpdate com posi��o mundial
     private final TransformComponent transformC;
 
+    private final Body body;
+
     /// Config atual do motor — usada pelo grupo de controle
     private VehicleEngineConfig currentConfig;
 
@@ -66,6 +67,7 @@ public class VehicleEngineComponent extends VehicleBaseComponent implements
 
     public VehicleEngineComponent(
         VehicleSection ownerSection,
+        Body body,
         float localDirX,
         float localDirY,
         float offsetX,
@@ -75,7 +77,8 @@ public class VehicleEngineComponent extends VehicleBaseComponent implements
         float maxPower,
         float defaultPower,
         float accelerationRate,
-        boolean startActive
+        boolean startActive,
+        boolean isBroken
     ) {
         super(
             "engine",
@@ -84,18 +87,24 @@ public class VehicleEngineComponent extends VehicleBaseComponent implements
             VehicleComponentType.PHYSICAL_INTERNAL
         );
 
-        /// Normalizamos a dire��o local uma �nica vez na cria��o
+        // Normalizamos a dire��o local uma �nica vez na cria��o
         this.localThrustDir = new Vector2(localDirX, localDirY).nor();
         this.offsetX = offsetX;
         this.offsetY = offsetY;
         this.maxForce = maxForce;
+
+        //Normaliza a quantidade de força entre -1 e 1
         this.minPower = MathUtils.clamp(minPower, -1f, 0f);
         this.maxPower = MathUtils.clamp(maxPower, 0f, 1f);
         this.power = MathUtils.clamp(defaultPower, this.minPower, this.maxPower);
+
         this.targetPower = this.power;
+
         this.accelerationRate = Math.max(0f, accelerationRate);
+
         this.active = startActive;
-        this.broken = false;
+        this.broken = isBroken;
+        this.body = body;
 
         /// Transform inicializado sem dimens�es — ser� atualizado no postUpdate
         this.transformC = new TransformComponent();
@@ -106,26 +115,29 @@ public class VehicleEngineComponent extends VehicleBaseComponent implements
 
     @Override
     public void update(float delta) {
-        /// Bufferiza o delta para uso no postUpdate
-        this.deltaTime = delta;
+        executePropulsion(delta);
     }
 
-    @Override
-    public void postUpdate() {
-        float bodyAngle = ownerSection.getBody().getAngle();
+    /// Executa a lógica de propulsão
+    protected void executePropulsion(float deltaTime) {
+        //Obtém o angulo da body anexada
+        float bodyAngle = this.body.getAngle();
+        //Obtém o cosseno
         float cos = MathUtils.cos(bodyAngle);
+        //Obtém outro calculo matematic importante/bullshit
         float sin = MathUtils.sin(bodyAngle);
 
-        /// Calculamos o ponto de aplica��o mundial em metros
-        float offsetXMeters = offsetX / PPM;
-        float offsetYMeters = offsetY / PPM;
+        // Calculamos o ponto de aplica��o mundial em metros da posição x e y
+        float offsetXMeters = toMeters(offsetX);
+        float offsetYMeters = toMeters(offsetY);
 
+        //Seta o buffer de aplicação, considerando o angulo, para aplicar uma propulsão coerente
         worldApplicationPoint.set(
             ownerSection.getBody().getPosition().x + (offsetXMeters * cos - offsetYMeters * sin),
             ownerSection.getBody().getPosition().y + (offsetXMeters * sin + offsetYMeters * cos)
         );
 
-        /// Atualizamos o transform com a posi��o mundial em pixels — usado para culling e render
+        // Atualizamos o transform com a posi��o mundial em pixels — usado para culling e render
         transformC.x = worldApplicationPoint.x * PPM;
         transformC.y = worldApplicationPoint.y * PPM;
         transformC.rotation = ownerSection.getBody().getAngle() * MathUtils.radiansToDegrees;
@@ -140,7 +152,7 @@ public class VehicleEngineComponent extends VehicleBaseComponent implements
             }
         }
 
-        /// S� aplica for�a se ativo, n�o quebrado, e com pot�ncia relevante
+        // S� aplica for�a se ativo, n�o quebrado, e com pot�ncia relevante
         if (!active || broken || (power == 0f && targetPower == 0f)) return;
 
         /// Rotacionamos a dire��o local pelo �ngulo atual da body
@@ -149,10 +161,10 @@ public class VehicleEngineComponent extends VehicleBaseComponent implements
             localThrustDir.x * sin + localThrustDir.y * cos
         );
 
-        /// For�a convertida de pixels pra metros, mantendo consist�ncia com o resto do sistema
+        // For�a convertida de pixels pra metros, mantendo consist�ncia com o resto do sistema
         float force = (maxForce * power) / PPM;
 
-        /// Aplica no ponto de offset — gera torque se deslocado do centro de massa
+        // Aplica no ponto de offset — gera torque se deslocado do centro de massa
         ownerSection.getBody().applyForce(
             worldThrustDir.x * force,
             worldThrustDir.y * force,
@@ -206,18 +218,53 @@ public class VehicleEngineComponent extends VehicleBaseComponent implements
         currentConfig = null;
     }
 
-    public float getPower() { return power; }
-    public float getTargetPower() { return targetPower; }
-    public float getMinPower() { return minPower; }
-    public float getMaxPower() { return maxPower; }
-    public float getAccelerationRate() { return accelerationRate; }
-    public boolean isActive() { return active; }
-    public boolean isBroken() { return broken; }
-    public void setBroken(boolean broken) { this.broken = broken; }
-    public float getMaxForce() { return maxForce; }
-    public float getOffsetX() { return offsetX; }
-    public float getOffsetY() { return offsetY; }
-    public Vector2 getLocalThrustDir() { return localThrustDir; }
+    public float getPower() {
+        return power;
+    }
+
+    public float getTargetPower() {
+        return targetPower;
+    }
+
+    public float getMinPower() {
+        return minPower;
+    }
+
+    public float getMaxPower() {
+        return maxPower;
+    }
+
+    public float getAccelerationRate() {
+        return accelerationRate;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public boolean isBroken() {
+        return broken;
+    }
+
+    public void setBroken(boolean broken) {
+        this.broken = broken;
+    }
+
+    public float getMaxForce() {
+        return maxForce;
+    }
+
+    public float getOffsetX() {
+        return offsetX;
+    }
+
+    public float getOffsetY() {
+        return offsetY;
+    }
+
+    public Vector2 getLocalThrustDir() {
+        return localThrustDir;
+    }
 
     /// Config do motor — exposta ao jogador via HUD
     /// Determina a pot�ncia e estado de ativa��o ao acionar este motor num grupo

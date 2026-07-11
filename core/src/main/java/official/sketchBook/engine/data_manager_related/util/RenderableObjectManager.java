@@ -1,6 +1,7 @@
 package official.sketchBook.engine.data_manager_related.util;
 
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.MultiRenderableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.CompositeRenderableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.OptmizedRenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 
@@ -54,22 +55,34 @@ public class RenderableObjectManager {
     /// Executa a atualização da mudança de index de renderização de um objeto,
     ///  não basta só mudar no objeto precisamos também aplicar aqui dentro,
     ///  fazemos isso para justamente controlar a quantidade de vezes que mudamos a tree
-    public void updateRenderIndex(RenderableObjectII obj) {
-        int newIndex = obj.getRenderIndex();
-        int oldIndex = obj.getRenderIndex();
+    public void updateRenderIndex(
+        RenderableObjectII obj,
+        int oldIndex
+    ) {
 
-        if (oldIndex == newIndex) return;
+        int newIndex =
+            obj.getRenderIndex();
 
-        ObjectBucket oldBucket = renderTree.get(oldIndex);
-        if (oldBucket != null) {
-            oldBucket.remove(obj);
-            if (oldBucket.isEmpty()) {
+        if (oldIndex == newIndex)
+            return;
+
+        ObjectBucket bucket =
+            renderTree.get(oldIndex);
+
+        if (bucket != null) {
+
+            bucket.remove(obj);
+
+            if (bucket.isEmpty())
                 renderTree.remove(oldIndex);
-            }
         }
 
-        ObjectBucket newBucket = renderTree.computeIfAbsent(newIndex, k -> new ObjectBucket());
-        newBucket.add(obj);
+        renderTree
+            .computeIfAbsent(
+                newIndex,
+                k -> new ObjectBucket()
+            )
+            .add(obj);
     }
 
     /// Executa um código para cada objeto renderizável,
@@ -195,15 +208,21 @@ public class RenderableObjectManager {
 
         /// Código a ser executado para todos os objetos dentro de nossa array
         void forEach(Consumer<RenderableObjectII> action) {
+
             for (int i = 0; i < size; i++) {
+
                 RenderableObjectII obj = items[i];
 
-                //Verificamos se podemos renderizar o objeto, por validar se está dentro da tela e se pode renderizar,
-                // de acordo com sua lógica interna
-                if (obj.isInScreen() && obj.canRender()) {
-                    action.accept(obj);
+                if (!obj.canRender())
+                    continue;
+
+                if (obj instanceof OptmizedRenderableObjectII) {
+
+                    if (!((OptmizedRenderableObjectII) obj).isInScreen())
+                        continue;
                 }
 
+                action.accept(obj);
             }
         }
 
@@ -214,98 +233,139 @@ public class RenderableObjectManager {
             Consumer<RenderableObjectII> action,
             CullBounds bounds
         ) {
+
             for (int i = 0; i < size; i++) {
+
                 RenderableObjectII obj = items[i];
 
-                if (obj instanceof MultiRenderableObjectII) {
-                    obj.setInScreen(
-                        isInBounds(
-                            (MultiRenderableObjectII) obj,
-                            bounds
-                        )
+                if (!(obj instanceof OptmizedRenderableObjectII)) {
+
+                    if (obj.canRender())
+                        action.accept(obj);
+
+                    continue;
+                }
+
+                OptmizedRenderableObjectII optimized =
+                    (OptmizedRenderableObjectII) obj;
+
+                boolean inScreen;
+
+                if (optimized instanceof CompositeRenderableObjectII) {
+
+                    inScreen = isInBounds(
+                        (CompositeRenderableObjectII) optimized,
+                        bounds
                     );
+
                 } else {
-                    //Seta o valor do objeto para mostrar que ele está dentro da tela
-                    obj.setInScreen(
-                        isInBounds(
-                            obj,
-                            bounds
-                        )
+
+                    inScreen = isInBounds(
+                        optimized,
+                        bounds
                     );
                 }
 
-                //Se o objeto puder ser renderizado e estiver dentro da tela
-                if (obj.isInScreen() && obj.canRender()) {
+                optimized.setInScreen(inScreen);
+
+                if (inScreen && obj.canRender()) {
                     action.accept(obj);
                 }
-
             }
         }
 
         /// Verifica se o objeto que pode ser renderizado está com todas suas seções dentro da tela
-        private boolean isInBounds(MultiRenderableObjectII object, CullBounds bounds) {
-            if(object.getRenderableObjList() == null) return true;
+        private boolean isInBounds(
+            CompositeRenderableObjectII object,
+            CullBounds bounds
+        ) {
 
-            RenderableObjectII currentObj;
+            List<? extends RenderableObjectII> list =
+                object.getRenderableObjList();
 
-            int renderableCount = object.getRenderableObjList().size();
-            int isInsideScreenCount = 0;
+            if (list == null || list.isEmpty())
+                return true;
 
-            for (int i = 0; i < renderableCount; i++) {
-                currentObj = object.getRenderableObjList().get(i);
+            boolean anyVisible = false;
 
-                currentObj.setInScreen(
+            for (int i = 0; i < list.size(); i++) {
+
+                RenderableObjectII renderable =
+                    list.get(i);
+
+                if (!(renderable instanceof OptmizedRenderableObjectII))
+                    continue;
+
+                OptmizedRenderableObjectII optimized =
+                    (OptmizedRenderableObjectII) renderable;
+
+                boolean visible =
                     isInBounds(
-                        currentObj,
+                        optimized,
                         bounds
-                    )
-                );
+                    );
 
-                if (currentObj.isInScreen()) isInsideScreenCount++;
+                optimized.setInScreen(visible);
+
+                if (visible)
+                    anyVisible = true;
             }
 
-            return isInsideScreenCount >= renderableCount;
+            return anyVisible;
         }
 
         /// Verificamos se o objeto está dentro dos limites da tela
         /// Verificamos se o objeto está dentro dos limites da tela
-        private boolean isInBounds(RenderableObjectII obj, CullBounds bounds) {
+        private boolean isInBounds(
+            OptmizedRenderableObjectII obj,
+            CullBounds bounds
+        ) {
 
-            TransformComponent transformC = obj.getTransformC();
+            TransformComponent t =
+                obj.getTransformC();
 
-            if (transformC == null) return true;
+            if (t == null)
+                return true;
 
-            float x = transformC.x;
-            float y = transformC.y;
-            float width = transformC.width;
-            float height = transformC.height;
+            float halfW = t.width * 0.5f;
+            float halfH = t.height * 0.5f;
 
-            // --- NOVO: calcular AABB rotacionado ---
-            float halfW = width * 0.5f;
-            float halfH = height * 0.5f;
+            float centerX = t.x + halfW;
+            float centerY = t.y + halfH;
 
-            float centerX = x + halfW;
-            float centerY = y + halfH;
+            float rotatedHalfW;
+            float rotatedHalfH;
 
-            float rad = (float) Math.toRadians(transformC.rotation);
-            float cos = Math.abs((float) Math.cos(rad));
-            float sin = Math.abs((float) Math.sin(rad));
+            if (t.rotation == 0f) {
 
-            float rotatedHalfW = halfW * cos + halfH * sin;
-            float rotatedHalfH = halfW * sin + halfH * cos;
+                rotatedHalfW = halfW;
+                rotatedHalfH = halfH;
 
-            float rotatedWidth = rotatedHalfW * 2f;
-            float rotatedHeight = rotatedHalfH * 2f;
+            } else {
 
-            // --- mantém exatamente seu comportamento de padding ---
-            float paddingX = rotatedWidth * 1.5f;
-            float paddingY = rotatedHeight * 1.5f;
+                float rad =
+                    (float) Math.toRadians(t.rotation);
+
+                float cos =
+                    Math.abs((float) Math.cos(rad));
+
+                float sin =
+                    Math.abs((float) Math.sin(rad));
+
+                rotatedHalfW =
+                    halfW * cos +
+                        halfH * sin;
+
+                rotatedHalfH =
+                    halfW * sin +
+                        halfH * cos;
+            }
 
             return !(
-                centerX + rotatedHalfW + paddingX < bounds.minX ||
-                    centerX - rotatedHalfW - paddingX > bounds.maxX ||
-                    centerY + rotatedHalfH + paddingY < bounds.minY ||
-                    centerY - rotatedHalfH - paddingY > bounds.maxY
+                centerX + rotatedHalfW < bounds.minX ||
+                    centerX - rotatedHalfW > bounds.maxX ||
+                    centerY + rotatedHalfH < bounds.minY ||
+                    centerY - rotatedHalfH > bounds.maxY
             );
         }
 

@@ -1,6 +1,7 @@
 package official.sketchBook.game.dataManager_related;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.physics.box2d.Transform;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.system_utils.ControllerGroup;
@@ -132,7 +133,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         );
 
         float
-            subX = 50,
+            subX = 500,
             subY = 60;
 
         List<SubmarinePart> subParts = getBaseSubmarineParts();
@@ -276,32 +277,42 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         VehicleEngineComponent engine = new VehicleEngineComponent(
             node_1,
+            node_1.getBody(),
             1f,
             0f,
             0f,
-            0f,
-            10f,
+            20f,
+            20f,
             -1f,
             1f,
             0f,
             1f,
+            false,
             false
         );
 
         // --- Grupo frente: power 1.0 ---
-        ControllerGroup engineForwardGroup = controller.addGroup("motor_frente");
+        ControllerGroup engineForwardGroup = controller.addGroup("engine_drive");
         // --- Grupo ré: power -1.0 ---
-        ControllerGroup engineReverseGroup = controller.addGroup("motor_re");
+        ControllerGroup engineReverseGroup = controller.addGroup("engine_reverse");
+
+        ControllerGroup turnOff = controller.addGroup("engine_off");
 
         //Adiciona o motor no grupo da frente
         engineForwardGroup.add(engine);
+
         //Adiciona o motor no grupo de ré
         engineReverseGroup.add(engine);
+
+        //Adiciona o motor para desligar
+        turnOff.add(engine);
 
         //Seta a config do grupo da frente
         engineForwardGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(1f, true));
         //Seta a config do grupo de ré
-        engineReverseGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(-1f));
+        engineReverseGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(-1f, true));
+
+        turnOff.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(0f, false));
 
 
         // --- Adiciona ao node ---
@@ -311,6 +322,17 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         node_1.addVehicleComponent(door2, false, true, true);
 
         node_1.addVehicleComponent(controller, false, true, true);
+
+        Transform transform = node_1.getBody().getTransform();
+        node_1.getBody().setTransform(
+            transform.getPosition(),
+            45f
+        );
+
+        node_1.getBody().setFixedRotation(false);
+
+        //TO-do: lidar com o sistema de controle,
+        // para que não possamos ativar quando o jogador estiver fora do sub ou fora do alcance correto
 
     }
 
@@ -325,9 +347,9 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             categoryBit = VEHICLE.bit(),
             maskBit = VEHICLE_PASSENGER.bit();
 
-        SubmarinePart corridor = new SubmarinePart(1, "corridor_test");
+        SubmarinePart corridor = new SubmarinePart(1, "corridor");
 
-        corridor.baseMass = 0.001f;
+        corridor.baseMass = 0.01f;
         corridor.internalMarginDown
             = corridor.internalMarginUp
             = corridor.internalMarginLeft

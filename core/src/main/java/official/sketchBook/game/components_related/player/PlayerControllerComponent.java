@@ -81,27 +81,10 @@ public class PlayerControllerComponent extends KeyBoundControllerComponent {
         if (player == null) return;
 
         updateMovement();
-        testSubMovement();
     }
 
     @Override
     public void initObject() {
-    }
-
-    private void testSubMovement() {
-        VehiclePassengerPhysicsComponent VPPC = player.getVehiclePassengerPhysicsC();
-
-        if (VPPC.isInsideVehicle()) {
-            float vel = 0;
-
-            if (upPressed && !downPressed) {
-                vel = 2f;
-            } else if (!upPressed && downPressed) {
-                vel = -2f;
-            }
-
-            VPPC.getCurrentSection().getPhysicsC().setVelocity(vel, 0);
-        }
     }
 
     private void updateMovement() {

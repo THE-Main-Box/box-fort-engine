@@ -1,10 +1,11 @@
 package official.sketchBook.engine.liquid_related.util;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.OptmizedRenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 
-public class LiquidRegion implements RenderableObjectII {
+public class LiquidRegion implements OptmizedRenderableObjectII {
 
     private boolean
         inScreen = true;

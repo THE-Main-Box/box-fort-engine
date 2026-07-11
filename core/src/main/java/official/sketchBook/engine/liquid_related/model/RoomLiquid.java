@@ -4,8 +4,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.*;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.MultiLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.SelfListenedPhysicalObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.MultiRenderableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.CompositeRenderableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.OptmizedRenderableObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
@@ -23,7 +23,7 @@ import java.util.*;
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.LIQUID;
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.LIQUID_SUBMERGEABLE;
 
-public class RoomLiquid extends BaseRoomGameObject implements Liquid, MultiRenderableObjectII{
+public class RoomLiquid extends BaseRoomGameObject implements Liquid, CompositeRenderableObjectII, OptmizedRenderableObjectII {
 
     public final List<LiquidRegion> regionList;
     public final List<Fixture> fixtureList;

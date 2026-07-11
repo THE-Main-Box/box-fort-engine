@@ -2,12 +2,13 @@ package official.sketchBook.game.components_related.vehicle;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.ControllableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.OptmizedRenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
 
-public class WirableVehicleDoor extends VehicleDoor implements ControllableObjectII, RenderableObjectII {
+public class WirableVehicleDoor extends VehicleDoor implements ControllableObjectII, OptmizedRenderableObjectII {
     public WirableVehicleDoor(
         VehicleSection ownerSection,
         FixtureData fixData,

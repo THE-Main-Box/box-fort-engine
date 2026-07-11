@@ -11,6 +11,7 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.PhysicalObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.OptmizedRenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.interact.InteractableObjectManagerComponent;
@@ -20,6 +21,7 @@ import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidIn
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.components_related.system_utils.RenderableAndDefaultComponentManagerComponent;
 import official.sketchBook.engine.components_related.vehicle.VehicleBaseComponent;
+import official.sketchBook.engine.data_manager_related.BaseGameObjectDataManager;
 import official.sketchBook.game.util_related.constants.DebugConstants;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 
@@ -37,7 +39,7 @@ public class SubmarineNode
     SimpleLiquidInteractableObjectII,
     PhysicalObjectII,
     VehicleSection,
-    RenderableObjectII,
+    OptmizedRenderableObjectII,
     Disposable {
 
     private World physicsWorld;
@@ -212,11 +214,11 @@ public class SubmarineNode
             true,
             true,
             true,
-            true,
-            true,
             false,
             false,
-            true,
+            false,
+            false,
+            false,
             false,
             false,
             true
@@ -233,8 +235,7 @@ public class SubmarineNode
             0
         );
 
-//        vPhysicsC.autoApplyMovement = false;
-        vPhysicsC.autoConstraintR = false;
+        vPhysicsC.autoApplyMovement = false;
 
         physicsC = vPhysicsC;
 
@@ -367,7 +368,10 @@ public class SubmarineNode
             weightedCenterX / totalMass,
             weightedCenterY / totalMass
         );
-        massData.I = body.getInertia();
+        float w = toMeters(transformC.width);
+        float h = toMeters(transformC.height);
+        massData.I = totalMass * (w * w + h * h) / 12f;
+
         body.setMassData(massData);
 
         // Atualizamos o simulador de interação com líquidos
@@ -406,7 +410,7 @@ public class SubmarineNode
         this.managerC.render(batch);
 
         if (!DebugConstants.show_hit_boxes) return;
-        vehicle.worldDataManager.toRender.add(
+        BaseGameObjectDataManager.toRender.add(
             this.transformC
         );
     }

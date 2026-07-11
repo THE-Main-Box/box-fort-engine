@@ -1,9 +1,7 @@
 package official.sketchBook.engine.game_object_related.vehicle_related;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.MultiLiquidInteractableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.MultiRenderableObjectII;
-import official.sketchBook.engine.components_related.objects.TransformComponent;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.CompositeRenderableObjectII;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
@@ -14,15 +12,11 @@ import java.util.List;
 public class Submarine extends BaseRoomGameObject implements
     MultiLiquidInteractableObjectII,
     Vehicle,
-    MultiRenderableObjectII{
+    CompositeRenderableObjectII{
 
     private final List<SubmarineNode> submarineNodeList;
 
     public int renderIndex;
-
-    private boolean
-        graphicsDisposed = false,
-        inScreen;
 
     /// Importante ter em mente que a posição passada deverá ser o centro do sub, passado em pixels
     public Submarine(
@@ -69,20 +63,6 @@ public class Submarine extends BaseRoomGameObject implements
     }
 
     @Override
-    public void updateVisuals(float delta) {
-        for(int i = 0; i < submarineNodeList.size(); i++){
-            submarineNodeList.get(i).updateVisuals(delta);
-        }
-    }
-
-    @Override
-    public void render(SpriteBatch batch) {
-        for(int i = 0; i < submarineNodeList.size(); i++){
-            submarineNodeList.get(i).render(batch);
-        }
-    }
-
-    @Override
     protected void onObjectDestruction() {
 
     }
@@ -100,17 +80,6 @@ public class Submarine extends BaseRoomGameObject implements
     }
 
     @Override
-    public void disposeGraphics() {
-        if(graphicsDisposed) return;
-
-        for(int i = 0; i < submarineNodeList.size(); i++){
-            submarineNodeList.get(i).disposeGraphics();
-        }
-
-        graphicsDisposed = true;
-    }
-
-    @Override
     public List<SubmarineNode> getSections() {
         return submarineNodeList;
     }
@@ -118,28 +87,6 @@ public class Submarine extends BaseRoomGameObject implements
     @Override
     public int getRenderIndex() {
         return renderIndex;
-    }
-
-    @Override
-    public boolean canRender() {
-        return inScreen;
-    }
-
-    @Override
-    public boolean isInScreen() {
-        return inScreen;
-    }
-
-    @Override
-    public void setInScreen(boolean inScreen) {
-        this.inScreen = inScreen;
-    }
-
-    //TODO: ENTREGAR UM TRANSFORMC QUE CONTENHA OS DADOS DO SUBMARINO se possivel
-
-    @Override
-    public TransformComponent getTransformC() {
-        return null;
     }
 
     @Override
