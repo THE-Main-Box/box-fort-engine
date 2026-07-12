@@ -495,8 +495,10 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     private void updateCameraBoundsCache() {
         cachedCamX = gameCamera.getCamera().position.x;
         cachedCamY = gameCamera.getCamera().position.y;
-        cachedCamWidth = gameCamera.getCamera().viewportWidth * gameCamera.getCamera().zoom;
-        cachedCamHeight = gameCamera.getCamera().viewportHeight * gameCamera.getCamera().zoom;
+//        cachedCamWidth = gameCamera.getCamera().viewportWidth * gameCamera.getCamera().zoom;
+        cachedCamWidth = gameCamera.getCamera().viewportWidth;
+//        cachedCamHeight = gameCamera.getCamera().viewportHeight * gameCamera.getCamera().zoom;
+        cachedCamHeight = gameCamera.getCamera().viewportHeight;
     }
 
     public void updateVisuals(float delta) {
@@ -520,17 +522,21 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     }
 
     private int[][] initBaseTileMap() {
-        int[][] toReturn = new int[TILES_VIEW_HEIGHT][TILES_VIEW_WIDTH];
+        int
+            width = TILES_VIEW_WIDTH * 3,
+            height = TILES_VIEW_HEIGHT;
 
-        for (int y = 0; y < TILES_VIEW_HEIGHT; y++) {
-            for (int x = 0; x < TILES_VIEW_WIDTH; x++) {
+        int[][] toReturn = new int[height][width];
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 toReturn[y][x] = 0;
 
                 List<Boolean> canCreate = new ArrayList<>();
-                canCreate.add(y >= TILES_VIEW_HEIGHT - 2);  //chão
+                canCreate.add(y >= height - 2);  //chão
                 canCreate.add(y == 0);                      //teto
                 canCreate.add(x == 0);                      //parede esquerda
-                canCreate.add(x == TILES_VIEW_WIDTH - 1);   //parede direita
+                canCreate.add(x == width - 1);   //parede direita
 
                 for (boolean value : canCreate) {
                     if (value) {
@@ -586,6 +592,13 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         //Realizamos um dispose dos dados da antiga sala
         roomManager.cleanUpRoom(oldRoom);
+
+        if (gameCamera != null) {
+            gameCamera.updateRoomLimits(
+                currentRoom.roomWidthPx,
+                currentRoom.roomHeightPx
+            );
+        }
 
     }
 

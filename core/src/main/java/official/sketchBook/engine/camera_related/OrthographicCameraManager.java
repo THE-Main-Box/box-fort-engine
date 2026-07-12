@@ -10,193 +10,142 @@ public class OrthographicCameraManager {
     private final OrthographicCamera camera;
     private final Viewport viewport;
 
-    /// Offsets máximos nos eixos x e y
-    public int
-        minOffSetX,
-        maxOffSetX,
-        minOffsetY,
-        maxOffSetY;
+    /// Limites absolutos do mundo em pixels — onde a c�mera pode ir
+    private float
+        worldMinX = 0,
+        worldMaxX = 0,
+        worldMinY = 0,
+        worldMaxY = 0;
 
-    /// Bordas para o uso da dead zone, são relativas ao eixo central da camera em pixels
+    /// Dead zone relativa ao centro da c�mera em pixels
     public float
         rightBorder = 0,
         leftBorder = 0,
         topBorder = 0,
         bottomBorder = 0;
 
-    /// dislocamento atual da camera
-    public float
-        xOffset,
-        yOffset;
-
-    /// Suavisadores de movimento, 1 é instantaneo e 0 é demorado
+    /// Suavizadores de movimento, 1 = instant�neo, 0 = demorado
     public float
         xEase = 0.5f,
         yEase = 0.5f;
 
-    /**
-     * Inicializa o gerenciador da câmera com viewport e configurações padrão
-     *
-     * @param viewportWidth  Largura da janela visível em metros (Ex: 12.8f para ~1280px)
-     * @param viewportHeight Altura da janela visível em metros (Ex: 7.2f para ~720px)
-     */
     public OrthographicCameraManager(float viewportWidth, float viewportHeight) {
         this.camera = new OrthographicCamera();
-        this.viewport = new ExtendViewport(
-            viewportWidth,
-            viewportHeight,
-            camera
-        );
-        this.camera.position.set(
-            viewportWidth / 2f,
-            viewportHeight / 2f,
-            0
-        );
+        this.viewport = new ExtendViewport(viewportWidth, viewportHeight, camera);
+        this.camera.position.set(viewportWidth / 2f, viewportHeight / 2f, 0);
         this.camera.update();
     }
 
-    /// Posiciona a câmera diretamente sobre o alvo sem suavização
+    /// Posiciona a c�mera diretamente sobre o alvo sem suaviza��o
     public void trackObjectDirectly(float targetX, float targetY) {
-        camera.position.set(targetX, targetY, 0);
+        camera.position.set(
+            clampCameraX(targetX),
+            clampCameraY(targetY),
+            0
+        );
         camera.update();
     }
 
-    /// Posiciona a câmera seguindo o alvo com dead zone e suavização de movimento
+    /// Posiciona a c�mera seguindo o alvo com dead zone e suaviza��o
     public void trackObjectByOffset(float targetX, float targetY) {
-        //Calcula a largura e altura efetiva do viewport considerando o zoom
-        float effectiveViewportWidth = camera.viewportWidth * camera.zoom;
-        float effectiveViewportHeight = camera.viewportHeight * camera.zoom;
+        float halfW = (camera.viewportWidth * camera.zoom) / 2f;
+        float halfH = (camera.viewportHeight * camera.zoom) / 2f;
 
-        //Atualiza o offset no eixo x de acordo com a dead zone
-        updateXOffset(targetX, rightBorder, leftBorder, effectiveViewportWidth);
-        //Atualiza o offset no eixo y de acordo com a dead zone
-        updateYOffset(targetY, bottomBorder, topBorder, effectiveViewportHeight);
+        float currentX = camera.position.x;
+        float currentY = camera.position.y;
 
-        //Define a posição da câmera baseada no viewport efetivo e seus offsets
-        camera.position.x = effectiveViewportWidth / 2f + xOffset;
-        camera.position.y = effectiveViewportHeight / 2f + yOffset;
+        /// Diferen�a entre o alvo e o centro atual da c�mera
+        float diffX = targetX - currentX;
+        float diffY = targetY - currentY;
+
+        float desiredX = currentX;
+        float desiredY = currentY;
+
+        /// Atualiza X se o alvo saiu da dead zone
+        if (diffX > rightBorder) {
+            desiredX = lerp(currentX, currentX + (diffX - rightBorder), xEase);
+        } else if (diffX < -leftBorder) {
+            desiredX = lerp(currentX, currentX + (diffX + leftBorder), xEase);
+        }
+
+        /// Atualiza Y se o alvo saiu da dead zone
+        if (diffY > topBorder) {
+            desiredY = lerp(currentY, currentY + (diffY - topBorder), yEase);
+        } else if (diffY < -bottomBorder) {
+            desiredY = lerp(currentY, currentY + (diffY + bottomBorder), yEase);
+        }
+
+        /// Aplica com clamp nos limites do mundo
+        camera.position.x = clampCameraX(desiredX);
+        camera.position.y = clampCameraY(desiredY);
 
         camera.update();
     }
 
-    /// Define os limites de deslocamento da câmera nos eixos x e y
-    public void setCameraOffsetLimit(
-        int minOffSetX,
-        int maxXOffSet,
-        int minOffsetY,
-        int maxYOffSet
-    ){
-        this.minOffSetX = minOffSetX;
-        this.minOffsetY = minOffsetY;
-        this.maxOffSetX = maxXOffSet;
-        this.maxOffSetY = maxYOffSet;
+    /// Limita a posi��o X da c�mera para n�o sair dos limites do mundo
+    private float clampCameraX(float x) {
+        float halfW = (camera.viewportWidth * camera.zoom) / 2f;
+        return clamp(x, worldMinX + halfW, worldMaxX - halfW);
     }
 
-    /// Define a dead zone da câmera para cada borda
+    /// Limita a posi��o Y da c�mera para n�o sair dos limites do mundo
+    private float clampCameraY(float y) {
+        float halfH = (camera.viewportHeight * camera.zoom) / 2f;
+        return clamp(y, worldMinY + halfH, worldMaxY - halfH);
+    }
+
+    /// Define os limites absolutos do mundo — recalcula automaticamente com o zoom atual
+    public void updateRoomLimits(float minPosX, float minPosY,float roomWidthPx, float roomHeightPx) {
+        worldMinX = minPosX;
+        worldMinY = minPosY;
+        worldMaxX = roomWidthPx;
+        worldMaxY = roomHeightPx;
+    }
+
+    public void updateRoomLimits(float roomWidthPx, float roomHeightPx) {
+        updateRoomLimits(
+            0,
+            0,
+            roomWidthPx,
+            roomHeightPx
+        );
+    }
+
+    /// Define a dead zone da c�mera para cada borda em pixels
     public void defineDeadZone(
         float marginLeft,
         float marginRight,
         float marginTop,
         float marginBottom
-    ){
+    ) {
         this.leftBorder = marginLeft;
-        this.rightBorder= marginRight;
+        this.rightBorder = marginRight;
         this.topBorder = marginTop;
         this.bottomBorder = marginBottom;
     }
 
-    /// Atualiza o offset no eixo x baseado na posição do alvo e dead zone
-    private void updateXOffset(
-        float targetX,
-        float rightBorder,
-        float leftBorder,
-        float effectiveViewportWidth
-    ) {
-        //Calcula o centro da câmera considerando o offset atual
-        float centerX = effectiveViewportWidth / 2f + xOffset;
-        //Encontra a diferença entre a posição do alvo e o centro da câmera
-        float diffX = targetX - centerX;
-
-        //Se o alvo ultrapassar a borda direita da dead zone
-        if (diffX > rightBorder) {
-            //Move o offset em direção ao alvo com suavização
-            xOffset = roundLerp(xOffset, xOffset + (diffX - rightBorder), xEase);
-        }
-        //Se o alvo ultrapassar a borda esquerda da dead zone
-        else if (diffX < leftBorder) {
-            //Move o offset em direção ao alvo com suavização
-            xOffset = roundLerp(xOffset, xOffset + (diffX - leftBorder), xEase);
-        }
-
-        //Limita o offset aos seus valores mínimo e máximo permitidos
-        xOffset = clamp(
-            xOffset,
-            minOffSetX,
-            maxOffSetX
-        );
-    }
-
-    /// Atualiza o offset no eixo y baseado na posição do alvo e dead zone
-    private void updateYOffset(
-        float targetY,
-        float bottomBorder,
-        float topBorder,
-        float effectiveViewportHeight
-    ) {
-        //Calcula o centro da câmera considerando o offset atual
-        float centerY = effectiveViewportHeight / 2f + yOffset;
-        //Encontra a diferença entre a posição do alvo e o centro da câmera
-        float diffY = targetY - centerY;
-
-        //Se o alvo ultrapassar a borda inferior da dead zone
-        if (diffY < bottomBorder) {
-            //Move o offset em direção ao alvo com suavização
-            yOffset = roundLerp(yOffset, yOffset + (diffY - bottomBorder), yEase);
-        }
-        //Se o alvo ultrapassar a borda superior da dead zone
-        else if (diffY > topBorder) {
-            //Move o offset em direção ao alvo com suavização
-            yOffset = roundLerp(yOffset, yOffset + (diffY - topBorder), yEase);
-        }
-
-        //Limita o offset aos seus valores mínimo e máximo permitidos
-        yOffset = clamp(
-            yOffset,
-            minOffsetY,
-            maxOffSetY
-        );
-    }
-
-    /// Interpola linearmente entre dois valores e arredonda o resultado
-    private float roundLerp(float from, float to, float smoothFactor) {
-        //Realiza a interpolação linear entre os valores
-        float lerped = lerp(from, to, smoothFactor);
-        //Arredonda o resultado para evitar tremulação de pixel
+    private float lerp(float from, float to, float t) {
+        float lerped = com.badlogic.gdx.math.MathUtils.lerp(from, to, t);
         return Math.round(lerped * 10) / 10f;
     }
 
-    /// Limita um valor entre um mínimo e um máximo
     private float clamp(float value, float min, float max) {
         return Math.max(min, Math.min(value, max));
     }
 
-    /// Atualiza o viewport quando a janela é redimensionada
     public void updateViewport(int width, int height) {
         viewport.update(width, height, true);
     }
 
-    /// Define o nível de zoom da câmera
     public void setZoom(float zoom) {
         camera.zoom = zoom;
         camera.update();
     }
 
-    /// Retorna a câmera ortográfica gerenciada
     public OrthographicCamera getCamera() {
         return camera;
     }
 
-    /// Retorna o viewport utilizado
     public Viewport getViewport() {
         return viewport;
     }

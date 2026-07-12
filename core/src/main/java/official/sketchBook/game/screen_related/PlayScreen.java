@@ -74,15 +74,15 @@ public class PlayScreen extends BaseScreen {
         //AGORA passa a câmera ao manager (que já tem seus limites configurados)
         worldManager.setGameCamera(gameCameraManager);
 
-        gameCameraManager.setCameraOffsetLimit(
-            -30,
-            worldManager.getCurrentRoom().roomWidthPx / 2,
-            -30,
-            worldManager.getCurrentRoom().roomHeightPx / 2
+        gameCameraManager.updateRoomLimits(
+            worldManager.getCurrentRoom().roomWidthPx,
+            worldManager.getCurrentRoom().roomHeightPx
         );
 
-        updateZoom(0.5f);
-        this.gameCameraManager.setZoom(zoom);
+        gameCameraManager.updateRoomLimits(
+            worldManager.getCurrentRoom().roomWidthPx,
+            worldManager.getCurrentRoom().roomHeightPx
+        );
 
         //Cria os sistemas de render e update
         this.renderSystem = new SingleThreadRenderSystem(
