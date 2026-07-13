@@ -8,6 +8,8 @@ import official.sketchBook.engine.components_related.objects.TransformComponent;
 import java.util.*;
 import java.util.function.Consumer;
 
+import static official.sketchBook.game.util_related.constants.RenderingConstants.ZOOM;
+
 /**
  * Gerenciador de renderização otimizado usando TreeMap (Red-Black Tree).
  * Mantém objetos automaticamente ordenados por renderIndex sem necessidade de sort.

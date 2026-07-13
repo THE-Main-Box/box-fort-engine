@@ -17,7 +17,7 @@ public class RenderingConstants {
     /// Tamanho da altura da janela em metros
     public static final float VIRTUAL_HEIGHT_PX = TILE_SIZE_PX * TILES_VIEW_HEIGHT;
 
-    public static float zoom;
+    public static float ZOOM;
 
     static {
         FPS_TARGET = 60;
@@ -28,6 +28,6 @@ public class RenderingConstants {
     ///Como o zoom é o único valor que será alterado de fato, junto da escala, podemos fazer isso daqui
     public static void updateZoom(float newZoom){
         if(newZoom < 0) return;
-        zoom = newZoom;
+        ZOOM = newZoom;
     }
 }

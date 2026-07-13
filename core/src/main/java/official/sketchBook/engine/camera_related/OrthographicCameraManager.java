@@ -124,19 +124,23 @@ public class OrthographicCameraManager {
         this.bottomBorder = marginBottom;
     }
 
+    ///Realiza uma suavização da movimentação de posição
     private float lerp(float from, float to, float t) {
         float lerped = com.badlogic.gdx.math.MathUtils.lerp(from, to, t);
         return Math.round(lerped * 10) / 10f;
     }
 
+    ///Mantém a limitação dos limites minimos e máximos
     private float clamp(float value, float min, float max) {
         return Math.max(min, Math.min(value, max));
     }
 
+    ///Atualiza os dados da viewport
     public void updateViewport(int width, int height) {
         viewport.update(width, height, true);
     }
 
+    ///Atualiza o zoom e chama os métodos para atualizar as variaveis corretas
     public void setZoom(float zoom) {
         camera.zoom = zoom;
         camera.update();

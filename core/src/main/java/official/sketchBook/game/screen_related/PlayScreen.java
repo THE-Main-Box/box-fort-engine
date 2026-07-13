@@ -9,9 +9,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.AppMain;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
-import official.sketchBook.engine.components_related.movement.MovementComponent;
-import official.sketchBook.engine.components_related.objects.MovementDataComponent;
-import official.sketchBook.engine.components_related.projectile.ProjectileControllerComponent;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadRenderSystem;
 import official.sketchBook.engine.components_related.system_utils.SingleThreadUpdateSystem;
 import official.sketchBook.engine.game_object_related.projectile_related.util.Emitter;
@@ -79,10 +76,8 @@ public class PlayScreen extends BaseScreen {
             worldManager.getCurrentRoom().roomHeightPx
         );
 
-        gameCameraManager.updateRoomLimits(
-            worldManager.getCurrentRoom().roomWidthPx,
-            worldManager.getCurrentRoom().roomHeightPx
-        );
+        updateZoom(1.4f);
+        gameCameraManager.setZoom(ZOOM);
 
         //Cria os sistemas de render e update
         this.renderSystem = new SingleThreadRenderSystem(
@@ -127,14 +122,14 @@ public class PlayScreen extends BaseScreen {
             if (Gdx.input.isKeyPressed(
                 Input.Keys.U
             )) {
-                updateZoom(zoom - 0.1f);
-                this.gameCameraManager.setZoom(zoom);
+                updateZoom(ZOOM - 0.1f);
+                this.gameCameraManager.setZoom(ZOOM);
             }
             if (Gdx.input.isKeyPressed(
                 Input.Keys.J
             )) {
-                updateZoom(zoom + 0.1f);
-                this.gameCameraManager.setZoom(zoom);
+                updateZoom(ZOOM + 0.1f);
+                this.gameCameraManager.setZoom(ZOOM);
             }
         }
 

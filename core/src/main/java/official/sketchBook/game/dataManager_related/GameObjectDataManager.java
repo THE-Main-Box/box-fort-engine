@@ -466,16 +466,18 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         globalProjectilePool.postUpdateProjectiles();
     }
 
+
     @Override
     protected void updateRenderableObjectVisuals(float delta) {
 
         renderTree.forEachObject(
             obj -> obj.updateVisuals(delta),
-            (gameCamera.getCamera().position.x),
-            (gameCamera.getCamera().position.y),
-            (gameCamera.getCamera().viewportWidth * gameCamera.getCamera().zoom),
-            (gameCamera.getCamera().viewportHeight * gameCamera.getCamera().zoom)
+            cachedCamX,
+            cachedCamY,
+            cachedCamWidth,
+            cachedCamHeight
         );
+
     }
 
 //    @Override
@@ -495,20 +497,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     private void updateCameraBoundsCache() {
         cachedCamX = gameCamera.getCamera().position.x;
         cachedCamY = gameCamera.getCamera().position.y;
-//        cachedCamWidth = gameCamera.getCamera().viewportWidth * gameCamera.getCamera().zoom;
-        cachedCamWidth = gameCamera.getCamera().viewportWidth;
-//        cachedCamHeight = gameCamera.getCamera().viewportHeight * gameCamera.getCamera().zoom;
-        cachedCamHeight = gameCamera.getCamera().viewportHeight;
-    }
-
-    public void updateVisuals(float delta) {
-        renderTree.forEachObject(
-            obj -> obj.updateVisuals(delta),
-            cachedCamX,
-            cachedCamY,
-            cachedCamWidth,
-            cachedCamHeight
-        );
+        cachedCamWidth = gameCamera.getCamera().viewportWidth * gameCamera.getCamera().zoom;
+        cachedCamHeight = gameCamera.getCamera().viewportHeight * gameCamera.getCamera().zoom;
     }
 
     public void render(SpriteBatch batch) {
