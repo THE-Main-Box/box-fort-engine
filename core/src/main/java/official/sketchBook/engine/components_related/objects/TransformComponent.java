@@ -25,6 +25,11 @@ public class TransformComponent {
     /// Rotação atual do sprite em graus
     public float rotation;
 
+    private float rotatedHalfWidth;
+    private float rotatedHalfHeight;
+
+    private boolean rotationDirty = true;
+
     public TransformComponent() {
         this(
             0,
@@ -82,6 +87,33 @@ public class TransformComponent {
         this.height *= scaleY;
     }
 
+    public void updateRotationCache() {
+
+        if (!rotationDirty)
+            return;
+
+        float halfW = width * 0.5f;
+        float halfH = height * 0.5f;
+
+        if (rotation == 0f) {
+
+            rotatedHalfWidth = halfW;
+            rotatedHalfHeight = halfH;
+
+        } else {
+
+            float rad = (float)Math.toRadians(rotation);
+
+            float cos = Math.abs((float)Math.cos(rad));
+            float sin = Math.abs((float)Math.sin(rad));
+
+            rotatedHalfWidth = halfW * cos + halfH * sin;
+            rotatedHalfHeight = halfW * sin + halfH * cos;
+        }
+
+        rotationDirty = false;
+    }
+
     public float getScaleY() {
         return scaleY;
     }
@@ -104,6 +136,16 @@ public class TransformComponent {
 
     public float getCenterY() {
         return y + getHalfHeight();
+    }
+
+    public float getRotatedHalfWidth() {
+        updateRotationCache();
+        return rotatedHalfWidth;
+    }
+
+    public float getRotatedHalfHeight() {
+        updateRotationCache();
+        return rotatedHalfHeight;
     }
 
     public static TransformComponent initNewTransformComponent(

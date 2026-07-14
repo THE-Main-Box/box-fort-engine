@@ -339,7 +339,6 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     @Override
     public void onObjectAndBodyPosSync() {
-
     }
 
     @Override

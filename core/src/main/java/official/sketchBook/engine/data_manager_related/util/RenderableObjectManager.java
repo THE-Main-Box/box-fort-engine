@@ -342,51 +342,22 @@ public class RenderableObjectManager {
             CullBounds bounds
         ) {
 
-            TransformComponent t =
-                obj.getTransformC();
+            TransformComponent t = obj.getTransformC();
 
             if (t == null)
                 return true;
 
-            float halfW = t.width * 0.5f;
-            float halfH = t.height * 0.5f;
+            float centerX = t.getCenterX();
+            float centerY = t.getCenterY();
 
-            float centerX = t.x + halfW;
-            float centerY = t.y + halfH;
-
-            float rotatedHalfW;
-            float rotatedHalfH;
-
-            if (t.rotation == 0f) {
-
-                rotatedHalfW = halfW;
-                rotatedHalfH = halfH;
-
-            } else {
-
-                float rad =
-                    (float) Math.toRadians(t.rotation);
-
-                float cos =
-                    Math.abs((float) Math.cos(rad));
-
-                float sin =
-                    Math.abs((float) Math.sin(rad));
-
-                rotatedHalfW =
-                    halfW * cos +
-                        halfH * sin;
-
-                rotatedHalfH =
-                    halfW * sin +
-                        halfH * cos;
-            }
+            float halfW = t.getRotatedHalfWidth();
+            float halfH = t.getRotatedHalfHeight();
 
             return !(
-                centerX + rotatedHalfW < bounds.minX ||
-                    centerX - rotatedHalfW > bounds.maxX ||
-                    centerY + rotatedHalfH < bounds.minY ||
-                    centerY - rotatedHalfH > bounds.maxY
+                centerX + halfW < bounds.minX ||
+                    centerX - halfW > bounds.maxX ||
+                    centerY + halfH < bounds.minY ||
+                    centerY - halfH > bounds.maxY
             );
         }
 
