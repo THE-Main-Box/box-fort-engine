@@ -480,17 +480,6 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
     }
 
-//    @Override
-//    protected void drawRenderableObjects(SpriteBatch batch) {
-//        renderTree.forEachObject(
-//            obj -> obj.render(batch),
-//            (gameCamera.getCamera().position.x),
-//            (gameCamera.getCamera().position.y),
-//            (gameCamera.getCamera().viewportWidth * gameCamera.getCamera().zoom),
-//            (gameCamera.getCamera().viewportHeight * gameCamera.getCamera().zoom)
-//        );
-//    }
-
     /**
      * Atualiza cache de bounds da câmera.
      */
@@ -499,16 +488,6 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         cachedCamY = gameCamera.getCamera().position.y;
         cachedCamWidth = gameCamera.getCamera().viewportWidth * gameCamera.getCamera().zoom;
         cachedCamHeight = gameCamera.getCamera().viewportHeight * gameCamera.getCamera().zoom;
-    }
-
-    public void render(SpriteBatch batch) {
-        renderTree.forEachObject(
-            obj -> obj.render(batch),
-            cachedCamX,
-            cachedCamY,
-            cachedCamWidth,
-            cachedCamHeight
-        );
     }
 
     private int[][] initBaseTileMap() {

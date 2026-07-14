@@ -9,6 +9,8 @@ import java.util.*;
 import java.util.function.Consumer;
 
 import static official.sketchBook.game.util_related.constants.RenderingConstants.ZOOM;
+import static official.sketchBook.game.util_related.constants.WorldConstants.DEFAULT_BUCKET_SIZE;
+import static official.sketchBook.game.util_related.constants.WorldConstants.INITIAL_CAPACITY;
 
 /**
  * Gerenciador de renderização otimizado usando TreeMap (Red-Black Tree).
@@ -20,78 +22,103 @@ import static official.sketchBook.game.util_related.constants.RenderingConstants
  */
 public class RenderableObjectManager {
 
-    /// Valor padrão para os buckets
-    private static final int DEFAULT_BUCKET_SIZE = 32;
+    private ObjectBucket[] buckets;
+    private int[] bucketKeys;
+    private int bucketCount = 0;
 
-    /// Árvore que mantém objetos ordenados por renderIndex
-    /// Chave = renderIndex, Valor = classe que encapsula o array e o tamanho atual
-    private final TreeMap<Integer, ObjectBucket> renderTree;
     private final CullBounds cachedBounds;
 
     private boolean disposed = false;
 
     public RenderableObjectManager() {
-        this.renderTree = new TreeMap<>();
         this.cachedBounds = new CullBounds();
+
+        this.buckets = new ObjectBucket[INITIAL_CAPACITY];
+        this.bucketKeys = new int[INITIAL_CAPACITY];
     }
 
-    /// Adicionamos um objeto da tree
+    private ObjectBucket getOrCreateBucket(int renderIndex) {
+        /// Busca bin�ria pelo renderIndex
+        int lo = 0, hi = bucketCount - 1;
+        while (lo <= hi) {
+            int mid = (lo + hi) >>> 1;
+            if (bucketKeys[mid] == renderIndex) return buckets[mid];
+            if (bucketKeys[mid] < renderIndex) lo = mid + 1;
+            else hi = mid - 1;
+        }
+
+        /// N�o encontrado ? insere na posi��o correta
+        if (bucketCount == buckets.length) {
+            buckets = java.util.Arrays.copyOf(buckets, bucketCount * 2);
+            bucketKeys = java.util.Arrays.copyOf(bucketKeys, bucketCount * 2);
+        }
+
+        /// Abre espa�o e insere ordenado
+        System.arraycopy(buckets, lo, buckets, lo + 1, bucketCount - lo);
+        System.arraycopy(bucketKeys, lo, bucketKeys, lo + 1, bucketCount - lo);
+
+        buckets[lo] = new ObjectBucket();
+        bucketKeys[lo] = renderIndex;
+        bucketCount++;
+
+        return buckets[lo];
+    }
+
+    /// Adicionamos um objeto à pipeline
     public void add(RenderableObjectII obj) {
-        int renderIndex = obj.getRenderIndex();
-        ObjectBucket bucket = renderTree.computeIfAbsent(renderIndex, k -> new ObjectBucket());
-        bucket.add(obj);
+        //Buscamos um bucket ou criamos um
+        getOrCreateBucket(      //Passamos o index de renderização
+            obj.getRenderIndex()
+        ).add(                  //Passamos depois de achar
+            obj
+        );
+
     }
 
     /// Removemos um objeto da tree
     public void remove(RenderableObjectII obj) {
-        int renderIndex = obj.getRenderIndex();
-        ObjectBucket bucket = renderTree.get(renderIndex);
-        if (bucket != null) {
-            bucket.remove(obj);
-            if (bucket.isEmpty()) {
-                renderTree.remove(renderIndex);
-            }
+        int idx = findBucketIndex(obj.getRenderIndex());
+        if (idx < 0) return;
+        buckets[idx].remove(obj);
+        if (buckets[idx].isEmpty()) removeBucketAt(idx);
+    }
+
+    private int findBucketIndex(int renderIndex) {
+        int lo = 0, hi = bucketCount - 1;
+        while (lo <= hi) {
+            int mid = (lo + hi) >>> 1;
+            if (bucketKeys[mid] == renderIndex) return mid;
+            if (bucketKeys[mid] < renderIndex) lo = mid + 1;
+            else hi = mid - 1;
         }
+        return -1;
+    }
+
+    private void removeBucketAt(int idx) {
+        System.arraycopy(buckets, idx + 1, buckets, idx, bucketCount - idx - 1);
+        System.arraycopy(bucketKeys, idx + 1, bucketKeys, idx, bucketCount - idx - 1);
+        buckets[--bucketCount] = null;
     }
 
     /// Executa a atualização da mudança de index de renderização de um objeto,
     ///  não basta só mudar no objeto precisamos também aplicar aqui dentro,
     ///  fazemos isso para justamente controlar a quantidade de vezes que mudamos a tree
-    public void updateRenderIndex(
-        RenderableObjectII obj,
-        int oldIndex
-    ) {
-
-        int newIndex =
-            obj.getRenderIndex();
-
-        if (oldIndex == newIndex)
-            return;
-
-        ObjectBucket bucket =
-            renderTree.get(oldIndex);
-
-        if (bucket != null) {
-
-            bucket.remove(obj);
-
-            if (bucket.isEmpty())
-                renderTree.remove(oldIndex);
+    public void updateRenderIndex(RenderableObjectII obj, int oldIndex) {
+        int newIndex = obj.getRenderIndex();
+        if (oldIndex == newIndex) return;
+        int idx = findBucketIndex(oldIndex);
+        if (idx >= 0) {
+            buckets[idx].remove(obj);
+            if (buckets[idx].isEmpty()) removeBucketAt(idx);
         }
-
-        renderTree
-            .computeIfAbsent(
-                newIndex,
-                k -> new ObjectBucket()
-            )
-            .add(obj);
+        getOrCreateBucket(newIndex).add(obj);
     }
 
     /// Executa um código para cada objeto renderizável,
     ///  deve ser usado para chamar o render e atualização de visuais
     public void forEachObject(Consumer<RenderableObjectII> action) {
-        for (ObjectBucket bucket : renderTree.values()) {
-            bucket.forEach(action);
+        for (int i = 0; i < bucketCount; i++) {
+            buckets[i].forEach(action);
         }
     }
 
@@ -100,15 +127,16 @@ public class RenderableObjectManager {
     ///  deve ser usado para chamar o render e atualização de visuais
     public void forEachObject(
         Consumer<RenderableObjectII> action,
-        float camX,
-        float camY,
-        float viewWidth,
-        float viewHeight
+        float camX, float camY,
+        float viewWidth, float viewHeight
     ) {
-        updateCullBounds(camX, camY, viewWidth, viewHeight);
+        cachedBounds.minX = camX - viewWidth * 0.5f;
+        cachedBounds.maxX = camX + viewWidth * 0.5f;
+        cachedBounds.minY = camY - viewHeight * 0.5f;
+        cachedBounds.maxY = camY + viewHeight * 0.5f;
 
-        for (ObjectBucket bucket : renderTree.values()) {
-            bucket.forEachCulled(action, cachedBounds);
+        for (int i = 0; i < bucketCount; i++) {
+            buckets[i].forEachCulled(action, cachedBounds);
         }
     }
 
@@ -120,22 +148,13 @@ public class RenderableObjectManager {
         cachedBounds.maxY = camY + viewHeight / 2f;
     }
 
-    public int size() {
-        int count = 0;
-        for (ObjectBucket bucket : renderTree.values()) {
-            count += bucket.size();
-        }
-        return count;
-    }
-
     /// Limpa as referencias armazenadas dentro do sistema
     public void clear() {
-        //Limpa todos os buckets dentro de renderTree
-        for (ObjectBucket bucket : renderTree.values()) {
-            bucket.clear();
+        for (int i = 0; i < bucketCount; i++) {
+            buckets[i].clear();
+            buckets[i] = null;
         }
-        //Limpa a tree
-        renderTree.clear();
+        bucketCount = 0;
     }
 
     /// Buffer de bounds de tela

@@ -7,6 +7,11 @@ public class WorldConstants {
     /// Tamanho das tiles em pixels
     public static final int TILE_SIZE_PX = 8;
 
+    /// Valor padrão para os buckets
+    public static final int
+        INITIAL_CAPACITY = 8,
+        DEFAULT_BUCKET_SIZE = 32;
+
     public static class ProjectilePoolConstants {
         //        public static final int MAX_PROJECTILE_PER_POOL = 900;
         public static final int MAX_PROJECTILE_PER_POOL = 999999999;

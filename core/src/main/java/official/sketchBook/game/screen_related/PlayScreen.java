@@ -76,7 +76,7 @@ public class PlayScreen extends BaseScreen {
             worldManager.getCurrentRoom().roomHeightPx
         );
 
-        updateZoom(1.4f);
+        updateZoom(0.8f);
         gameCameraManager.setZoom(ZOOM);
 
         //Cria os sistemas de render e update
