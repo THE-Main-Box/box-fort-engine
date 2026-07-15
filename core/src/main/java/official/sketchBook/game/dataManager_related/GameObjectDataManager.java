@@ -111,15 +111,15 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
                 200,
                 10,
                 150,
-                50
+                150
             )
         );
 
         data = new LiquidData(
             "water",
             1,
-            2.3f,
-            20f,
+            9f,
+            1.5f,
             999f,
             999f,
             9999f

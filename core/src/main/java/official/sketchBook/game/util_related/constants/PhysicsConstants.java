@@ -17,9 +17,7 @@ public class PhysicsConstants {
     public static float BOYANCY_THRESHOLD = 1.0f;
 
     public static float
-        ANIMATION_UPDATE_RATE,
-        LIQUID_INTERACTION_SIM_UPDATE_RATE;
-
+        ANIMATION_UPDATE_RATE;
     /// Acumulador máximo para evitar travamento acidental
     public static final float MAX_ACCUMULATOR = 0.25f;// Evita travar o PC se o frame demorar muito
 
@@ -28,13 +26,11 @@ public class PhysicsConstants {
         POSITION_ITERATIONS = 2;
         updateUps(30);
 
-        System.out.println(LIQUID_INTERACTION_SIM_UPDATE_RATE + " | " + ANIMATION_UPDATE_RATE);
     }
 
     public static void updateUps(float ups) {
         if (ups <= 0) return;
         UPS_TARGET = ups;
-        LIQUID_INTERACTION_SIM_UPDATE_RATE = ups;
         ANIMATION_UPDATE_RATE = ups / 2;
 
         FIXED_TIMESTAMP = 1 / UPS_TARGET;

@@ -8,9 +8,7 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.MovementDataComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
-import official.sketchBook.engine.components_related.system_utils.UpdateRateLimiter;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
-import official.sketchBook.game.util_related.constants.PhysicsConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,9 +34,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     /// Contador de fixtures em contato por l�quido — sem autoboxing
     private IntIntMap liquidContactCount = new IntIntMap();
 
-    /// Limitador de taxa de atualiza��o — evita recalcular l�quido a cada frame
-    private final UpdateRateLimiter liquidUpdateLimiter;
-
     // --- Flags de estado ---
 
     private boolean
@@ -55,9 +50,13 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     private float
         mass,                           // Massa do objeto
-        volume,                         // Volume do objeto
+        volume;                         // Volume do objeto
+
+    private float
         floatEffectValue,               // For�a de flutuabilidade calculada
-        floatEffectValueModifier,       // Modificador externo de flutuabilidade
+        floatEffectValueModifier;       // Modificador externo de flutuabilidade
+
+    private float
         resistanceMultiplier = 1.0f,    // Multiplicador de resist�ncia ao movimento
         cachedSubmersionFraction = 1f,  // Fra��o de submers�o cacheada — evita rec�lculo todo frame
         lastCenterY = Float.MAX_VALUE;  // Dirty data de posição y
@@ -79,10 +78,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         this.intermediary = new MovementDataComponent();
         // Armazena os valores originais de movimenta��o na primeira oportunidade
         this.updateCurrentStoredMovementValues();
-        this.liquidUpdateLimiter = new UpdateRateLimiter(
-            PhysicsConstants.LIQUID_INTERACTION_SIM_UPDATE_RATE,
-            true
-        );
     }
 
     // --- Pipeline ---
@@ -97,41 +92,96 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     @Override
     public void update(float delta) {
-        if (!liquidUpdateLimiter.shouldUpdate(delta)) return;
-        updateSimulation();
+        updateSimulation(delta);
     }
 
     @Override
-    public void postUpdate() {}
+    public void postUpdate() {
+    }
 
     @Override
-    public void initObject() {}
+    public void initObject() {
+    }
 
-    private void updateSimulation() {
+    private void calculateFloatEffect(
+        LiquidData data,
+        float deltaTime
+    ) {
+
+        float objectDensity =
+            (volume > 0)
+                ? mass / volume
+                : Float.MAX_VALUE;
+
+
+        float targetFloatEffect =
+            (data.density - objectDensity)
+                * volume;
+
+        floatEffectValue += targetFloatEffect * deltaTime;
+
+
+        floatEffectValue = MathUtils.clamp(
+
+            floatEffectValue,
+
+            -Math.abs(targetFloatEffect),
+
+            Math.abs(targetFloatEffect)
+
+        );
+
+    }
+
+    private void updateSimulation(float delta) {
+        //Pode simular não é só a capacidade de interagir com liquido, mas também se temos contato com liquidos
         final boolean shouldSimulate = canInteract && !liquidBuffer.isEmpty();
         applyChange(shouldSimulate);
-        applyPhysics(shouldSimulate);
+        applyPhysics(shouldSimulate, delta);
         updateStoredMovement();
     }
 
     /// Executa a simula��o f�sica do l�quido quando aplic�vel
-    private void applyPhysics(boolean shouldSimulate) {
-        if (!shouldSimulate) return;
+    private void applyPhysics(
+        boolean shouldSimulate,
+        float deltaTime
+    ) {
 
-        // Recalcula efeitos apenas quando o estado do l�quido mudou
-        if (needsRecalculation) {
-            recalculateLiquidEffects();
-            needsRecalculation = false;
-            constraintsDirty = true;    // Constraints precisam ser reaplicadas ap�s rec�lculo
+        if (!shouldSimulate)
+            return;
+
+        updateSubmersionFraction();
+
+
+        if (cachedSubmersionFraction <= 0f) {
+
+            resetFlotation();
+
+            return;
+
         }
 
-        // Aplica constraints de resist�ncia e limites de velocidade
+
+        if (needsRecalculation) {
+
+            recalculateLiquidEffects(deltaTime);
+
+            needsRecalculation = false;
+            constraintsDirty = true;
+
+        }
+
+
+        calculateFloatEffect(
+            liquidBuffer.get(0),
+            deltaTime
+        );
+
+
         applyConstraints();
 
-        // Aplica for�a de flutuabilidade
         applyBoyancy();
 
-        object.inLiquidUpdate();
     }
 
     /// Aplica resist�ncia, limites de velocidade e gravidade do intermediary no moveC.
@@ -165,26 +215,22 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             return;
         }
 
-        // Atualiza a fra��o de submers�o cacheada
-        updateSubmersionFraction();
-
         if (cachedSubmersionFraction <= 0f) return;
 
-        // Aumenta desacelera��o no eixo Y conforme o objeto se aproxima da superf�cie
+        /// Resist�ncia extra pr�ximo da superf�cie
         float surfaceResistance = (1f - cachedSubmersionFraction) * intermediary.yAxis.deceleration;
         moveC.dataComponent.yAxis.deceleration = intermediary.yAxis.deceleration + surfaceResistance;
 
-        float currentBoyancy = MathUtils.clamp(
-            (floatEffectValue + floatEffectValueModifier) * cachedSubmersionFraction,
+        /// Flutuabilidade proporcional � submers�o atual
+        float targetFloatation = MathUtils.clamp(
+            floatEffectValue * cachedSubmersionFraction,
             -moveC.dataComponent.yAxis.maxMoveVel,
             moveC.dataComponent.yAxis.maxMoveVel
         );
 
-        if (Math.abs(currentBoyancy) < BOYANCY_THRESHOLD) return;
+        if (Math.abs(targetFloatation) < BOYANCY_THRESHOLD) return;
 
-        moveC.dataComponent.yAxis.setMovement(
-            moveC.dataComponent.yAxis.velocity + currentBoyancy
-        );
+        moveC.dataComponent.yAxis.setMovement(targetFloatation);
     }
 
     /// Atualiza o cache da fra��o submersa.
@@ -208,8 +254,14 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         float objectBottomY = centerY - t.getHalfHeight();
         float objectTopY = centerY + t.getHalfHeight();
 
-        if (objectTopY <= surfaceY) { cachedSubmersionFraction = 1f; return; }
-        if (objectBottomY >= surfaceY) { cachedSubmersionFraction = 0f; return; }
+        if (objectTopY <= surfaceY) {
+            cachedSubmersionFraction = 1f;
+            return;
+        }
+        if (objectBottomY >= surfaceY) {
+            cachedSubmersionFraction = 0f;
+            return;
+        }
 
         cachedSubmersionFraction = MathUtils.clamp(
             (surfaceY - objectBottomY) / t.height, 0f, 1f
@@ -219,14 +271,26 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     /// Gerencia transi��es de entrada e sa�da do l�quido.
     /// Ao entrar: notifica o objeto. Ao sair: restaura movimenta��o e reseta flutuabilidade.
     private void applyChange(boolean shouldSimulate) {
+        //Se podemos simular e não estávamos em liquido
         if (shouldSimulate && !inLiquid) {
+            //Atualiza a flag de liquido
             inLiquid = true;
+            //Chama para lidar com a entrada no liquido
             object.onLiquidEnter();
+
+            //Caso não possamos interagir e estejamos em liquido
         } else if (!shouldSimulate && inLiquid) {
+            //Marcamos a flag para false
             inLiquid = false;
+
+            //Restauramos a movimentação antes de entrar nos liquidos
             restartStoredMovementValues();
-            moveC.dataComponent.yAxis.resetMovement();
+            //Resetamos os dados de flutuabilidade ao sair de um liquido
             resetFlotation();
+
+            //Resetamos a aceleração e velocidade para impedir uma aceleração infinita
+            moveC.dataComponent.yAxis.resetMovement();
+            //Chama o callback para lidar com a saída de um liquido
             object.onLiquidExit();
         }
     }
@@ -290,7 +354,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     /// Recalcula todos os efeitos do l�quido no intermediary.
     /// Usa o l�quido mais denso para flutuabilidade e limites, o de maior resist�ncia para arrasto.
-    private void recalculateLiquidEffects() {
+    private void recalculateLiquidEffects(float delta) {
         LiquidData
             curLiq,
             densLiq = liquidBuffer.get(0),
@@ -303,7 +367,10 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         }
 
         prepareIntermediary();
-        calculateFloatEffect(densLiq);
+        calculateFloatEffect(
+            densLiq,
+            delta
+        );
         calculateResistance(resLiq);
         calculateSpeedLimits(densLiq);
     }
@@ -326,34 +393,69 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         intermediary.rAxis.maxMoveVel = Math.min(storedMovementData.rAxis.maxMoveVel, data.maxMoveSpeed);
     }
 
-    /// Calcula for�a de flutuabilidade com base na diferen�a de densidade entre objeto e l�quido
-    private void calculateFloatEffect(LiquidData data) {
-        float objectDensity = (volume > 0) ? mass / volume : Float.MAX_VALUE;
-        floatEffectValue = (data.density - objectDensity) * volume;
-    }
-
     // --- Getters / Setters ---
 
-    public boolean isCanInteract() { return canInteract; }
+    public boolean isCanInteract() {
+        return canInteract;
+    }
 
     public void setCanInteract(boolean canInteract) {
         if (this.canInteract == canInteract) return;
         this.canInteract = canInteract;
     }
 
-    public float getMass() { return mass; }
-    public float getVolume() { return volume; }
-    public float getFloatEffect() { return floatEffectValue; }
-    public float getFloatEffectValueModifier() { return floatEffectValueModifier; }
-    public float getResistanceMultiplier() { return resistanceMultiplier; }
-    public boolean isInLiquid() { return inLiquid; }
-    public List<LiquidData> getLiquidBuffer() { return liquidBuffer; }
+    public float getMass() {
+        return mass;
+    }
 
-    public void setMass(float mass) { this.mass = mass; needsRecalculation = true; }
-    public void setVolume(float volume) { this.volume = volume; needsRecalculation = true; }
-    public void setFloatingEffectModifier(float v) { this.floatEffectValueModifier = v; needsRecalculation = true; }
-    public void setNeutralFloating(boolean neutral) { this.neutralBuoyancy = neutral; needsRecalculation = true; }
-    public void setResistanceMultiplier(float v) { this.resistanceMultiplier = v; needsRecalculation = true; }
+    public float getVolume() {
+        return volume;
+    }
+
+    public float getFloatEffect() {
+        return floatEffectValue;
+    }
+
+    public float getFloatEffectValueModifier() {
+        return floatEffectValueModifier;
+    }
+
+    public float getResistanceMultiplier() {
+        return resistanceMultiplier;
+    }
+
+    public boolean isInLiquid() {
+        return inLiquid;
+    }
+
+    public List<LiquidData> getLiquidBuffer() {
+        return liquidBuffer;
+    }
+
+    public void setMass(float mass) {
+        this.mass = mass;
+        needsRecalculation = true;
+    }
+
+    public void setVolume(float volume) {
+        this.volume = volume;
+        needsRecalculation = true;
+    }
+
+    public void setFloatingEffectModifier(float v) {
+        this.floatEffectValueModifier = v;
+        needsRecalculation = true;
+    }
+
+    public void setNeutralFloating(boolean neutral) {
+        this.neutralBuoyancy = neutral;
+        needsRecalculation = true;
+    }
+
+    public void setResistanceMultiplier(float v) {
+        this.resistanceMultiplier = v;
+        needsRecalculation = true;
+    }
 
     /// Marca para rearmazenar valores de movimenta��o na pr�xima atualiza��o.
     /// Usado quando as constraints de movimenta��o mudam externamente.
@@ -366,6 +468,15 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     public void resetFlotation() {
         floatEffectValue = 0;
+        floatEffectValueModifier = 0;
+    }
+
+    public boolean hasFloatation() {
+        //Retorna true caso algum desses valores sejam diferentes de 0
+        return
+            floatEffectValueModifier != 0
+                ||
+                floatEffectValue != 0;
     }
 
     // --- Dispose ---
