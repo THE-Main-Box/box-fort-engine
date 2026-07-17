@@ -476,20 +476,20 @@ public class Player extends AnimatedRenderableRoomGameObject
     @Override
     public void inLiquidUpdate() {
 
-        if(Gdx.input.isKeyPressed(
-            Input.Keys.R
-        )){
-
-            this.liquidInteractionC.setMass(
-                liquidInteractionC.getMass() - 100
-            );
-        } else if(Gdx.input.isKeyPressed(
-            Input.Keys.C
-        )){
-            this.liquidInteractionC.setMass(
-                liquidInteractionC.getMass() + 100
-            );
-        }
+//        if(Gdx.input.isKeyPressed(
+//            Input.Keys.R
+//        )){
+//
+//            this.liquidInteractionC.setMass(
+//                liquidInteractionC.getMass() - 100
+//            );
+//        } else if(Gdx.input.isKeyPressed(
+//            Input.Keys.C
+//        )){
+//            this.liquidInteractionC.setMass(
+//                liquidInteractionC.getMass() + 100
+//            );
+//        }
 
     }
 

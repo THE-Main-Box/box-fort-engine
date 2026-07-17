@@ -527,7 +527,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     public void setMass(float mass) {
         if(mass <0) return;
         this.mass = mass;
-        System.out.println(mass);
         markUpdateSimulationData();
     }
 
