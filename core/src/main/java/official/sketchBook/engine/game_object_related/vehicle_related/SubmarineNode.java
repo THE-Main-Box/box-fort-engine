@@ -215,7 +215,7 @@ public class SubmarineNode
             true,
             true,
             false,
-            false,
+            true,
             false,
             false,
             false,
@@ -235,7 +235,7 @@ public class SubmarineNode
             0
         );
 
-        vPhysicsC.autoApplyMovement = false;
+//        vPhysicsC.autoApplyMovement = false;
 
         physicsC = vPhysicsC;
 
@@ -286,6 +286,19 @@ public class SubmarineNode
 
     public void update(float delta) {
         managerC.update(delta);
+
+        applyLiquidYAxisToBody();
+    }
+
+    private void applyLiquidYAxisToBody() {
+        float yVelocity = moveC.dataComponent.yAxis.velocity;
+
+        if (yVelocity == 0f) return;
+
+        Vector2 currentVel = body.getLinearVelocity();
+
+        // Só sobrescreve o componente Y da velocidade, preserva X (controlado pelo motor)
+        body.setLinearVelocity(currentVel.x, yVelocity);
     }
 
     public void postUpdate() {

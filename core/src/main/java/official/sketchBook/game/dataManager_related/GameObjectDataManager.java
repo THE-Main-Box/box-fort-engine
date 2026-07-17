@@ -115,10 +115,17 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             )
         );
 
+//        data = new LiquidData(
+//            "water",
+//            1,
+//            9.5f,
+//            5f
+//        );
+
         data = new LiquidData(
             "water",
             1,
-            9.5f,
+            11f,
             5f
         );
 
@@ -130,7 +137,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         );
 
         float
-            subX = 500,
+            subX = 200,
             subY = 60;
 
         List<SubmarinePart> subParts = getBaseSubmarineParts();
@@ -278,8 +285,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             1f,
             0f,
             0f,
-            20f,
-            20f,
+            0f,
+            1f,
             -1f,
             1f,
             0f,
@@ -320,14 +327,6 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         node_1.addVehicleComponent(controller, false, true, true);
 
-        Transform transform = node_1.getBody().getTransform();
-        node_1.getBody().setTransform(
-            transform.getPosition(),
-            45f
-        );
-
-        node_1.getBody().setFixedRotation(false);
-
         //TO-do: lidar com o sistema de controle,
         //  para que não possamos ativar quando o jogador estiver fora do sub ou fora do alcance correto
 
@@ -346,7 +345,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         SubmarinePart corridor = new SubmarinePart(1, "corridor");
 
-        corridor.baseMass = 0.01f;
+        corridor.baseMass = 2f;
         corridor.internalMarginDown
             = corridor.internalMarginUp
             = corridor.internalMarginLeft
