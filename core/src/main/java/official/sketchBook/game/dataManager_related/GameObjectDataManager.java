@@ -110,7 +110,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             new LiquidRegion(
                 200,
                 10,
-                150,
+                5000,
                 150
             )
         );
@@ -286,11 +286,11 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             0f,
             0f,
             0f,
-            1f,
+            500f,
             -1f,
             1f,
             0f,
-            1f,
+            10f,
             false,
             false
         );
