@@ -1,5 +1,7 @@
 package official.sketchBook.game.gameObject_related;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -132,7 +134,7 @@ public class Player extends AnimatedRenderableRoomGameObject
             transformC.width * transformC.height
         );
 
-        this.liquidInteractionC.setMass(1f);
+        this.liquidInteractionC.setMass(200f);
 
 
 //        this.liquidInteractionC.setCanInteractWithLiquid(false);
@@ -473,6 +475,22 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     @Override
     public void inLiquidUpdate() {
+
+        if(Gdx.input.isKeyPressed(
+            Input.Keys.R
+        )){
+
+            this.liquidInteractionC.setMass(
+                liquidInteractionC.getMass() - 100
+            );
+        } else if(Gdx.input.isKeyPressed(
+            Input.Keys.C
+        )){
+            this.liquidInteractionC.setMass(
+                liquidInteractionC.getMass() + 100
+            );
+        }
+
     }
 
     @Override

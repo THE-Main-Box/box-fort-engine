@@ -1,5 +1,6 @@
 package official.sketchBook.engine.components_related.physics;
 
+import com.badlogic.gdx.math.MathUtils;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
@@ -68,6 +69,10 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     /// Snapshot dos dados de movimenta��o originais — restaurados ao sair do l�quido
     private final MovementDataComponent storedMovementData;
 
+    private float equilibriumSubmersionThreshold = 0f;
+
+    private static final float EQUILIBRIUM_CALIBRATION_FACTOR = 1.5f; // ~0.082 * 1.95 ≈ 0.16
+
     private boolean disposed = false;
 
     public PhysicalMobLiquidInteractionComponent(SimpleLiquidInteractableObjectII object) {
@@ -108,6 +113,19 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     public void initObject() {
     }
 
+    // Novo método, chamado sempre que objectDensity ou highestDensityLiquidBuffer mudam:
+    private void recalculateEquilibriumThreshold() {
+        if (highestDensityLiquidBuffer == null || highestDensityLiquidBuffer.density <= 0f) {
+            equilibriumSubmersionThreshold = 0f;
+            return;
+        }
+
+        float theoreticalFraction = objectDensity / highestDensityLiquidBuffer.density;
+
+        equilibriumSubmersionThreshold =
+            MathUtils.clamp(theoreticalFraction * EQUILIBRIUM_CALIBRATION_FACTOR, 0f, 1f);
+    }
+
     private void updateSimulation(float delta) {
 
         boolean shouldSimulate = canInteract && !liquidAndRegionMap.isEmpty();
@@ -134,6 +152,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         if (!needsUpdatePhysicsData) return;
 
         recalculatePhysicsData();
+        recalculateEquilibriumThreshold();
 
         // A densidade mudou, então o efeito de flutuabilidade precisa ser recalculado também
         needsUpdateMovement = true;
@@ -239,11 +258,27 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         isConstraintsDirty = false;
     }
 
+    /// Calcula a força de flutuabilidade simulada com base na diferença de densidade
+    /// entre objeto e líquido, integrada suavemente ao longo do tempo (delta).
+    /// O floatEffectValueModifier NÃO participa dessa integração — é somado
+    /// separadamente em applyFloat(), como um valor forçado por frame.
     private void calculateFloatEffect(LiquidData data, float delta) {
         if (data == null || volume <= 0f) return;
 
         float targetFloatEffect =
             (data.density - objectDensity) * volume;
+
+        // Perto da superfície (submersão abaixo do limiar), o empuxo teórico já é
+        // pequeno de qualquer forma — mas convergir gradualmente (+=) ainda deixa
+        // resíduo de frames anteriores empurrando o valor interno para cima, mesmo
+        // que a fração aplicada em applyFloat() seja pequena. Isso causa o efeito de
+        // "10% viram 20%, viram 30%..." até estourar. Abaixo do limiar, paramos de
+        // acumular e travamos floatEffectValue diretamente no alvo já achatado pela
+        // submersão, então applyFloat() nunca recebe um valor crescendo sem controle.
+        if (cachedSubmersionFraction < equilibriumSubmersionThreshold) {
+            floatEffectValue = targetFloatEffect * cachedSubmersionFraction;
+            return;
+        }
 
         floatEffectValue += (targetFloatEffect - floatEffectValue) * Math.min(delta, 1f);
 
@@ -357,6 +392,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         highestDensityLiquidBuffer = highestDensity;
         highestDragLiquidBuffer = highestDrag;
+
+        recalculateEquilibriumThreshold();
     }
 
     // --- Liquid buffer ---
@@ -439,6 +476,13 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     // --- Getters / Setters ---
 
+    private void markUpdateSimulationData() {
+        needsUpdatePhysicsData = true;   // recalcula objectDensity (mass/volume)
+        needsUpdateMovement = true;      // recalcula intermediary (resistência/constraints)
+        isConstraintsDirty = true;       // força reaplicar constraints no moveC mesmo se os valores não mudarem
+    }
+
+
     public boolean isCanInteract() {
         return canInteract;
     }
@@ -474,22 +518,22 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     public void setMass(float mass) {
         this.mass = mass;
-        needsUpdatePhysicsData = true;
+        markUpdateSimulationData();
     }
 
     public void setVolume(float volume) {
         this.volume = volume;
-        needsUpdatePhysicsData = true;
+        markUpdateSimulationData();
     }
 
     public void setFloatingEffectModifier(float v) {
         this.floatEffectValueModifier = v;
-        needsUpdatePhysicsData = true;
+        // sem markUpdateSimulationData() — é forçado, aplicado direto por frame
     }
 
     public void setDragMultiplier(float v) {
         this.dragMultiplier = v;
-        needsUpdatePhysicsData = true;
+        markUpdateSimulationData();
     }
 
     /// Marca para rearmazenar valores de movimenta��o na pr�xima atualiza��o.

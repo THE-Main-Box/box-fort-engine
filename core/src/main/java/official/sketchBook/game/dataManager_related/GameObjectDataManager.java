@@ -118,7 +118,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         data = new LiquidData(
             "water",
             1,
-            9f,
+            9.5f,
             5f
         );
 
@@ -129,207 +129,207 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             regionList
         );
 
-//        float
-//            subX = 500,
-//            subY = 60;
-//
-//        List<SubmarinePart> subParts = getBaseSubmarineParts();
-//
-//        List<SubmarineNode> nodeList = new ArrayList<>();
-//
-//        SubmarineNode node_1 = new SubmarineNode(
-//            physicsWorld,
-//            subParts,
-//            subX,
-//            subY,
-//            0,
-//            0,
-//            false,
-//            false
-//        );
-//
-//
-//        nodeList.add(
-//            node_1
-//        );
-//
-//        Submarine baseSubmarine = new Submarine(
-//            this,
-//            currentRoom,
-//            nodeList
-//        );
-//
-//        /*
-//         * To-do: para as portas, um sistema de criação será interessante, a base de orientações
-//         *  Em sumo a idéia é simples, temos as dimensões, altura e largura,
-//         *  com base nisso usaremos as dimensões,
-//         *  para podermos determinar o offset vertical e horizontal com base na posição já determinada, caso necessário,
-//         *   mas iremos usar claramente para a orientação da fixture sensor,
-//         *  caso haja, e não só caso haja,
-//         *  mas irá nos ajudar em muitas outras circunstancias,
-//         *  como determinar o quanto devemos puxar, empurrar, ou levantar ou abaixar,
-//         *   a fixture sensor
-//         * */
-//
-//
-//        VehicleDoor door = new VehicleDoor(
-//            node_1,
-//            new FixtureData(
-//                0,
-//                0,
-//                55,
-//                0,
-//                0,
-//                9,
-//                40,
-//                VEHICLE.bit(),
-//                VEHICLE_PASSENGER.bit(),
-//                false,
-//                false
-//            ),
-//            new FixtureData(
-//                0,
-//                0,
-//                55 - 9,
-//                0,
-//                0,
-//                9 * 4,
-//                40,
-//                INTERACTABLE.bit(),
-//                INTERACTABLE_TRIGGERER.bit(),
-//                false,
-//                true
-//            ),
-//            false,
-//            false,
-//            false
-//        );
-//
-//        VehicleDoor door2 = new VehicleDoor(
-//            node_1,
-//            new FixtureData(
-//                0,
-//                0,
-//                0,
-//                0,
-//                0,
-//                -55,
-//                0,
-//                0,
-//                9,
-//                40,
-//                VEHICLE.bit(),
-//                VEHICLE_PASSENGER.bit(),
-//                false,
-//                false
-//            ),
-//            new FixtureData(
-//                0,
-//                0,
-//                -55 + 9,
-//                0,
-//                0,
-//                9 * 4,
-//                40,
-//                INTERACTABLE.bit(),
-//                INTERACTABLE_TRIGGERER.bit(),
-//                false,
-//                true
-//            ),
-//            false,
-//            false,
-//            true
-//        );
-//
-//        VehicleControllerComponent controller = new VehicleControllerComponent(
-//            node_1,
-//            new FixtureData(
-//                0,
-//                0,
-//                0,
-//                0,
-//                0,
-//                0,
-//                0,
-//                VEHICLE.bit(),
-//                VEHICLE_PASSENGER.bit(),
-//                false,
-//                false
-//            ),
-//            new FixtureData(
-//                0,
-//                0,
-//                0,
-//                0,
-//                0,
-//                12 * 4,
-//                30,
-//                INTERACTABLE.bit(),
-//                INTERACTABLE_TRIGGERER.bit(),
-//                false,
-//                true
-//            )
-//        );
-//
-//
-//        VehicleEngineComponent engine = new VehicleEngineComponent(
-//            node_1,
-//            node_1.getBody(),
-//            1f,
-//            0f,
-//            0f,
-//            20f,
-//            20f,
-//            -1f,
-//            1f,
-//            0f,
-//            1f,
-//            false,
-//            false
-//        );
-//
-//        // --- Grupo frente: power 1.0 ---
-//        ControllerGroup engineForwardGroup = controller.addGroup("engine_drive");
-//        // --- Grupo ré: power -1.0 ---
-//        ControllerGroup engineReverseGroup = controller.addGroup("engine_reverse");
-//
-//        ControllerGroup turnOff = controller.addGroup("engine_off");
-//
-//        //Adiciona o motor no grupo da frente
-//        engineForwardGroup.add(engine);
-//
-//        //Adiciona o motor no grupo de ré
-//        engineReverseGroup.add(engine);
-//
-//        //Adiciona o motor para desligar
-//        turnOff.add(engine);
-//
-//        //Seta a config do grupo da frente
-//        engineForwardGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(1f, true));
-//        //Seta a config do grupo de ré
-//        engineReverseGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(-1f, true));
-//
-//        turnOff.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(0f, false));
-//
-//
-//        // --- Adiciona ao node ---
-//        node_1.addVehicleComponent(engine, false, true, true);
-//
-//        node_1.addVehicleComponent(door, true, true, true);
-//        node_1.addVehicleComponent(door2, false, true, true);
-//
-//        node_1.addVehicleComponent(controller, false, true, true);
-//
-//        Transform transform = node_1.getBody().getTransform();
-//        node_1.getBody().setTransform(
-//            transform.getPosition(),
-//            45f
-//        );
-//
-//        node_1.getBody().setFixedRotation(false);
-//
-//        //TO-do: lidar com o sistema de controle,
-//        // para que não possamos ativar quando o jogador estiver fora do sub ou fora do alcance correto
+        float
+            subX = 500,
+            subY = 60;
+
+        List<SubmarinePart> subParts = getBaseSubmarineParts();
+
+        List<SubmarineNode> nodeList = new ArrayList<>();
+
+        SubmarineNode node_1 = new SubmarineNode(
+            physicsWorld,
+            subParts,
+            subX,
+            subY,
+            0,
+            0,
+            false,
+            false
+        );
+
+
+        nodeList.add(
+            node_1
+        );
+
+        Submarine baseSubmarine = new Submarine(
+            this,
+            currentRoom,
+            nodeList
+        );
+
+        /*
+         * To-do: para as portas, um sistema de criação será interessante, a base de orientações
+         *  Em sumo a idéia é simples, temos as dimensões, altura e largura,
+         *  com base nisso usaremos as dimensões,
+         *  para podermos determinar o offset vertical e horizontal com base na posição já determinada, caso necessário,
+         *   mas iremos usar claramente para a orientação da fixture sensor,
+         *  caso haja, e não só caso haja,
+         *  mas irá nos ajudar em muitas outras circunstancias,
+         *  como determinar o quanto devemos puxar, empurrar, ou levantar ou abaixar,
+         *   a fixture sensor
+         * */
+
+
+        VehicleDoor door = new VehicleDoor(
+            node_1,
+            new FixtureData(
+                0,
+                0,
+                55,
+                0,
+                0,
+                9,
+                40,
+                VEHICLE.bit(),
+                VEHICLE_PASSENGER.bit(),
+                false,
+                false
+            ),
+            new FixtureData(
+                0,
+                0,
+                55 - 9,
+                0,
+                0,
+                9 * 4,
+                40,
+                INTERACTABLE.bit(),
+                INTERACTABLE_TRIGGERER.bit(),
+                false,
+                true
+            ),
+            false,
+            false,
+            false
+        );
+
+        VehicleDoor door2 = new VehicleDoor(
+            node_1,
+            new FixtureData(
+                0,
+                0,
+                0,
+                0,
+                0,
+                -55,
+                0,
+                0,
+                9,
+                40,
+                VEHICLE.bit(),
+                VEHICLE_PASSENGER.bit(),
+                false,
+                false
+            ),
+            new FixtureData(
+                0,
+                0,
+                -55 + 9,
+                0,
+                0,
+                9 * 4,
+                40,
+                INTERACTABLE.bit(),
+                INTERACTABLE_TRIGGERER.bit(),
+                false,
+                true
+            ),
+            false,
+            false,
+            true
+        );
+
+        VehicleControllerComponent controller = new VehicleControllerComponent(
+            node_1,
+            new FixtureData(
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                VEHICLE.bit(),
+                VEHICLE_PASSENGER.bit(),
+                false,
+                false
+            ),
+            new FixtureData(
+                0,
+                0,
+                0,
+                0,
+                0,
+                12 * 4,
+                30,
+                INTERACTABLE.bit(),
+                INTERACTABLE_TRIGGERER.bit(),
+                false,
+                true
+            )
+        );
+
+
+        VehicleEngineComponent engine = new VehicleEngineComponent(
+            node_1,
+            node_1.getBody(),
+            1f,
+            0f,
+            0f,
+            20f,
+            20f,
+            -1f,
+            1f,
+            0f,
+            1f,
+            false,
+            false
+        );
+
+        // --- Grupo frente: power 1.0 ---
+        ControllerGroup engineForwardGroup = controller.addGroup("engine_drive");
+        // --- Grupo ré: power -1.0 ---
+        ControllerGroup engineReverseGroup = controller.addGroup("engine_reverse");
+
+        ControllerGroup turnOff = controller.addGroup("engine_off");
+
+        //Adiciona o motor no grupo da frente
+        engineForwardGroup.add(engine);
+
+        //Adiciona o motor no grupo de ré
+        engineReverseGroup.add(engine);
+
+        //Adiciona o motor para desligar
+        turnOff.add(engine);
+
+        //Seta a config do grupo da frente
+        engineForwardGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(1f, true));
+        //Seta a config do grupo de ré
+        engineReverseGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(-1f, true));
+
+        turnOff.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(0f, false));
+
+
+        // --- Adiciona ao node ---
+        node_1.addVehicleComponent(engine, false, true, true);
+
+        node_1.addVehicleComponent(door, true, true, true);
+        node_1.addVehicleComponent(door2, false, true, true);
+
+        node_1.addVehicleComponent(controller, false, true, true);
+
+        Transform transform = node_1.getBody().getTransform();
+        node_1.getBody().setTransform(
+            transform.getPosition(),
+            45f
+        );
+
+        node_1.getBody().setFixedRotation(false);
+
+        //TO-do: lidar com o sistema de controle,
+        //  para que não possamos ativar quando o jogador estiver fora do sub ou fora do alcance correto
 
     }
 
