@@ -1,19 +1,14 @@
 package official.sketchBook.engine.components_related.physics;
 
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.utils.IntIntMap;
-import com.badlogic.gdx.utils.IntSet;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.MovementDataComponent;
-import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
+import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 
 import java.util.ArrayList;
-import java.util.List;
-
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.BOYANCY_THRESHOLD;
+import java.util.IdentityHashMap;
 
 /// Simula interação física com líquidos — aplica flutuabilidade, resistência e limites de velocidade.
 /// Deve ser atualizado após o componente de movimentação.
@@ -25,30 +20,37 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     /// Componente de movimenta��o do objeto dono
     private MovementComponent moveC;
 
-    /// L�quidos atualmente em contato com o objeto
-    private List<LiquidData> liquidBuffer = new ArrayList<>();
+    /// Mapa para identificação de liquidos
+    private final IdentityHashMap<LiquidData, ArrayList<LiquidRegion>> liquidAndRegionMap = new IdentityHashMap<>();
 
-    /// Set de ids para O(1) na verifica��o de duplicatas — sem autoboxing
-    private IntSet liquidIdSet = new IntSet();
+    private LiquidData
+        highestDensityLiquidBuffer,
+        highestDragLiquidBuffer;
 
-    /// Contador de fixtures em contato por l�quido — sem autoboxing
-    private IntIntMap liquidContactCount = new IntIntMap();
+    private LiquidRegion currentLiquidRegionBuffer;
 
     // --- Flags de estado ---
 
     private boolean
         canInteractBuffer = false,      // Buffer do canInteract — restaurado ap�s armazenar movimento
         canInteract = true,             // Se pode simular intera��o com l�quidos
-        neutralBuoyancy = false,        // Se deve ignorar flutuabilidade (ex: jogador em modo neutro)
-        inLiquid = false,               // Se est� fisicamente dentro de um l�quido
+        inLiquid = false;               // Se est� fisicamente dentro de um l�quido
+
+    private boolean
         originalValuesStored = false,   // Se os valores originais de movimenta��o foram armazenados
-        updateStoredMovement = true,    // Se deve rearmazenar os valores de movimenta��o
-        needsRecalculation = true,      // Se precisa recalcular efeitos do l�quido
-        constraintsDirty = true;        // Se as constraints precisam ser reaplicadas no moveC
+        updateStoredMovement = true;    // Se deve rearmazenar os valores de movimenta��o
+
+    private boolean
+        needsUpdateCurrentLiquidData = true, //Se precisa atualizar os dados de liquido atual
+        needsUpdateCurrentRegion = true,     //Se precisa atualizar a região atual
+        needsUpdatePhysicsData = true,
+        needsUpdateMovement = true,          //Se precisamos atualizar os dados de movimentação
+        isConstraintsDirty = true;        // Se as constraints precisam ser reaplicadas no moveC
 
     // --- Dados f�sicos do objeto ---
 
     private float
+        objectDensity,
         mass,                           // Massa do objeto
         volume;                         // Volume do objeto
 
@@ -58,9 +60,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     private float
         resistanceMultiplier = 1.0f,    // Multiplicador de resist�ncia ao movimento
-        cachedSubmersionFraction = 1f,  // Fra��o de submers�o cacheada — evita rec�lculo todo frame
-        lastCenterY = Float.MAX_VALUE;  // Dirty data de posição y
-
+        cachedSubmersionFraction = 1f;  // Fra��o de submers�o cacheada — evita rec�lculo todo frame
     private static final float SUBMERSION_RECALC_THRESHOLD = 0.5f; // pixels
 
     /// Dados de movimenta��o calculados para o l�quido atual (resist�ncia, limites, gravidade)
@@ -92,7 +92,9 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     @Override
     public void update(float delta) {
+        updateLiquidState();
         updateSimulation(delta);
+        updateStoredMovement();
     }
 
     @Override
@@ -103,231 +105,507 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     public void initObject() {
     }
 
-    private void calculateFloatEffect(
-        LiquidData data,
-        float deltaTime
-    ) {
+    private void updateSimulation(float delta){
 
-        float objectDensity =
-            (volume > 0)
-                ? mass / volume
-                : Float.MAX_VALUE;
+        boolean shouldSimulate =
+            canInteract
+                &&
+                !liquidAndRegionMap.isEmpty();
 
 
-        float targetFloatEffect =
-            (data.density - objectDensity)
-                * volume;
-
-        floatEffectValue += targetFloatEffect * deltaTime;
-
-
-        floatEffectValue = MathUtils.clamp(
-
-            floatEffectValue,
-
-            -Math.abs(targetFloatEffect),
-
-            Math.abs(targetFloatEffect)
-
+        applyChange(
+            shouldSimulate
         );
 
-    }
 
-    private void updateSimulation(float delta) {
-        //Pode simular não é só a capacidade de interagir com liquido, mas também se temos contato com liquidos
-        final boolean shouldSimulate = canInteract && !liquidBuffer.isEmpty();
-        applyChange(shouldSimulate);
-        applyPhysics(shouldSimulate, delta);
-        updateStoredMovement();
-    }
-
-    /// Executa a simula��o f�sica do l�quido quando aplic�vel
-    private void applyPhysics(
-        boolean shouldSimulate,
-        float deltaTime
-    ) {
-
-        if (!shouldSimulate)
+        if(!shouldSimulate)
             return;
+
+
+        updateMovementData();
+
+        updatePhysicsData();
 
         updateSubmersionFraction();
 
 
-        if (cachedSubmersionFraction <= 0f) {
+        applyLiquidPhysics(
+            delta
+        );
 
-            resetFlotation();
+    }
+
+    private void recalculatePhysicsData(){
+
+        if(volume <= 0){
+
+            objectDensity =
+                Float.MAX_VALUE;
 
             return;
 
         }
 
 
-        if (needsRecalculation) {
+        objectDensity =
+            mass / volume;
 
-            recalculateLiquidEffects(deltaTime);
+    }
 
-            needsRecalculation = false;
-            constraintsDirty = true;
+    private void updatePhysicsData(){
+
+        if(!needsUpdatePhysicsData)
+            return;
+
+
+        recalculatePhysicsData();
+
+
+        needsUpdatePhysicsData =
+            false;
+
+    }
+
+    private void updateMovementData(){
+
+        if(!needsUpdateMovement)
+            return;
+
+        recalculateMovementData();
+
+        isConstraintsDirty = true;
+
+        needsUpdateMovement = false;
+
+    }
+
+
+    private void applyLiquidPhysics(
+        float delta
+    ){
+
+        if(cachedSubmersionFraction <= 0f){
+
+            resetFlotation();
+
+            return;
 
         }
 
 
         calculateFloatEffect(
-            liquidBuffer.get(0),
-            deltaTime
+            highestDensityLiquidBuffer,
+            delta
         );
 
 
         applyConstraints();
 
-        applyBoyancy();
+        applyFloat();
 
     }
 
-    /// Aplica resist�ncia, limites de velocidade e gravidade do intermediary no moveC.
-    /// S� executa quando as constraints foram marcadas como sujas — evita escritas desnecess�rias todo frame.
-    private void applyConstraints() {
-        if (!constraintsDirty) return;
+    private void applyFloat() {
 
-        moveC.dataComponent.xAxis.weightFactor = intermediary.xAxis.weightFactor;
-        moveC.dataComponent.yAxis.weightFactor = intermediary.yAxis.weightFactor;
-        moveC.dataComponent.rAxis.weightFactor = intermediary.rAxis.weightFactor;
-
-        moveC.dataComponent.xAxis.deceleration = intermediary.xAxis.deceleration;
-        moveC.dataComponent.yAxis.deceleration = intermediary.yAxis.deceleration;
-        moveC.dataComponent.rAxis.deceleration = intermediary.rAxis.deceleration;
-
-        moveC.dataComponent.xAxis.maxMoveVel = intermediary.xAxis.maxMoveVel;
-        moveC.dataComponent.yAxis.maxMoveVel = intermediary.yAxis.maxMoveVel;
-        moveC.dataComponent.rAxis.maxMoveVel = intermediary.rAxis.maxMoveVel;
-
-        moveC.dataComponent.gravityAffected = intermediary.gravityAffected;
-        moveC.dataComponent.gravityScale = intermediary.gravityScale;
-
-        constraintsDirty = false;
-    }
-
-    /// Aplica flutuabilidade proporcional � fra��o submersa do objeto.
-    /// Adiciona resist�ncia extra perto da superf�cie para evitar saltos.
-    private void applyBoyancy() {
-        if (neutralBuoyancy) {
-            resetFlotation();
+        if (cachedSubmersionFraction <= 0f)
             return;
-        }
 
-        if (cachedSubmersionFraction <= 0f) return;
 
-        /// Resist�ncia extra pr�ximo da superf�cie
-        float surfaceResistance = (1f - cachedSubmersionFraction) * intermediary.yAxis.deceleration;
-        moveC.dataComponent.yAxis.deceleration = intermediary.yAxis.deceleration + surfaceResistance;
+        float targetFloat =
 
-        /// Flutuabilidade proporcional � submers�o atual
-        float targetFloatation = MathUtils.clamp(
-            floatEffectValue * cachedSubmersionFraction,
-            -moveC.dataComponent.yAxis.maxMoveVel,
-            moveC.dataComponent.yAxis.maxMoveVel
+            floatEffectValue
+
+                *
+
+                cachedSubmersionFraction;
+
+
+        moveC.dataComponent.yAxis.setMovement(
+            targetFloat
         );
 
-        if (Math.abs(targetFloatation) < BOYANCY_THRESHOLD) return;
-
-        moveC.dataComponent.yAxis.setMovement(targetFloatation);
     }
 
-    /// Atualiza o cache da fra��o submersa.
-    /// Calcula a fra��o do objeto que est� submersa no l�quido mais denso do buffer.
-    /// Retorna 1 se totalmente submerso, 0 se totalmente fora, fra��o entre 0-1 se parcial.
+    private void recalculateMovementData() {
+
+        prepareIntermediary();
+
+        calculateResistance(
+            highestDragLiquidBuffer
+        );
+
+    }
+
     private void updateSubmersionFraction() {
-        TransformComponent t = object.getTransformC();
-        if (t == null || liquidBuffer.isEmpty()) {
-            cachedSubmersionFraction = 1f;
-            return;
-        }
 
-        float centerY = t.getCenterY();
+        if (currentLiquidRegionBuffer == null) {
 
-        // Só recalcula se o objeto se moveu o suficiente verticalmente
-        if (Math.abs(centerY - lastCenterY) < SUBMERSION_RECALC_THRESHOLD) return;
-
-        lastCenterY = centerY;
-
-        float surfaceY = liquidBuffer.get(0).surfaceY;
-        float objectBottomY = centerY - t.getHalfHeight();
-        float objectTopY = centerY + t.getHalfHeight();
-
-        if (objectTopY <= surfaceY) {
-            cachedSubmersionFraction = 1f;
-            return;
-        }
-        if (objectBottomY >= surfaceY) {
             cachedSubmersionFraction = 0f;
+
             return;
+
         }
 
-        cachedSubmersionFraction = MathUtils.clamp(
-            (surfaceY - objectBottomY) / t.height, 0f, 1f
-        );
+
+        float surfaceY =
+            currentLiquidRegionBuffer.getY();
+
+
+        float objectTopY =
+            object.getTransformC().y;
+
+
+        float objectBottomY =
+
+            objectTopY
+
+                +
+
+                object.getTransformC().height;
+
+
+        // totalmente submerso
+        if (objectBottomY <= surfaceY) {
+
+            cachedSubmersionFraction = 1f;
+
+            return;
+
+        }
+
+
+        // totalmente fora
+        if (objectTopY >= surfaceY) {
+
+            cachedSubmersionFraction = 0f;
+
+            return;
+
+        }
+
+
+        cachedSubmersionFraction =
+
+            (surfaceY - objectTopY)
+
+                /
+
+                object.getTransformC().height;
+
+
     }
 
-    /// Gerencia transi��es de entrada e sa�da do l�quido.
-    /// Ao entrar: notifica o objeto. Ao sair: restaura movimenta��o e reseta flutuabilidade.
+    private void applyConstraints() {
+
+        if (!isConstraintsDirty)
+            return;
+
+
+        moveC.dataComponent.xAxis.weightFactor =
+            intermediary.xAxis.weightFactor;
+
+        moveC.dataComponent.yAxis.weightFactor =
+            intermediary.yAxis.weightFactor;
+
+        moveC.dataComponent.rAxis.weightFactor =
+            intermediary.rAxis.weightFactor;
+
+
+        moveC.dataComponent.xAxis.deceleration =
+            intermediary.xAxis.deceleration;
+
+        moveC.dataComponent.yAxis.deceleration =
+            intermediary.yAxis.deceleration;
+
+        moveC.dataComponent.rAxis.deceleration =
+            intermediary.rAxis.deceleration;
+
+
+        moveC.dataComponent.xAxis.maxMoveVel =
+            intermediary.xAxis.maxMoveVel;
+
+        moveC.dataComponent.yAxis.maxMoveVel =
+            intermediary.yAxis.maxMoveVel;
+
+        moveC.dataComponent.rAxis.maxMoveVel =
+            intermediary.rAxis.maxMoveVel;
+
+
+        moveC.dataComponent.gravityAffected =
+            intermediary.gravityAffected;
+
+        moveC.dataComponent.gravityScale =
+            intermediary.gravityScale;
+
+
+        isConstraintsDirty = false;
+
+    }
+
+    private void calculateFloatEffect(
+        LiquidData data,
+        float delta
+    ) {
+
+        if (data == null || volume <= 0f)
+            return;
+
+        float objectDensity =
+            mass / volume;
+
+
+        float targetFloatEffect =
+
+            (data.density - objectDensity)
+
+                *
+
+                volume
+
+                *
+
+                floatEffectValueModifier;
+
+
+        floatEffectValue +=
+            targetFloatEffect * delta;
+
+
+        float maxValue =
+            Math.abs(targetFloatEffect);
+
+
+        if (floatEffectValue > maxValue)
+            floatEffectValue = maxValue;
+
+        else if (floatEffectValue < -maxValue)
+            floatEffectValue = -maxValue;
+
+    }
+
     private void applyChange(boolean shouldSimulate) {
-        //Se podemos simular e não estávamos em liquido
+
         if (shouldSimulate && !inLiquid) {
-            //Atualiza a flag de liquido
+
             inLiquid = true;
-            //Chama para lidar com a entrada no liquido
+
             object.onLiquidEnter();
 
-            //Caso não possamos interagir e estejamos em liquido
-        } else if (!shouldSimulate && inLiquid) {
-            //Marcamos a flag para false
+            return;
+
+        }
+
+
+        if (!shouldSimulate && inLiquid) {
+
             inLiquid = false;
 
-            //Restauramos a movimentação antes de entrar nos liquidos
             restartStoredMovementValues();
-            //Resetamos os dados de flutuabilidade ao sair de um liquido
+
             resetFlotation();
 
-            //Resetamos a aceleração e velocidade para impedir uma aceleração infinita
             moveC.dataComponent.yAxis.resetMovement();
-            //Chama o callback para lidar com a saída de um liquido
+
             object.onLiquidExit();
+
         }
+
+    }
+
+    private void updateLiquidState() {
+
+
+        if (needsUpdateCurrentRegion) {
+
+            updateCurrentRegion();
+
+            needsUpdateCurrentRegion = false;
+
+        }
+
+
+        if (needsUpdateCurrentLiquidData) {
+
+            updateCurrentLiquidData();
+
+            needsUpdateMovement = true;
+            needsUpdateCurrentLiquidData = false;
+
+        }
+
+
+    }
+
+    private void updateCurrentRegion() {
+
+        // Não há líquidos em contato
+        if (liquidAndRegionMap.isEmpty()) {
+            currentLiquidRegionBuffer = null;
+            return;
+        }
+
+        float objectCenterX =
+            object.getTransformC().getCenterX();
+
+        float objectCenterY =
+            object.getTransformC().getCenterY();
+
+        LiquidRegion closestRegion = null;
+        float closestDistance = Float.MAX_VALUE;
+
+        for (ArrayList<LiquidRegion> list : liquidAndRegionMap.values()) {
+
+            for (int i = 0; i < list.size(); i++) {
+
+                LiquidRegion region = list.get(i);
+
+                if (region == null)
+                    continue;
+
+                float regionCenterX =
+                    region.getX() + (region.getWidth() * 0.5f);
+
+                float regionCenterY =
+                    region.getY() + (region.getHeight() * 0.5f);
+
+                float dx =
+                    objectCenterX - regionCenterX;
+
+                float dy =
+                    objectCenterY - regionCenterY;
+
+                float distance =
+                    (dx * dx) + (dy * dy);
+
+                if (distance < closestDistance) {
+
+                    closestDistance = distance;
+                    closestRegion = region;
+
+                }
+
+            }
+
+        }
+
+        currentLiquidRegionBuffer = closestRegion;
+
+    }
+
+    private void updateCurrentLiquidData() {
+
+        //Não estamos em nenhum líquido
+        if (liquidAndRegionMap.isEmpty()) {
+
+            highestDensityLiquidBuffer = null;
+            highestDragLiquidBuffer = null;
+
+            return;
+
+        }
+
+        LiquidData highestDensity = null;
+        LiquidData highestDrag = null;
+
+        for (LiquidData data : liquidAndRegionMap.keySet()) {
+
+            //Primeiro líquido encontrado
+            if (highestDensity == null) {
+
+                highestDensity = data;
+                highestDrag = data;
+
+                continue;
+
+            }
+
+            //Atualiza o líquido mais denso
+            if (data.density > highestDensity.density)
+                highestDensity = data;
+
+            //Atualiza o líquido de maior drag
+            if (data.drag > highestDrag.drag)
+                highestDrag = data;
+
+        }
+
+        highestDensityLiquidBuffer = highestDensity;
+        highestDragLiquidBuffer = highestDrag;
+
     }
 
     // --- Liquid buffer ---
 
     /// Registra contato com um l�quido. S� adiciona ao buffer na primeira fixture em contato.
-    public void addLiquid(LiquidData liquid) {
-        if (liquid == null) return;
-        int count = liquidContactCount.get(liquid.id, 0);
-        liquidContactCount.put(liquid.id, count + 1);
-        if (count == 0 && liquidIdSet.add(liquid.id)) {
-            liquidBuffer.add(liquid);
-            needsRecalculation = true;
+    public void addLiquid(
+        LiquidData liquidData,
+        LiquidRegion region
+    ) {
+        if (region == null || liquidData == null) return;
+
+        //Tentamos obter uma lista de regiões com base nos dados de liquido passado
+        ArrayList<LiquidRegion> list = liquidAndRegionMap.get(liquidData);
+
+        //Se não houver o dado do liquido
+        if (list == null) {
+            //Criamos uma lista
+            list = new ArrayList<>();
+
+            //Adicionamos na lista
+            liquidAndRegionMap.put(
+                liquidData,
+                list
+            );
+
+            //Marcamos para reccalcular, já que precisamos lidar com os dados do novo liquido
+            needsUpdateCurrentLiquidData = true;
         }
+
+        //Adicionamos a nova região no sistema
+        list.add(region);
+        needsUpdateCurrentRegion = true;
+
     }
 
     /// Remove contato com um l�quido. S� remove do buffer quando a �ltima fixture sai.
-    public void removeLiquid(LiquidData liquid) {
-        if (liquid == null) return;
-        int count = liquidContactCount.get(liquid.id, 0);
-        if (count <= 0) return;
-        if (count == 1) {
-            liquidContactCount.remove(liquid.id, 0);
-            if (liquidIdSet.remove(liquid.id)) {
-                for (int i = liquidBuffer.size() - 1; i >= 0; i--) {
-                    if (liquidBuffer.get(i).id == liquid.id) {
-                        liquidBuffer.remove(i);
-                        needsRecalculation = true;
-                        return;
-                    }
-                }
-            }
-        } else {
-            liquidContactCount.put(liquid.id, count - 1);
+    public void removeLiquid(
+        LiquidData liquidData,
+        LiquidRegion region
+    ) {
+
+        if (liquidData == null || region == null)
+            return;
+
+
+        //Obtemos a lista
+        ArrayList<LiquidRegion> list =
+            liquidAndRegionMap.get(liquidData);
+
+
+        //Se esta não existir, ignoramos
+        if (list == null) {
+            needsUpdateCurrentLiquidData = true;
+            return;
         }
+        //Removemos a região da lista
+        list.remove(region);
+        needsUpdateCurrentRegion = true;
+
+        //Se esta estiver vazia
+        if (list.isEmpty()) {
+
+            //Removemos os dados de liquido daquela região
+            liquidAndRegionMap.remove(
+                liquidData
+            );
+
+            //Marcamos para recalculo
+            needsUpdateCurrentLiquidData = true;
+
+        }
+
     }
+
 
     // --- Movement data ---
 
@@ -342,7 +620,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     private void restartStoredMovementValues() {
         if (!originalValuesStored) return;
         this.moveC.dataComponent.set(storedMovementData);
-        constraintsDirty = true;    // For�a reaplicar constraints ap�s restaurar
+        isConstraintsDirty = true;    // For�a reaplicar constraints ap�s restaurar
     }
 
     /// Prepara o intermediary como c�pia limpa dos dados originais antes do rec�lculo
@@ -352,45 +630,39 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     // --- Recalculation ---
 
-    /// Recalcula todos os efeitos do l�quido no intermediary.
-    /// Usa o l�quido mais denso para flutuabilidade e limites, o de maior resist�ncia para arrasto.
-    private void recalculateLiquidEffects(float delta) {
-        LiquidData
-            curLiq,
-            densLiq = liquidBuffer.get(0),
-            resLiq = densLiq;
-
-        for (int i = 1; i < liquidBuffer.size(); i++) {
-            curLiq = liquidBuffer.get(i);
-            if (curLiq.density > densLiq.density) densLiq = curLiq;
-            if (curLiq.resistance > resLiq.resistance) resLiq = curLiq;
-        }
-
-        prepareIntermediary();
-        calculateFloatEffect(
-            densLiq,
-            delta
-        );
-        calculateResistance(resLiq);
-        calculateSpeedLimits(densLiq);
-    }
-
     /// Calcula resist�ncia ao movimento e in�rcia com base no l�quido mais resistente
     private void calculateResistance(LiquidData data) {
-        float resistance = data.resistance * resistanceMultiplier;
-        intermediary.xAxis.weightFactor = resistance;
-        intermediary.yAxis.weightFactor = resistance;
-        intermediary.rAxis.weightFactor = resistance;
-        intermediary.xAxis.deceleration = resistance + storedMovementData.xAxis.deceleration;
-        intermediary.yAxis.deceleration = resistance + storedMovementData.yAxis.deceleration;
-        intermediary.rAxis.deceleration = resistance + storedMovementData.rAxis.deceleration;
-    }
 
-    /// Limita velocidades m�ximas de acordo com as propriedades do l�quido
-    private void calculateSpeedLimits(LiquidData data) {
-        intermediary.xAxis.maxMoveVel = Math.min(storedMovementData.xAxis.maxMoveVel, data.maxMoveSpeed);
-        intermediary.yAxis.maxMoveVel = Math.min(storedMovementData.yAxis.maxMoveVel, data.maxSinkSpeed);
-        intermediary.rAxis.maxMoveVel = Math.min(storedMovementData.rAxis.maxMoveVel, data.maxMoveSpeed);
+        float drag =
+            data.drag
+                *
+                resistanceMultiplier;
+
+
+        intermediary.xAxis.weightFactor =
+            drag;
+
+        intermediary.yAxis.weightFactor =
+            drag;
+
+        intermediary.rAxis.weightFactor =
+            drag;
+
+
+        intermediary.xAxis.deceleration =
+            storedMovementData.xAxis.deceleration
+                +
+                drag;
+
+        intermediary.yAxis.deceleration =
+            storedMovementData.yAxis.deceleration
+                +
+                drag;
+
+        intermediary.rAxis.deceleration =
+            storedMovementData.rAxis.deceleration
+                +
+                drag;
     }
 
     // --- Getters / Setters ---
@@ -428,33 +700,24 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         return inLiquid;
     }
 
-    public List<LiquidData> getLiquidBuffer() {
-        return liquidBuffer;
-    }
-
     public void setMass(float mass) {
         this.mass = mass;
-        needsRecalculation = true;
+        needsUpdateMovement = true;
     }
 
     public void setVolume(float volume) {
         this.volume = volume;
-        needsRecalculation = true;
+        needsUpdateMovement = true;
     }
 
     public void setFloatingEffectModifier(float v) {
         this.floatEffectValueModifier = v;
-        needsRecalculation = true;
-    }
-
-    public void setNeutralFloating(boolean neutral) {
-        this.neutralBuoyancy = neutral;
-        needsRecalculation = true;
+        needsUpdateMovement = true;
     }
 
     public void setResistanceMultiplier(float v) {
         this.resistanceMultiplier = v;
-        needsRecalculation = true;
+        needsUpdateMovement = true;
     }
 
     /// Marca para rearmazenar valores de movimenta��o na pr�xima atualiza��o.
@@ -484,17 +747,12 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     @Override
     public void dispose() {
         if (disposed) return;
-        liquidBuffer.clear();
-        liquidIdSet.clear();
-        liquidContactCount.clear();
         nullifyReferences();
         disposed = true;
     }
 
     public void nullifyReferences() {
-        liquidBuffer = null;
-        liquidIdSet = null;
-        liquidContactCount = null;
+
         moveC = null;
         object = null;
     }

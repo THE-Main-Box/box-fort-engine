@@ -74,29 +74,46 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, CompositeR
         liquidBody.setUserData(new GameObjectTag(ObjectType.LIQUID, this));
 
         for (int i = 0; i < regionList.size(); i++) {
-            LiquidRegion r = regionList.get(i);
+            //Obtemos a região que iremos gerar
+            LiquidRegion region = regionList.get(i);
 
+            //Geramos uma fixdata para podermos criar a body
             FixtureData data = new FixtureData(
-                0, 0,
-                r.getX() + r.getWidth() / 2f,  // centro X
-                r.getY() + r.getHeight() / 2f, // centro Y
+                //offset geral 0 para não mover o objeto demais na posição x
                 0,
-                r.getWidth(),
-                r.getHeight(),
+                //offset geral 0 para não mover o objeto demais na posição y
+                0,
+                // posicionamos no centro X
+                region.getX() + region.getWidth() / 2f,
+                //Posicionamos no centro y
+                region.getY() + region.getHeight() / 2f,
+                //Como não é um circulo não adicionamos o raio
+                0,
+                //Largura da região recebida diretamente
+                region.getWidth(),
+                //Altura da região recebida diretamente
+                region.getHeight(),
+                //Category bit de liquido
                 LIQUID.bit(),
+                //Mask bit de objetos interativos com liquido
                 LIQUID_SUBMERGEABLE.bit(),
+                //não é circulo
                 false,
                 true // sensor
             );
 
+            //Retornamos a lista de fixtures que vieram a ser criadas
             List<Fixture> fixtures = BodyCreatorHelper.createFixturesFromData(data, liquidBody);
 
+            //Para cada uma das fixtures geradas
             for (int j = 0; j < fixtures.size(); j++) {
+                //Setamos a userData deste para que marque a região de liquido dela
                 fixtures.get(j).setUserData(
-                    new GameObjectTag(ObjectType.LIQUID, this)
+                    new GameObjectTag(ObjectType.LIQUID, region)
                 );
             }
 
+            //Adicionamos na lista de fixtures elas
             fixtureList.addAll(fixtures);
         }
     }
@@ -122,7 +139,6 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, CompositeR
             if (ry + rh > maxY) maxY = ry + rh;
         }
 
-        liquidData.surfaceY = maxY; // maxY já está em pixels
     }
 
     @Override
@@ -132,97 +148,97 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, CompositeR
 //        checkRoomObjectLiquidInteraction();
     }
 
-    private void checkRoomObjectLiquidInteraction(){
-        List<BaseRoomGameObject> objList = ownerRoom.roomGameObjectList;
-        currentInsideBuffer.clear();
+//    private void checkRoomObjectLiquidInteraction(){
+//        List<BaseRoomGameObject> objList = ownerRoom.roomGameObjectList;
+//        currentInsideBuffer.clear();
+//
+//        // Coleta quem está dentro AGORA
+//        for (int i = 0; i < objList.size(); i++) {
+//            BaseRoomGameObject obj = objList.get(i);
+//
+//            // evita dupla detecção no mesmo frame
+//            if (obj instanceof MultiLiquidInteractableObjectII) {
+//                processCompositeObject((MultiLiquidInteractableObjectII) obj, currentInsideBuffer);
+//            } else if (obj instanceof SimpleLiquidInteractableObjectII) {
+//                processSimpleObject((SimpleLiquidInteractableObjectII) obj, currentInsideBuffer);
+//            }
+//        }
+//
+//        // Detecta ENTRADAS
+//        for (SimpleLiquidInteractableObjectII obj : currentInsideBuffer) {
+//            if (!insideSet.contains(obj)) {
+//                obj.getLiquidInteractionC().addLiquid(liquidData);
+//            }
+//        }
+//
+//        // Detecta SAÍDAS
+//        for (SimpleLiquidInteractableObjectII obj : insideSet) {
+//            if (!currentInsideBuffer.contains(obj)) {
+//                obj.getLiquidInteractionC().removeLiquid(liquidData);
+//            }
+//        }
+//
+//        // Replace: insideSet vira cópia de currentInsideBuffer
+//        insideSet.clear();
+//        insideSet.addAll(currentInsideBuffer);
+//    }
 
-        // Coleta quem está dentro AGORA
-        for (int i = 0; i < objList.size(); i++) {
-            BaseRoomGameObject obj = objList.get(i);
+    // Processa objeto simples (implementa LiquidInteractableObjectII)
+//    private void processSimpleObject(SimpleLiquidInteractableObjectII obj, Set<SimpleLiquidInteractableObjectII> currentInside) {
+//        TransformComponent t = obj.getTransformC();
+//        if (t == null) return;
+//
+//        if (isInsideLiquid(t)) {
+//            currentInside.add(obj);
+//        }
+//    }
+//
+//    /// Processa objeto composto (implementa MultiLiquidInteractableObject)
+//    private void processCompositeObject(
+//        MultiLiquidInteractableObjectII composite,
+//        Set<SimpleLiquidInteractableObjectII> currentInside
+//    ) {
+//        List<? extends SimpleLiquidInteractableObjectII> liquidObjs = composite.getLiquidIObj();
+//
+//        for (int i = 0; i < liquidObjs.size(); i++) {
+//            SimpleLiquidInteractableObjectII obj = liquidObjs.get(i);
+//            TransformComponent t = obj.getTransformC();
+//            if (t == null) continue;
+//
+//            if (isInsideLiquid(t)) {
+//                currentInside.add(obj);
+//            }
+//        }
+//    }
 
-            // evita dupla detecção no mesmo frame
-            if (obj instanceof MultiLiquidInteractableObjectII) {
-                processCompositeObject((MultiLiquidInteractableObjectII) obj, currentInsideBuffer);
-            } else if (obj instanceof SimpleLiquidInteractableObjectII) {
-                processSimpleObject((SimpleLiquidInteractableObjectII) obj, currentInsideBuffer);
-            }
-        }
-
-        // Detecta ENTRADAS
-        for (SimpleLiquidInteractableObjectII obj : currentInsideBuffer) {
-            if (!insideSet.contains(obj)) {
-                obj.getLiquidInteractionC().addLiquid(liquidData);
-            }
-        }
-
-        // Detecta SAÍDAS
-        for (SimpleLiquidInteractableObjectII obj : insideSet) {
-            if (!currentInsideBuffer.contains(obj)) {
-                obj.getLiquidInteractionC().removeLiquid(liquidData);
-            }
-        }
-
-        // Replace: insideSet vira cópia de currentInsideBuffer
-        insideSet.clear();
-        insideSet.addAll(currentInsideBuffer);
-    }
-
-    /// Processa objeto simples (implementa LiquidInteractableObjectII)
-    private void processSimpleObject(SimpleLiquidInteractableObjectII obj, Set<SimpleLiquidInteractableObjectII> currentInside) {
-        TransformComponent t = obj.getTransformC();
-        if (t == null) return;
-
-        if (isInsideLiquid(t)) {
-            currentInside.add(obj);
-        }
-    }
-
-    /// Processa objeto composto (implementa MultiLiquidInteractableObject)
-    private void processCompositeObject(
-        MultiLiquidInteractableObjectII composite,
-        Set<SimpleLiquidInteractableObjectII> currentInside
-    ) {
-        List<? extends SimpleLiquidInteractableObjectII> liquidObjs = composite.getLiquidIObj();
-
-        for (int i = 0; i < liquidObjs.size(); i++) {
-            SimpleLiquidInteractableObjectII obj = liquidObjs.get(i);
-            TransformComponent t = obj.getTransformC();
-            if (t == null) continue;
-
-            if (isInsideLiquid(t)) {
-                currentInside.add(obj);
-            }
-        }
-    }
-
-    /// AABB simples: detecta overlap entre objeto e qualquer região do líquido
-    private boolean isInsideLiquid(TransformComponent t) {
-        float x = t.x;
-        float y = t.y;
-        float w = t.width;
-        float h = t.height;
-
-        // early reject (ganho grande)
-        if (x + w < minX || x > maxX || y + h < minY || y > maxY) {
-            return false;
-        }
-
-        for (int i = 0; i < regionList.size(); i++) {
-            LiquidRegion r = regionList.get(i);
-
-            // ← Copia locais pra evitar múltiplas chamadas de getter
-            float rx = r.getX();
-            float ry = r.getY();
-            float rw = r.getWidth();
-            float rh = r.getHeight();
-
-            if (x < rx + rw && x + w > rx && y < ry + rh && y + h > ry) {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    // AABB simples: detecta overlap entre objeto e qualquer região do líquido
+//    private boolean isInsideLiquid(TransformComponent t) {
+//        float x = t.x;
+//        float y = t.y;
+//        float w = t.width;
+//        float h = t.height;
+//
+//        // early reject (ganho grande)
+//        if (x + w < minX || x > maxX || y + h < minY || y > maxY) {
+//            return false;
+//        }
+//
+//        for (int i = 0; i < regionList.size(); i++) {
+//            LiquidRegion r = regionList.get(i);
+//
+//            // ← Copia locais pra evitar múltiplas chamadas de getter
+//            float rx = r.getX();
+//            float ry = r.getY();
+//            float rw = r.getWidth();
+//            float rh = r.getHeight();
+//
+//            if (x < rx + rw && x + w > rx && y < ry + rh && y + h > ry) {
+//                return true;
+//            }
+//        }
+//
+//        return false;
+//    }
 
     @Override
     protected void disposeGeneralData() {

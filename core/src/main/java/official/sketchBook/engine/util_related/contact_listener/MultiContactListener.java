@@ -70,12 +70,32 @@ public class MultiContactListener implements ContactListener {
     }
 
     public interface SubContactListener{
+        /**
+         * @param contact contato
+         * @param tagA tag A vinda da body
+         * @param tagB tag B vinda da body
+         */
         void beginContact(Contact contact, GameObjectTag tagA, GameObjectTag tagB);
 
+        /**
+         * @param contact contato
+         * @param tagA tag A vinda da body
+         * @param tagB tag B vinda da body
+         */
         void endContact(Contact contact, GameObjectTag tagA, GameObjectTag tagB);
 
+        /**
+         * @param contact contato
+         * @param tagA tag A vinda da body
+         * @param tagB tag B vinda da body
+         */
         void preSolve(Contact contact, Manifold oldManifold, GameObjectTag tagA, GameObjectTag tagB);
 
+        /**
+         * @param contact contato
+         * @param tagA tag A vinda da body
+         * @param tagB tag B vinda da body
+         */
         void postSolve(Contact contact, ContactImpulse impulse, GameObjectTag tagA, GameObjectTag tagB);
     }
 }

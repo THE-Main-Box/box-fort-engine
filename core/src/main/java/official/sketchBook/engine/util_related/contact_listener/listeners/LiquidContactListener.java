@@ -2,13 +2,16 @@ package official.sketchBook.engine.util_related.contact_listener.listeners;
 
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
+import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.MultiLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
 import official.sketchBook.engine.liquid_related.model.Liquid;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
+import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 import official.sketchBook.engine.util_related.contact_listener.MultiContactListener;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
+import official.sketchBook.engine.util_related.helper.body.BodyTagHelper;
 
 import java.util.List;
 
@@ -16,13 +19,28 @@ public class LiquidContactListener implements MultiContactListener.SubContactLis
 
     @Override
     public void beginContact(Contact contact, GameObjectTag tagA, GameObjectTag tagB) {
-        LiquidData liquid = extractLiquid(tagA, tagB);
-        if (liquid == null) return;
+        LiquidData liquidData =
+            extractLiquidData(
+                tagA,
+                tagB
+            );
+
+        if(liquidData == null)
+            return;
+
+        LiquidRegion region =
+            extractLiquidRegion(contact);
+
+        if(region == null)
+            return;
 
         // Tenta interativo simples primeiro
         SimpleLiquidInteractableObjectII simple = extractSimpleInteractable(tagA, tagB);
         if (simple != null) {
-            simple.getLiquidInteractionC().addLiquid(liquid);
+            simple.getLiquidInteractionC().addLiquid(
+                liquidData,
+                region
+            );
             return;
         }
 
@@ -32,18 +50,34 @@ public class LiquidContactListener implements MultiContactListener.SubContactLis
 
         List<? extends SimpleLiquidInteractableObjectII> list = multi.getLiquidIObj();
         for (int i = 0; i < list.size(); i++) {
-            list.get(i).getLiquidInteractionC().addLiquid(liquid);
+            list.get(i).getLiquidInteractionC().addLiquid(
+                liquidData,
+                region
+            );
         }
     }
 
     @Override
     public void endContact(Contact contact, GameObjectTag tagA, GameObjectTag tagB) {
-        LiquidData liquid = extractLiquid(tagA, tagB);
-        if (liquid == null) return;
+        LiquidData liquidData = extractLiquidData(tagA, tagB);
+
+        if (liquidData == null)
+            return;
+
+        LiquidRegion region =
+            extractLiquidRegion(
+                contact
+            );
+
+        if(region == null)
+            return;
 
         SimpleLiquidInteractableObjectII simple = extractSimpleInteractable(tagA, tagB);
         if (simple != null) {
-            simple.getLiquidInteractionC().removeLiquid(liquid);
+            simple.getLiquidInteractionC().removeLiquid(
+                liquidData,
+                region
+            );
             return;
         }
 
@@ -52,11 +86,15 @@ public class LiquidContactListener implements MultiContactListener.SubContactLis
 
         List<? extends SimpleLiquidInteractableObjectII> list = multi.getLiquidIObj();
         for (int i = 0; i < list.size(); i++) {
-            list.get(i).getLiquidInteractionC().removeLiquid(liquid);
+            list.get(i).getLiquidInteractionC().removeLiquid(
+                liquidData,
+                region
+            );
         }
     }
 
-    private LiquidData extractLiquid(GameObjectTag tagA, GameObjectTag tagB) {
+
+    private LiquidData extractLiquidData(GameObjectTag tagA, GameObjectTag tagB) {
         if (tagA != null && tagA.owner instanceof Liquid)
             return ((Liquid) tagA.owner).getLiquidData();
         if (tagB != null && tagB.owner instanceof Liquid)
@@ -80,9 +118,52 @@ public class LiquidContactListener implements MultiContactListener.SubContactLis
         return null;
     }
 
-    @Override
-    public void preSolve(Contact contact, Manifold oldManifold, GameObjectTag tagA, GameObjectTag tagB) {}
+    private LiquidRegion extractLiquidRegion(
+        Fixture fixture
+    ){
+
+        GameObjectTag tag =
+            BodyTagHelper.getFromFixtureTag(
+                fixture
+            );
+
+        if(
+            tag == null
+                ||
+                !(tag.owner instanceof LiquidRegion)
+        ){
+            return null;
+        }
+
+        return (LiquidRegion) tag.owner;
+
+    }
+
+
+    private LiquidRegion extractLiquidRegion(
+        Contact contact
+    ){
+
+        LiquidRegion region =
+            extractLiquidRegion(
+                contact.getFixtureA()
+            );
+
+        if(region != null)
+            return region;
+
+
+        return extractLiquidRegion(
+            contact.getFixtureB()
+        );
+
+    }
 
     @Override
-    public void postSolve(Contact contact, ContactImpulse impulse, GameObjectTag tagA, GameObjectTag tagB) {}
+    public void preSolve(Contact contact, Manifold oldManifold, GameObjectTag tagA, GameObjectTag tagB) {
+    }
+
+    @Override
+    public void postSolve(Contact contact, ContactImpulse impulse, GameObjectTag tagA, GameObjectTag tagB) {
+    }
 }
