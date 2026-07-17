@@ -1,7 +1,5 @@
 package official.sketchBook.game.gameObject_related;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -14,7 +12,7 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.PhysicalGameObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.RoomGroundInteractableObject;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.VehiclePassenger;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.SubmarinePassenger;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.StaticResourceDisposable;
 import official.sketchBook.engine.components_related.interact.InteractTriggerComponent;
 import official.sketchBook.engine.components_related.movement.JumpComponent;
@@ -43,7 +41,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     RoomGroundInteractableObject,
     JumpCapableObjectII,
     SimpleLiquidInteractableObjectII,
-    VehiclePassenger,
+    SubmarinePassenger,
     InteractionTriggerer {
 
     private boolean inScreen = true;
@@ -259,7 +257,7 @@ public class Player extends AnimatedRenderableRoomGameObject
             WorldConstants.PlayerConstants.categoryBit,
             WorldConstants.PlayerConstants.maskBit,
             0.5f,
-            1f,
+            2f,
             0f
         );
 

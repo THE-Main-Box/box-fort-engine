@@ -137,7 +137,7 @@ public class SubmarinePart implements Disposable {
             new FixtureData(
                 0,
                 0,
-                0,
+                1,
                 globalOffsetX,
                 globalOffsetY,
                 offsetX,

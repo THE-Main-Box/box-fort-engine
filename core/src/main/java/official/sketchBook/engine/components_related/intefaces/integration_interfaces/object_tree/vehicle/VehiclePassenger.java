@@ -8,8 +8,6 @@ import official.sketchBook.engine.components_related.physics.VehiclePassengerPhy
 public interface VehiclePassenger extends PhysicalObjectII {
     VehiclePassengerPhysicsComponent getVehiclePassengerPhysicsC();
 
-    PhysicalMobLiquidInteractionComponent getLiquidInteractionC();
-
     MovementComponent getMoveC();
 
 }

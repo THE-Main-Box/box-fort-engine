@@ -3,6 +3,7 @@ package official.sketchBook.engine.util_related.contact_listener.listeners;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.Manifold;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.SubmarinePassenger;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.VehiclePassenger;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
 import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
@@ -55,7 +56,7 @@ public class SubmarineContactListener implements MultiContactListener.SubContact
         GameObjectTag fixtureTag = getFixtureTagFromContact(contact);
         if (fixtureTag == null || fixtureTag.type != ObjectType.DYNAMIC_DRY_AREA) return false;
 
-        VehiclePassenger passenger = (VehiclePassenger) passengerTag.owner;
+        SubmarinePassenger passenger = (SubmarinePassenger) passengerTag.owner;
         SubmarineNode section = (SubmarineNode) sectionTag.owner;
 
         if (entering) {
