@@ -71,6 +71,11 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     private float equilibriumSubmersionThreshold = 0f;
 
+    private static final float MIN_EQUILIBRIUM_THRESHOLD = 0.16f;
+
+    /// Teto de segurança — não faz sentido o threshold ultrapassar 100% de submersão.
+    private static final float MAX_EQUILIBRIUM_THRESHOLD = 0.95f;
+
     private static final float EQUILIBRIUM_CALIBRATION_FACTOR = 1.5f; // ~0.082 * 1.95 ≈ 0.16
 
     private boolean disposed = false;
@@ -101,7 +106,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         updateSimulation(delta);
         updateStoredMovement();
 
-        if(!inLiquid) return;
+        if (!inLiquid) return;
         object.inLiquidUpdate();
     }
 
@@ -116,14 +121,17 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     // Novo método, chamado sempre que objectDensity ou highestDensityLiquidBuffer mudam:
     private void recalculateEquilibriumThreshold() {
         if (highestDensityLiquidBuffer == null || highestDensityLiquidBuffer.density <= 0f) {
-            equilibriumSubmersionThreshold = 0f;
+            equilibriumSubmersionThreshold = MIN_EQUILIBRIUM_THRESHOLD;
             return;
         }
 
         float theoreticalFraction = objectDensity / highestDensityLiquidBuffer.density;
 
-        equilibriumSubmersionThreshold =
-            MathUtils.clamp(theoreticalFraction * EQUILIBRIUM_CALIBRATION_FACTOR, 0f, 1f);
+        equilibriumSubmersionThreshold = MathUtils.clamp(
+            theoreticalFraction * EQUILIBRIUM_CALIBRATION_FACTOR,
+            MIN_EQUILIBRIUM_THRESHOLD,
+            MAX_EQUILIBRIUM_THRESHOLD
+        );
     }
 
     private void updateSimulation(float delta) {
@@ -517,7 +525,9 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     }
 
     public void setMass(float mass) {
+        if(mass <0) return;
         this.mass = mass;
+        System.out.println(mass);
         markUpdateSimulationData();
     }
 
