@@ -11,6 +11,7 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.PhysicalObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.VehiclePassenger;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.OptmizedRenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
@@ -264,6 +265,16 @@ public class SubmarineNode
             false,
             true
         );
+    }
+
+    @Override
+    public void onPassengerEnter(VehiclePassenger passenger) {
+
+    }
+
+    @Override
+    public void onPassengerExit(VehiclePassenger passenger) {
+
     }
 
     @Override

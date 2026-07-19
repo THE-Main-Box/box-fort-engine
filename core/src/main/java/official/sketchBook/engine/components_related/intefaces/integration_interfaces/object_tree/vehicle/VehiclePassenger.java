@@ -4,9 +4,17 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.VehiclePassengerPhysicsComponent;
+import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
+import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
 
 public interface VehiclePassenger extends PhysicalObjectII {
     VehiclePassengerPhysicsComponent getVehiclePassengerPhysicsC();
+
+    void onSectionChanged(VehicleSection oldSection, VehicleSection newSection);
+
+    void onVehicleEnter(VehicleSection newSection);
+
+    void onVehicleExit(VehicleSection newSection);
 
     MovementComponent getMoveC();
 

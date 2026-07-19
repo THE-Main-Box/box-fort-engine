@@ -177,7 +177,7 @@ public class SubmarinePartBodyCreateHelper {
         Fixture sensor = body.createFixture(def);
 
         sensor.setUserData(
-            new GameObjectTag(ObjectType.DYNAMIC_DRY_AREA, part)
+            new GameObjectTag(ObjectType.DYNAMIC_INTERNAL_AREA, part)
         );
 
         shape.dispose();

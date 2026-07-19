@@ -1,14 +1,11 @@
 package official.sketchBook.game.dataManager_related;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.physics.box2d.Transform;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.system_utils.ControllerGroup;
 import official.sketchBook.game.components_related.vehicle.VehicleControllerComponent;
 import official.sketchBook.game.components_related.vehicle.VehicleDoor;
 import official.sketchBook.game.components_related.vehicle.VehicleEngineComponent;
-import official.sketchBook.game.components_related.vehicle.WirableVehicleDoor;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.vehicle_related.Submarine;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
@@ -155,6 +152,20 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             false
         );
 
+        SubmarineNode node_2 = new SubmarineNode(
+            physicsWorld,
+            getBaseSubmarineParts(),
+            subX + 120,
+            subY,
+            0,
+            0,
+            false,
+            false
+        );
+
+        nodeList.add(
+            node_2
+        );
 
         nodeList.add(
             node_1
@@ -398,7 +409,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             this.contactListeners,
             false,
             ContactUtils.keys.VEHICLE_LISTENER,
-            new SubmarineContactListener()
+            new VehicleContactListener()
         );
 
         ContactUtils.handleContactListener(
