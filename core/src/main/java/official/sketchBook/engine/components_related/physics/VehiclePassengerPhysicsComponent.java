@@ -12,8 +12,6 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
 
     private VehicleSection currentSection;
 
-    private VehiclePassenger passenger;
-
     private MovementComponent moveC;
 
     private float
@@ -33,8 +31,7 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
 
     private final AxisData
         xAxis,
-        yAxis,
-        rAxis;
+        yAxis;
 
     public VehiclePassengerPhysicsComponent(
         VehiclePassenger object,
@@ -53,12 +50,10 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
             rest
         );
 
-        this.passenger = object;
         this.moveC = object.getMoveC();
 
         this.xAxis = moveC.dataComponent.xAxis;
         this.yAxis = moveC.dataComponent.yAxis;
-        this.rAxis = moveC.dataComponent.rAxis;
     }
 
     @Override
@@ -104,6 +99,13 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
 
     @Override
     public void postUpdate() {
+        if (currentSection != null) {
+            updatePosBuffer();
+            syncObjectToBodyPos();
+            object.onObjectAndBodyPosSync();
+            return;
+        }
+
         super.postUpdate();
     }
 
@@ -174,7 +176,6 @@ public class VehiclePassengerPhysicsComponent extends MovableObjectPhysicsCompon
         super.nullifyReferences();
         this.currentSection = null;
         this.moveC = null;
-        this.passenger = null;
     }
 
     public void setCurrentSection(VehicleSection section) {

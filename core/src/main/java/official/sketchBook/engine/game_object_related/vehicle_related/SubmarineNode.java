@@ -256,7 +256,7 @@ public class SubmarineNode
         this.managerC.add(
             physicsC,
             true,
-            true
+            false
         );
 
         this.managerC.add(

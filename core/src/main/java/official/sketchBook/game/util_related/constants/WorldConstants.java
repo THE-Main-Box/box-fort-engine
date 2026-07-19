@@ -63,7 +63,7 @@ public class WorldConstants {
             MAX_MOVE_SPEED_X = 100,
             MAX_MOVE_SPEED_Y = 200,
             MAX_MOVE_SPEED_R = 0,
-            MAX_SPEED_X = 500,
+            MAX_SPEED_X = 400,
             MAX_SPEED_Y = 900,
             MAX_SPEED_R = 0,
             X_DECELERATION = 999,

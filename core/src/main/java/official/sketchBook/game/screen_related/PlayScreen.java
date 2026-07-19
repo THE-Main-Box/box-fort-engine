@@ -159,7 +159,7 @@ public class PlayScreen extends BaseScreen {
                 worldManager,
                 worldManager.getCurrentRoom(),
                 250,
-                40,
+                160,
                 0,
                 0,
                 WIDTH,
