@@ -52,6 +52,8 @@ public class SubmarineNode
 
     private final List<VehicleBaseComponent> vehicleComponentList;
 
+    private final List<VehiclePassenger> passengerList;
+
     /// Dado de massa atual
     private final MassData massData = new MassData();
 
@@ -110,6 +112,7 @@ public class SubmarineNode
         this.physicalParts = physicalParts;
 
         this.vehicleComponentList = new ArrayList<>();
+        this.passengerList = new ArrayList<>();
 
         for (SubmarinePart part : this.physicalParts) {
             part.setSection(this);
@@ -268,12 +271,12 @@ public class SubmarineNode
 
     @Override
     public void onPassengerEnter(VehiclePassenger passenger) {
-
+        passengerList.add(passenger);
     }
 
     @Override
     public void onPassengerExit(VehiclePassenger passenger) {
-
+        passengerList.remove(passenger);
     }
 
     @Override

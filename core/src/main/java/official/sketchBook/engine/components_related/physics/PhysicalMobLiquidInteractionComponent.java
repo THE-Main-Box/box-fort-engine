@@ -252,11 +252,16 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     /// Calcula a fração de submersão (0-1) do retângulo do objeto, ROTACIONADO pelo
     /// ângulo informado (em graus), contra a superfície horizontal do líquido atual.
     ///
-    /// Usado tanto pela submersão "real" (updateSubmersionFraction, ângulo atual)
-    /// quanto pelo side-sampling do torque (ângulos vizinhos, ver applyTorqueStability).
-    /// Implementado via amostragem dos 4 cantos do retângulo: computamos a profundidade
-    /// submersa média dos 4 cantos, clampada — uma aproximação razoável sem precisar de
-    /// recorte poligonal exato contra a linha da superfície.
+    /// Usa o MENOR e o MAIOR Y entre os 4 cantos rotacionados como topo/base efetivos
+    /// do retângulo — isso reduz exatamente à fórmula linear original quando o ângulo
+    /// é 0° (retângulo alinhado), e generaliza corretamente para qualquer rotação.
+    ///
+    /// NOTA: uma versão anterior deste método calculava a MÉDIA da fração de submersão
+    /// de cada canto individualmente (clamped por canto). Isso parecia razoável mas
+    /// divergia sistematicamente da fórmula linear original mesmo em 0° de rotação
+    /// (chegava a ser metade do valor correto em alguns pontos), porque cada canto
+    /// clampado perde a informação de "distância total entre topo e base" — a média de
+    /// clamps independentes não é equivalente a min/max seguido de uma única razão.
     private float calculateSubmersionFractionAtAngle(float angleDegrees) {
         if (currentLiquidRegionBuffer == null) return 0f;
 
@@ -268,17 +273,25 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         float height = t.height;
         if (height <= 0f) return 0f;
 
-        // Fração submersa de cada canto: 1 se totalmente abaixo da superfície, 0 se
-        // acima, interpolado pela altura total do objeto como referência de escala.
-        float totalFraction = 0f;
-        for (int i = 0; i < 4; i++) {
-            float cornerY = cornerYBuffer[i];
-            float submergedDepth = surfaceY - cornerY;
-            float cornerFraction = MathUtils.clamp(submergedDepth / height, 0f, 1f);
-            totalFraction += cornerFraction;
+        float minY = cornerYBuffer[0];
+        float maxY = cornerYBuffer[0];
+        for (int i = 1; i < 4; i++) {
+            float y = cornerYBuffer[i];
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
         }
 
-        return totalFraction / 4f;
+        // totalmente submerso: o topo (maior Y) está abaixo da superfície
+        if (maxY <= surfaceY) return 1f;
+
+        // totalmente fora: a base (menor Y) está acima da superfície
+        if (minY >= surfaceY) return 0f;
+
+        // parcialmente submerso: fração da altura efetiva (maxY - minY) abaixo da superfície
+        float effectiveHeight = maxY - minY;
+        if (effectiveHeight <= 0f) return 0f;
+
+        return MathUtils.clamp((surfaceY - minY) / effectiveHeight, 0f, 1f);
     }
 
     /// Calcula os 4 cantos do retângulo do objeto (definido por TransformComponent:
@@ -362,7 +375,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         float torqueAccel = stabilityGradient * torqueStrength * cachedSubmersionFraction;
 
-        moveC.dataComponent.rAxis.acceleration = torqueAccel;
+        moveC.dataComponent.rAxis.acceleration = -torqueAccel;
     }
 
     private void applyConstraints() {

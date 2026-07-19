@@ -134,7 +134,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         );
 
         float
-            subX = 200,
+            subX = 400,
             subY = 60;
 
         List<SubmarinePart> subParts = getBaseSubmarineParts();

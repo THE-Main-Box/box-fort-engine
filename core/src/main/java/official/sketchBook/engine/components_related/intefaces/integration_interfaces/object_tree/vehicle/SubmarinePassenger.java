@@ -11,18 +11,12 @@ public interface SubmarinePassenger extends VehiclePassenger{
     default void onSectionChanged(VehicleSection oldSection, VehicleSection newSection) {
         if (oldSection instanceof SubmarineNode) {
             SubmarineNode oldNode = (SubmarineNode) oldSection;
-            oldNode.getLiquidInteractionC().setMass(
-                oldNode.getLiquidInteractionC().getMass() -
-                    getLiquidInteractionC().getMass()
-            );
+            oldNode.onPassengerExit(this);
         }
 
         if (newSection instanceof SubmarineNode) {
             SubmarineNode newNode = (SubmarineNode) newSection;
-            newNode.getLiquidInteractionC().setMass(
-                newNode.getLiquidInteractionC().getMass() +
-                    getLiquidInteractionC().getMass()
-            );
+            newNode.onPassengerEnter(this);
         }
     }
 

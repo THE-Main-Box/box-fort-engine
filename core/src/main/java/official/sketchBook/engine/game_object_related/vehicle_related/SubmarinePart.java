@@ -1,5 +1,6 @@
 package official.sketchBook.engine.game_object_related.vehicle_related;
 
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
@@ -10,6 +11,8 @@ import official.sketchBook.engine.util_related.helper.body.FixtureData;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.toMeters;
 
 public class SubmarinePart implements Disposable {
 
@@ -34,6 +37,12 @@ public class SubmarinePart implements Disposable {
         internalMinY,
         internalMaxX,
         internalMaxY;
+
+    /// Massa extra somada por passageiros atualmente localizados dentro desta part
+    /// especificamente (diferente de baseMass, que é a massa estrutural fixa da part).
+    /// Usada para que o centro de massa do node reflita a posição real de onde o peso
+    /// dos passageiros está concentrado, não só o total genérico do node inteiro.
+    private float passengerMass = 0f;
 
     /// Flags auxiliares
     private boolean
@@ -104,6 +113,51 @@ public class SubmarinePart implements Disposable {
         part.boundsCalculated = true;
     }
 
+    /// Encontra a SubmarinePart do node cujos bounds contêm a posição global (em
+    /// pixels) informada. Estático e leve: recebe apenas a lista de parts e os dados
+    /// necessários do node (posição/ângulo do internalBody), sem depender de estado
+    /// de instância — pode ser chamado a qualquer momento sem overhead de alocação
+    /// (reaproveita nenhum buffer próprio, mas não aloca objetos novos no caminho comum).
+    ///
+    /// Retorna null se a posição não cair em bounds de nenhuma part calculada (ex:
+    /// passageiro momentaneamente fora de qualquer área interna válida).
+    public static SubmarinePart findPartContaining(
+        List<SubmarinePart> parts,
+        float globalPosX,
+        float globalPosY,
+        float nodeBodyPosXMeters,
+        float nodeBodyPosYMeters,
+        float nodeBodyAngleRadians
+    ) {
+        if (parts == null || parts.isEmpty()) return null;
+
+        // Posição global (pixels) convertida para metros, relativa à origem do internalBody
+        float relXMeters = toMeters(globalPosX) - nodeBodyPosXMeters;
+        float relYMeters = toMeters(globalPosY) - nodeBodyPosYMeters;
+
+        // Desrotaciona pela rotação atual do body — os bounds internos das parts são
+        // calculados em espaço LOCAL do body (sem rotação), então precisamos trazer a
+        // posição global de volta para esse espaço local antes de comparar contra
+        // internalMinX/MaxX/MinY/MaxY.
+        float cos = MathUtils.cos(-nodeBodyAngleRadians);
+        float sin = MathUtils.sin(-nodeBodyAngleRadians);
+
+        float localX = relXMeters * cos - relYMeters * sin;
+        float localY = relXMeters * sin + relYMeters * cos;
+
+        for (int i = 0; i < parts.size(); i++) {
+            SubmarinePart part = parts.get(i);
+            if (!part.isBoundsCalculated()) continue;
+
+            if (localX >= part.internalMinX && localX <= part.internalMaxX
+                && localY >= part.internalMinY && localY <= part.internalMaxY) {
+                return part;
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Adiciona uma "FixtureDef" na lista para podermos criar ela futuramente
      *
@@ -166,8 +220,20 @@ public class SubmarinePart implements Disposable {
         disposed = true;
     }
 
+    /// Massa total da part: estrutural (baseMass) + passageiros atualmente localizados nela.
     public float getTotalMass() {
-        return baseMass;
+        return baseMass + passengerMass;
+    }
+
+    public float getPassengerMass() {
+        return passengerMass;
+    }
+
+    /// Soma (ou subtrai, com valor negativo) massa de passageiro a esta part
+    /// especificamente. Nunca deixa passengerMass ficar negativo por erro de
+    /// contabilidade (ex: chamada de remoção duplicada).
+    public void addPassengerMass(float deltaMass) {
+        this.passengerMass = Math.max(0f, this.passengerMass + deltaMass);
     }
 
     public VehicleSection getSection() {
