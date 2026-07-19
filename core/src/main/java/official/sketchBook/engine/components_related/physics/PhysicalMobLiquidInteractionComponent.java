@@ -1,6 +1,7 @@
 package official.sketchBook.engine.components_related.physics;
 
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
@@ -13,7 +14,8 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-/// Simula interação física com líquidos — aplica flutuabilidade, resistência e limites de velocidade.
+/// Simula interação física com líquidos — aplica flutuabilidade, resistência, limites de
+/// velocidade e torque de estabilidade rotacional.
 /// Deve ser atualizado após o componente de movimentação.
 public class PhysicalMobLiquidInteractionComponent implements Component {
 
@@ -30,6 +32,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         highestDensityLiquidBuffer,
         highestDragLiquidBuffer;
 
+    /// Região usada apenas para saber o quanto o objeto está submerso (surfaceY), não para densidade/drag
     private LiquidRegion currentLiquidRegionBuffer;
 
     // --- Flags de estado ---
@@ -65,12 +68,14 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         dragMultiplier = 1.0f,          // Multiplicador de resistência ao movimento
         cachedSubmersionFraction = 1f;  // Fração de submersão cacheada — evita recálculo todo frame
 
-    /// Última posição Y conhecida do objeto e última região usada para calcular a
-    /// submersão — usados para pular updateSubmersionFraction() quando nada relevante
-    /// mudou desde o último frame (maior ganho de otimização do pipeline, já que esse
-    /// método rodava incondicionalmente todo frame antes desta revisão).
-    private float lastSubmersionCheckObjectY = Float.NaN;
-    private LiquidRegion lastSubmersionCheckRegion = null;
+    /// Centro de massa do objeto, em pixels, relativo à origem do mundo (mesma origem
+    /// do TransformComponent). Por padrão coincide com o centro geométrico do
+    /// TransformComponent, mas pode ser sobrescrito via updateMassCenter() para
+    /// corpos compostos/assimétricos (ex: SubmarineNode com múltiplas SubmarinePart
+    /// de massas diferentes) — o braço de alavanca do torque de flutuação é medido a
+    /// partir deste ponto, não do centro geométrico puro.
+    private final Vector2 massCenter = new Vector2();
+    private boolean massCenterOverridden = false;
 
     /// Dados de movimentação calculados para o líquido atual (resistência, limites, gravidade)
     private final MovementDataComponent intermediary;
@@ -86,6 +91,22 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     private static final float MAX_EQUILIBRIUM_THRESHOLD = 0.95f;
 
     private static final float EQUILIBRIUM_CALIBRATION_FACTOR = 1.5f;
+
+    // --- Torque de estabilidade rotacional ---
+
+    /// Ângulo de amostragem vizinho (graus) usado para decidir a direção do torque:
+    /// comparamos a submersão no ângulo atual contra +SAMPLE e -SAMPLE, e o lado com
+    /// MAIOR submersão (mais estável, menos volume fora d'água) indica a direção pra
+    /// onde o torque deve empurrar a rotação.
+    private static final float TORQUE_SAMPLE_ANGLE_DEGREES = 5f;
+
+    /// Multiplicador de conversão da diferença de submersão amostrada para o valor de
+    /// aceleração angular aplicado em rAxis.acceleration. Ajustável para tuning.
+    private float torqueStrength = 1f;
+
+    /// Buffer reutilizável para os 4 cantos do retângulo rotacionado, evita alocação por frame.
+    private final float[] cornerXBuffer = new float[4];
+    private final float[] cornerYBuffer = new float[4];
 
     private boolean disposed = false;
 
@@ -157,6 +178,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         updateSubmersionFraction();
 
         applyLiquidPhysics(delta);
+
+        applyTorqueStability(delta);
     }
 
     private void recalculatePhysicsData() {
@@ -215,49 +238,131 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     /// Calcula o quanto o objeto está submerso na região líquida atual (0-1).
     /// Usa apenas as dimensões da região (surfaceY) — não depende de densidade/drag.
-    ///
-    /// OTIMIZAÇÃO: pula o recálculo inteiro se nem a posição Y do objeto nem a região
-    /// de referência mudaram desde a última checagem — este era o único método do
-    /// pipeline que rodava incondicionalmente todo frame, mesmo com o objeto parado.
     private void updateSubmersionFraction() {
         if (currentLiquidRegionBuffer == null) {
             cachedSubmersionFraction = 0f;
-            lastSubmersionCheckRegion = null;
             return;
         }
 
-        TransformComponent t = object.getTransformC();
-        float objectBottomY = t.y;
+        cachedSubmersionFraction = calculateSubmersionFractionAtAngle(
+            object.getTransformC().rotation
+        );
+    }
 
-        boolean regionChanged = currentLiquidRegionBuffer != lastSubmersionCheckRegion;
-        boolean positionUnchanged = !regionChanged
-            && Float.compare(objectBottomY, lastSubmersionCheckObjectY) == 0;
+    /// Calcula a fração de submersão (0-1) do retângulo do objeto, ROTACIONADO pelo
+    /// ângulo informado (em graus), contra a superfície horizontal do líquido atual.
+    ///
+    /// Usado tanto pela submersão "real" (updateSubmersionFraction, ângulo atual)
+    /// quanto pelo side-sampling do torque (ângulos vizinhos, ver applyTorqueStability).
+    /// Implementado via amostragem dos 4 cantos do retângulo: computamos a profundidade
+    /// submersa média dos 4 cantos, clampada — uma aproximação razoável sem precisar de
+    /// recorte poligonal exato contra a linha da superfície.
+    private float calculateSubmersionFractionAtAngle(float angleDegrees) {
+        if (currentLiquidRegionBuffer == null) return 0f;
 
-        if (positionUnchanged) return; // nada mudou, cachedSubmersionFraction continua válido
-
-        lastSubmersionCheckObjectY = objectBottomY;
-        lastSubmersionCheckRegion = currentLiquidRegionBuffer;
-
-        // A superfície do líquido é o TOPO da região (y + height), não a base (y)
         float surfaceY = currentLiquidRegionBuffer.getY() + currentLiquidRegionBuffer.getHeight();
 
-        float objectTopY = objectBottomY + t.height;
+        computeRotatedCorners(angleDegrees, cornerXBuffer, cornerYBuffer);
 
-        // totalmente submerso: o topo do objeto está abaixo da superfície
-        if (objectTopY <= surfaceY) {
-            cachedSubmersionFraction = 1f;
+        TransformComponent t = object.getTransformC();
+        float height = t.height;
+        if (height <= 0f) return 0f;
+
+        // Fração submersa de cada canto: 1 se totalmente abaixo da superfície, 0 se
+        // acima, interpolado pela altura total do objeto como referência de escala.
+        float totalFraction = 0f;
+        for (int i = 0; i < 4; i++) {
+            float cornerY = cornerYBuffer[i];
+            float submergedDepth = surfaceY - cornerY;
+            float cornerFraction = MathUtils.clamp(submergedDepth / height, 0f, 1f);
+            totalFraction += cornerFraction;
+        }
+
+        return totalFraction / 4f;
+    }
+
+    /// Calcula os 4 cantos do retângulo do objeto (definido por TransformComponent:
+    /// x, y, width, height), rotacionados ao redor do centro de massa pelo ângulo
+    /// informado (em graus). Escreve o resultado nos arrays outX/outY (tamanho 4).
+    ///
+    /// Ordem dos cantos: 0 = inferior-esquerdo, 1 = inferior-direito,
+    /// 2 = superior-direito, 3 = superior-esquerdo (sentido anti-horário a partir do
+    /// canto inferior-esquerdo local).
+    private void computeRotatedCorners(float angleDegrees, float[] outX, float[] outY) {
+        TransformComponent t = object.getTransformC();
+
+        float halfW = t.width * 0.5f;
+        float halfH = t.height * 0.5f;
+
+        // Centro geométrico do retângulo (pode diferir do centro de massa)
+        float geomCenterX = t.x + halfW;
+        float geomCenterY = t.y + halfH;
+
+        // Pivot de rotação: usa o centro de massa customizado se foi definido
+        // (updateMassCenter), senão cai no centro geométrico padrão — importante para
+        // objetos simples (ex: Player) que nunca chamam updateMassCenter().
+        float pivotX = massCenterOverridden ? massCenter.x : geomCenterX;
+        float pivotY = massCenterOverridden ? massCenter.y : geomCenterY;
+
+        float rad = angleDegrees * MathUtils.degreesToRadians;
+        float cos = MathUtils.cos(rad);
+        float sin = MathUtils.sin(rad);
+
+        // Cantos locais relativos ao centro GEOMÉTRICO, antes da rotação
+        float[] localX = {-halfW, halfW, halfW, -halfW};
+        float[] localY = {-halfH, -halfH, halfH, halfH};
+
+        for (int i = 0; i < 4; i++) {
+            // Posição absoluta do canto sem rotação
+            float absX = geomCenterX + localX[i];
+            float absY = geomCenterY + localY[i];
+
+            // Rotacionamos ao redor do PIVOT (centro de massa), não do centro geométrico
+            float relX = absX - pivotX;
+            float relY = absY - pivotY;
+
+            float rotatedX = relX * cos - relY * sin;
+            float rotatedY = relX * sin + relY * cos;
+
+            outX[i] = pivotX + rotatedX;
+            outY[i] = pivotY + rotatedY;
+        }
+    }
+
+    /// Calcula e aplica o torque de estabilidade rotacional, baseado na comparação de
+    /// submersão entre o ângulo atual e dois ângulos vizinhos (+/- TORQUE_SAMPLE_ANGLE).
+    /// O lado com MAIOR submersão (mais volume abaixo d'água, mais estável) indica a
+    /// direção pra onde a rotação deve ser empurrada. A força é aplicada via
+    /// rAxis.acceleration, deixando o próprio AxisData resolver a convergência suave
+    /// com resistência (weightFactor/deceleration), em vez de setar rotação direto —
+    /// isso evita o mesmo problema de "salto" que já resolvemos para o eixo Y.
+    private void applyTorqueStability(float delta) {
+        if (!moveC.dataComponent.rAxis.canMove) return;
+        if (currentLiquidRegionBuffer == null || cachedSubmersionFraction <= 0f) {
+            moveC.dataComponent.rAxis.cleanAcceleration();
             return;
         }
 
-        // totalmente fora: a base do objeto está acima da superfície
-        if (objectBottomY >= surfaceY) {
-            cachedSubmersionFraction = 0f;
+        float currentAngle = object.getTransformC().rotation;
+
+        float fractionAtPositive = calculateSubmersionFractionAtAngle(currentAngle + TORQUE_SAMPLE_ANGLE_DEGREES);
+        float fractionAtNegative = calculateSubmersionFractionAtAngle(currentAngle - TORQUE_SAMPLE_ANGLE_DEGREES);
+
+        // Diferença de submersão entre girar pra um lado ou outro. Positivo significa
+        // que girar no sentido positivo (+) aumenta a submersão (mais estável) —
+        // então o torque deve empurrar nessa direção.
+        float stabilityGradient = fractionAtPositive - fractionAtNegative;
+
+        // Sem gradiente relevante (objeto já no ponto de equilíbrio local, ou
+        // simetria perfeita) — não aplica torque, deixa o rAxis desacelerar naturalmente.
+        if (Math.abs(stabilityGradient) < 0.0001f) {
+            moveC.dataComponent.rAxis.cleanAcceleration();
             return;
         }
 
-        // parcialmente submerso: fração da altura do objeto que está abaixo da superfície
-        cachedSubmersionFraction =
-            (surfaceY - objectBottomY) / t.height;
+        float torqueAccel = stabilityGradient * torqueStrength * cachedSubmersionFraction;
+
+        moveC.dataComponent.rAxis.acceleration = torqueAccel;
     }
 
     private void applyConstraints() {
@@ -327,6 +432,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             restartStoredMovementValues();
             resetFlotation();
             moveC.dataComponent.yAxis.resetMovement();
+            moveC.dataComponent.rAxis.cleanAcceleration();
             object.onLiquidExit();
         }
     }
@@ -346,10 +452,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     }
 
     /// Encontra a região líquida mais próxima do centro do objeto.
-    ///
-    /// OTIMIZAÇÃO: early-exit quando só existe uma única região no sistema (caso comum
-    /// para a maioria dos objetos, que só tocam um líquido por vez) — evita o cálculo
-    /// de distância euclidiana desnecessário quando não há nada para comparar.
     private void updateCurrentRegion() {
 
         if (liquidAndRegionMap.isEmpty()) {
@@ -400,9 +502,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     }
 
     /// Encontra o líquido de maior densidade e o de maior drag entre os líquidos em contato.
-    ///
-    /// OTIMIZAÇÃO: early-exit quando só existe um único líquido no sistema (caso comum),
-    /// evitando a iteração de comparação desnecessária.
     private void updateCurrentLiquidData() {
 
         if (liquidAndRegionMap.isEmpty()) {
@@ -453,7 +552,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         ArrayList<LiquidRegion> list = liquidAndRegionMap.get(liquidData);
 
         if (list == null) {
-            list = new ArrayList<>(4); // capacidade inicial pequena — poucas regiões por líquido é o caso comum
+            list = new ArrayList<>(4);
             liquidAndRegionMap.put(liquidData, list);
             needsUpdateCurrentLiquidData = true;
         }
@@ -577,6 +676,37 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         markUpdateSimulationData();
     }
 
+    public float getTorqueStrength() {
+        return torqueStrength;
+    }
+
+    public void setTorqueStrength(float torqueStrength) {
+        this.torqueStrength = torqueStrength;
+    }
+
+    /// Atualiza o centro de massa (em pixels, mesma origem do TransformComponent) usado
+    /// como pivot para o cálculo do torque de estabilidade rotacional. Deve ser chamado
+    /// sempre que a distribuição de massa do objeto mudar (ex: SubmarineNode após
+    /// recalcular a massa de suas SubmarinePart, incluindo passageiros a bordo).
+    ///
+    /// Se nunca chamado, o pivot usado é o centro GEOMÉTRICO do TransformComponent
+    /// (comportamento padrão, correto para objetos simples/simétricos como o Player).
+    public void updateMassCenter(float x, float y) {
+        this.massCenter.set(x, y);
+        this.massCenterOverridden = true;
+    }
+
+    /// Reseta o centro de massa para acompanhar o centro geométrico do
+    /// TransformComponent automaticamente (comportamento padrão).
+    public void clearMassCenterOverride() {
+        this.massCenterOverridden = false;
+    }
+
+    public Vector2 getMassCenter() {
+        return massCenter;
+    }
+
+    /// Marca para rearmazenar valores de movimentação na próxima atualização.
     public void updateCurrentStoredMovementValues() {
         this.needsUpdateStoredMovement = true;
         this.canInteractBuffer = this.canInteract;

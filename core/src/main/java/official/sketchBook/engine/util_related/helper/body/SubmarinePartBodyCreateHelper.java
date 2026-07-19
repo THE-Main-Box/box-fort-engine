@@ -65,7 +65,9 @@ public class SubmarinePartBodyCreateHelper {
 
             //Com o que pode interagir
             externalDef.filter.maskBits = (short) (
-                ENVIRONMENT.bit()
+                VEHICLE.bit()
+                    |
+                    ENVIRONMENT.bit()
                     |
                     PROJECTILES.bit()
                     |

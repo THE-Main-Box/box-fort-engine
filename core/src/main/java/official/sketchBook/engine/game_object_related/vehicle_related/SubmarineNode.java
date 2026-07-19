@@ -1,6 +1,5 @@
 package official.sketchBook.engine.game_object_related.vehicle_related;
 
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -46,7 +45,7 @@ public class SubmarineNode
     private World physicsWorld;
 
     /// Referência ao veículo dono desse node
-    private Submarine vehicle;
+    private Submarine submarine;
 
     /// Lista de partes físicas
     private final List<SubmarinePart> physicalParts;
@@ -215,12 +214,12 @@ public class SubmarineNode
             true,
             true,
             true,
-            false,
             true,
-            false,
-            false,
-            false,
-            false,
+            true,
+            true,
+            true,
+            true,
+            true,
             false,
             true
         );
@@ -492,7 +491,7 @@ public class SubmarineNode
 
     @Override
     public Vehicle getVehicle() {
-        return vehicle;
+        return submarine;
     }
 
     @Override
@@ -509,12 +508,12 @@ public class SubmarineNode
     }
 
     public void setVehicle(Vehicle vehicle) {
-        if (vehicle == this.vehicle ||
+        if (vehicle == this.submarine ||
             !(vehicle instanceof Submarine) ||
-            this.vehicle != null
+            this.submarine != null
         )
             return;
-        this.vehicle = (Submarine) vehicle;
+        this.submarine = (Submarine) vehicle;
     }
 
     @Override

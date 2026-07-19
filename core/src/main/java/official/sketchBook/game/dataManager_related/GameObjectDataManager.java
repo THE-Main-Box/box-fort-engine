@@ -338,6 +338,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         node_1.addVehicleComponent(controller, false, true, true);
 
+        node_1.getMoveC().dataComponent.rAxis.setMovement(1);
         //TO-do: lidar com o sistema de controle,
         //  para que não possamos ativar quando o jogador estiver fora do sub ou fora do alcance correto
 

@@ -25,7 +25,6 @@ public class SubmarinePart implements Disposable {
     public final List<Fixture> internalFixtureList;
 
     public float
-        liquidMass,
         baseMass,
         internalMarginLeft,
         internalMarginRight,
@@ -168,7 +167,7 @@ public class SubmarinePart implements Disposable {
     }
 
     public float getTotalMass() {
-        return baseMass + liquidMass;
+        return baseMass;
     }
 
     public VehicleSection getSection() {
