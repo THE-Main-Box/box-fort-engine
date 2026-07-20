@@ -1,5 +1,6 @@
 package official.sketchBook.game.dataManager_related;
 
+import com.badlogic.gdx.physics.box2d.Transform;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.system_utils.ControllerGroup;
@@ -338,7 +339,12 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         node_1.addVehicleComponent(controller, false, true, true);
 
-        node_1.getMoveC().dataComponent.rAxis.setMovement(1);
+        Transform t = node_1.getBody().getTransform();
+        node_1.getBody().setTransform(
+            t.getPosition(),
+            45
+        );
+
         //TO-do: lidar com o sistema de controle,
         //  para que não possamos ativar quando o jogador estiver fora do sub ou fora do alcance correto
 
@@ -357,7 +363,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         SubmarinePart corridor = new SubmarinePart(1, "corridor");
 
-        corridor.baseMass = 2f;
+        corridor.baseMass = 4.5f;
         corridor.internalMarginDown
             = corridor.internalMarginUp
             = corridor.internalMarginLeft

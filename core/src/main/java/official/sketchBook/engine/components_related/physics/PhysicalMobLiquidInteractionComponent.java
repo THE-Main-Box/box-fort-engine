@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.toPixels;
+
 /// Simula interação física com líquidos — aplica flutuabilidade, resistência, limites de
 /// velocidade e torque de estabilidade rotacional.
 /// Deve ser atualizado após o componente de movimentação.
@@ -373,9 +375,9 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             return;
         }
 
-        float torqueAccel = stabilityGradient * torqueStrength * cachedSubmersionFraction;
+        float torqueAccel = toPixels(stabilityGradient * torqueStrength * cachedSubmersionFraction);
 
-        moveC.dataComponent.rAxis.acceleration = -torqueAccel;
+        moveC.dataComponent.rAxis.setMovement(-torqueAccel);
     }
 
     private void applyConstraints() {
