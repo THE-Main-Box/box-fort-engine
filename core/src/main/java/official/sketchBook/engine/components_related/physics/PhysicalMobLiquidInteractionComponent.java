@@ -14,99 +14,72 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.toPixels;
-
 /// Simula interação física com líquidos — aplica flutuabilidade, resistência, limites de
-/// velocidade e torque de estabilidade rotacional.
+/// velocidade e estabilidade rotacional (busca o ângulo de equilíbrio/máxima submersão).
 /// Deve ser atualizado após o componente de movimentação.
 public class PhysicalMobLiquidInteractionComponent implements Component {
 
-    /// Referência ao objeto dono
     private SimpleLiquidInteractableObjectII object;
-
-    /// Componente de movimentação do objeto dono
     private MovementComponent moveC;
 
-    /// Mapa para identificação de liquidos -> regiões de contato (fixtures)
     private final IdentityHashMap<LiquidData, ArrayList<LiquidRegion>> liquidAndRegionMap = new IdentityHashMap<>();
 
     private LiquidData
         highestDensityLiquidBuffer,
         highestDragLiquidBuffer;
 
-    /// Região usada apenas para saber o quanto o objeto está submerso (surfaceY), não para densidade/drag
     private LiquidRegion currentLiquidRegionBuffer;
 
-    // --- Flags de estado ---
+    private boolean
+        canInteractBuffer = false,
+        canInteract = true,
+        inLiquid = false;
 
     private boolean
-        canInteractBuffer = false,      // Buffer do canInteract — restaurado após armazenar movimento
-        canInteract = true,             // Se pode simular interação com líquidos
-        inLiquid = false;               // Se está fisicamente dentro de um líquido
+        originalValuesStored = false,
+        needsUpdateStoredMovement = true;
 
     private boolean
-        originalValuesStored = false,        // Se os valores originais de movimentação foram armazenados
-        needsUpdateStoredMovement = true;    // Se deve rearmazenar os valores de movimentação
-
-    private boolean
-        needsUpdateCurrentLiquidData = true, // Se precisa atualizar os dados de líquido atual (mais denso / maior drag)
-        needsUpdateCurrentRegion = true,     // Se precisa atualizar a região atual (submersão)
-        needsUpdatePhysicsData = true,       // Se precisa recalcular objectDensity (mass/volume mudaram)
-        needsUpdateMovement = true,          // Se precisamos atualizar os dados de efeito de movimentação em líquido
-        isConstraintsDirty = true;           // Se as constraints precisam ser reaplicadas no moveC
-
-    // --- Dados físicos do objeto ---
+        needsUpdateCurrentLiquidData = true,
+        needsUpdateCurrentRegion = true,
+        needsUpdatePhysicsData = true,
+        needsUpdateMovement = true,
+        isConstraintsDirty = true;
 
     private float
-        objectDensity,                  // Densidade cacheada do objeto (mass / volume) — só recalcula via dirty flag
-        mass,                           // Massa do objeto
-        volume;                         // Volume do objeto
+        objectDensity,
+        mass,
+        volume;
 
     private float
-        floatEffectValue,               // Força de flutuabilidade calculada
-        floatEffectValueModifier;       // Modificador externo de flutuabilidade
+        floatEffectValue,
+        floatEffectValueModifier;
 
     private float
-        dragMultiplier = 1.0f,          // Multiplicador de resistência ao movimento
-        cachedSubmersionFraction = 1f;  // Fração de submersão cacheada — evita recálculo todo frame
+        dragMultiplier = 1.0f,
+        cachedSubmersionFraction = 1f;
 
-    /// Centro de massa do objeto, em pixels, relativo à origem do mundo (mesma origem
-    /// do TransformComponent). Por padrão coincide com o centro geométrico do
-    /// TransformComponent, mas pode ser sobrescrito via updateMassCenter() para
-    /// corpos compostos/assimétricos (ex: SubmarineNode com múltiplas SubmarinePart
-    /// de massas diferentes) — o braço de alavanca do torque de flutuação é medido a
-    /// partir deste ponto, não do centro geométrico puro.
     private final Vector2 massCenter = new Vector2();
     private boolean massCenterOverridden = false;
 
-    /// Dados de movimentação calculados para o líquido atual (resistência, limites, gravidade)
     private final MovementDataComponent intermediary;
-
-    /// Snapshot dos dados de movimentação originais — restaurados ao sair do líquido
     private final MovementDataComponent storedMovementData;
 
     private float equilibriumSubmersionThreshold = 0f;
 
     private static final float MIN_EQUILIBRIUM_THRESHOLD = 0.16f;
-
-    /// Teto de segurança — não faz sentido o threshold ultrapassar 100% de submersão.
     private static final float MAX_EQUILIBRIUM_THRESHOLD = 0.95f;
-
     private static final float EQUILIBRIUM_CALIBRATION_FACTOR = 1.5f;
 
-    // --- Torque de estabilidade rotacional ---
+    private static final float EQUILIBRIUM_SCAN_STEP_DEGREES = 15f;
 
-    /// Ângulo de amostragem vizinho (graus) usado para decidir a direção do torque:
-    /// comparamos a submersão no ângulo atual contra +SAMPLE e -SAMPLE, e o lado com
-    /// MAIOR submersão (mais estável, menos volume fora d'água) indica a direção pra
-    /// onde o torque deve empurrar a rotação.
-    private static final float TORQUE_SAMPLE_ANGLE_DEGREES = 5f;
+    private float equilibriumAngleDegrees = 0f;
+    private boolean needsRecalculateEquilibriumAngle = true;
 
-    /// Multiplicador de conversão da diferença de submersão amostrada para o valor de
-    /// aceleração angular aplicado em rAxis.acceleration. Ajustável para tuning.
+    private static final float EQUILIBRIUM_ANGLE_TOLERANCE_DEGREES = 1f;
+
     private float torqueStrength = 1f;
 
-    /// Buffer reutilizável para os 4 cantos do retângulo rotacionado, evita alocação por frame.
     private final float[] cornerXBuffer = new float[4];
     private final float[] cornerYBuffer = new float[4];
 
@@ -117,13 +90,9 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         this.moveC = object.getMoveC();
         this.storedMovementData = new MovementDataComponent();
         this.intermediary = new MovementDataComponent();
-        // Armazena os valores originais de movimentação na primeira oportunidade
         this.updateCurrentStoredMovementValues();
     }
 
-    // --- Pipeline ---
-
-    /// Restaura canInteract e armazena valores de movimentação quando solicitado
     private void updateStoredMovement() {
         if (!needsUpdateStoredMovement) return;
         storeCurrentMovementValues();
@@ -149,8 +118,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     public void initObject() {
     }
 
-    /// Recalcula a fração de submersão de equilíbrio teórica (Arquimedes calibrado).
-    /// Chamado sempre que objectDensity ou o líquido de maior densidade mudam.
     private void recalculateEquilibriumThreshold() {
         if (highestDensityLiquidBuffer == null || highestDensityLiquidBuffer.density <= 0f) {
             equilibriumSubmersionThreshold = MIN_EQUILIBRIUM_THRESHOLD;
@@ -167,21 +134,17 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     }
 
     private void updateSimulation(float delta) {
-
         boolean shouldSimulate = canInteract && !liquidAndRegionMap.isEmpty();
 
         applyChange(shouldSimulate);
 
-        if (!shouldSimulate)
-            return;
+        if (!shouldSimulate) return;
 
         updatePhysicsData();
         updateMovementData();
         updateSubmersionFraction();
 
         applyLiquidPhysics(delta);
-
-        applyTorqueStability(delta);
     }
 
     private void recalculatePhysicsData() {
@@ -194,8 +157,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         recalculatePhysicsData();
         recalculateEquilibriumThreshold();
 
-        // A densidade mudou, então o efeito de flutuabilidade precisa ser recalculado também
         needsUpdateMovement = true;
+        needsRecalculateEquilibriumAngle = true;
         needsUpdatePhysicsData = false;
     }
 
@@ -203,33 +166,25 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         if (!needsUpdateMovement) return;
 
         recalculateMovementData();
-
         isConstraintsDirty = true;
-
         needsUpdateMovement = false;
     }
 
     private void applyLiquidPhysics(float delta) {
-
         if (cachedSubmersionFraction <= 0f) {
             resetSimulatedFloatation();
             return;
         }
 
         calculateFloatEffect(highestDensityLiquidBuffer, delta);
-
         applyConstraints();
-
         applyFloat();
     }
 
     private void applyFloat() {
         if (cachedSubmersionFraction <= 0f) return;
 
-        float targetFloat =
-            (floatEffectValue + floatEffectValueModifier)
-                * cachedSubmersionFraction;
-
+        float targetFloat = (floatEffectValue + floatEffectValueModifier) * cachedSubmersionFraction;
         moveC.dataComponent.yAxis.setMovement(targetFloat);
     }
 
@@ -238,32 +193,15 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         calculateResistance(highestDragLiquidBuffer);
     }
 
-    /// Calcula o quanto o objeto está submerso na região líquida atual (0-1).
-    /// Usa apenas as dimensões da região (surfaceY) — não depende de densidade/drag.
     private void updateSubmersionFraction() {
         if (currentLiquidRegionBuffer == null) {
             cachedSubmersionFraction = 0f;
             return;
         }
 
-        cachedSubmersionFraction = calculateSubmersionFractionAtAngle(
-            object.getTransformC().rotation
-        );
+        cachedSubmersionFraction = calculateSubmersionFractionAtAngle(object.getTransformC().rotation);
     }
 
-    /// Calcula a fração de submersão (0-1) do retângulo do objeto, ROTACIONADO pelo
-    /// ângulo informado (em graus), contra a superfície horizontal do líquido atual.
-    ///
-    /// Usa o MENOR e o MAIOR Y entre os 4 cantos rotacionados como topo/base efetivos
-    /// do retângulo — isso reduz exatamente à fórmula linear original quando o ângulo
-    /// é 0° (retângulo alinhado), e generaliza corretamente para qualquer rotação.
-    ///
-    /// NOTA: uma versão anterior deste método calculava a MÉDIA da fração de submersão
-    /// de cada canto individualmente (clamped por canto). Isso parecia razoável mas
-    /// divergia sistematicamente da fórmula linear original mesmo em 0° de rotação
-    /// (chegava a ser metade do valor correto em alguns pontos), porque cada canto
-    /// clampado perde a informação de "distância total entre topo e base" — a média de
-    /// clamps independentes não é equivalente a min/max seguido de uma única razão.
     private float calculateSubmersionFractionAtAngle(float angleDegrees) {
         if (currentLiquidRegionBuffer == null) return 0f;
 
@@ -283,39 +221,24 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             if (y > maxY) maxY = y;
         }
 
-        // totalmente submerso: o topo (maior Y) está abaixo da superfície
         if (maxY <= surfaceY) return 1f;
-
-        // totalmente fora: a base (menor Y) está acima da superfície
         if (minY >= surfaceY) return 0f;
 
-        // parcialmente submerso: fração da altura efetiva (maxY - minY) abaixo da superfície
         float effectiveHeight = maxY - minY;
         if (effectiveHeight <= 0f) return 0f;
 
         return MathUtils.clamp((surfaceY - minY) / effectiveHeight, 0f, 1f);
     }
 
-    /// Calcula os 4 cantos do retângulo do objeto (definido por TransformComponent:
-    /// x, y, width, height), rotacionados ao redor do centro de massa pelo ângulo
-    /// informado (em graus). Escreve o resultado nos arrays outX/outY (tamanho 4).
-    ///
-    /// Ordem dos cantos: 0 = inferior-esquerdo, 1 = inferior-direito,
-    /// 2 = superior-direito, 3 = superior-esquerdo (sentido anti-horário a partir do
-    /// canto inferior-esquerdo local).
     private void computeRotatedCorners(float angleDegrees, float[] outX, float[] outY) {
         TransformComponent t = object.getTransformC();
 
         float halfW = t.width * 0.5f;
         float halfH = t.height * 0.5f;
 
-        // Centro geométrico do retângulo (pode diferir do centro de massa)
         float geomCenterX = t.x + halfW;
         float geomCenterY = t.y + halfH;
 
-        // Pivot de rotação: usa o centro de massa customizado se foi definido
-        // (updateMassCenter), senão cai no centro geométrico padrão — importante para
-        // objetos simples (ex: Player) que nunca chamam updateMassCenter().
         float pivotX = massCenterOverridden ? massCenter.x : geomCenterX;
         float pivotY = massCenterOverridden ? massCenter.y : geomCenterY;
 
@@ -323,16 +246,13 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         float cos = MathUtils.cos(rad);
         float sin = MathUtils.sin(rad);
 
-        // Cantos locais relativos ao centro GEOMÉTRICO, antes da rotação
         float[] localX = {-halfW, halfW, halfW, -halfW};
         float[] localY = {-halfH, -halfH, halfH, halfH};
 
         for (int i = 0; i < 4; i++) {
-            // Posição absoluta do canto sem rotação
             float absX = geomCenterX + localX[i];
             float absY = geomCenterY + localY[i];
 
-            // Rotacionamos ao redor do PIVOT (centro de massa), não do centro geométrico
             float relX = absX - pivotX;
             float relY = absY - pivotY;
 
@@ -344,46 +264,9 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         }
     }
 
-    /// Calcula e aplica o torque de estabilidade rotacional, baseado na comparação de
-    /// submersão entre o ângulo atual e dois ângulos vizinhos (+/- TORQUE_SAMPLE_ANGLE).
-    /// O lado com MAIOR submersão (mais volume abaixo d'água, mais estável) indica a
-    /// direção pra onde a rotação deve ser empurrada. A força é aplicada via
-    /// rAxis.acceleration, deixando o próprio AxisData resolver a convergência suave
-    /// com resistência (weightFactor/deceleration), em vez de setar rotação direto —
-    /// isso evita o mesmo problema de "salto" que já resolvemos para o eixo Y.
-    private void applyTorqueStability(float delta) {
-        if (!moveC.dataComponent.rAxis.canMove) return;
-        if (currentLiquidRegionBuffer == null || cachedSubmersionFraction <= 0f) {
-            moveC.dataComponent.rAxis.cleanAcceleration();
-            return;
-        }
-
-        float currentAngle = object.getTransformC().rotation;
-
-        float fractionAtPositive = calculateSubmersionFractionAtAngle(currentAngle + TORQUE_SAMPLE_ANGLE_DEGREES);
-        float fractionAtNegative = calculateSubmersionFractionAtAngle(currentAngle - TORQUE_SAMPLE_ANGLE_DEGREES);
-
-        // Diferença de submersão entre girar pra um lado ou outro. Positivo significa
-        // que girar no sentido positivo (+) aumenta a submersão (mais estável) —
-        // então o torque deve empurrar nessa direção.
-        float stabilityGradient = fractionAtPositive - fractionAtNegative;
-
-        // Sem gradiente relevante (objeto já no ponto de equilíbrio local, ou
-        // simetria perfeita) — não aplica torque, deixa o rAxis desacelerar naturalmente.
-        if (Math.abs(stabilityGradient) < 0.0001f) {
-            moveC.dataComponent.rAxis.cleanAcceleration();
-            return;
-        }
-
-        float torqueAccel = toPixels(stabilityGradient * torqueStrength * cachedSubmersionFraction);
-
-        moveC.dataComponent.rAxis.setMovement(-torqueAccel);
-    }
-
     private void applyConstraints() {
         if (!isConstraintsDirty) return;
 
-        // Cacheia a referência local para evitar resolver moveC.dataComponent repetidamente
         MovementDataComponent target = moveC.dataComponent;
 
         target.xAxis.weightFactor = intermediary.xAxis.weightFactor;
@@ -404,18 +287,11 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         isConstraintsDirty = false;
     }
 
-    /// Calcula a força de flutuabilidade simulada com base na diferença de densidade
-    /// entre objeto e líquido, integrada suavemente ao longo do tempo (delta).
-    /// O floatEffectValueModifier NÃO participa dessa integração — é somado
-    /// separadamente em applyFloat(), como um valor forçado por frame.
     private void calculateFloatEffect(LiquidData data, float delta) {
         if (data == null || volume <= 0f) return;
 
-        float targetFloatEffect =
-            (data.density - objectDensity) * volume;
+        float targetFloatEffect = (data.density - objectDensity) * volume;
 
-        // Perto da superfície (submersão abaixo do limiar), travamos o valor
-        // diretamente no alvo já achatado pela submersão, evitando acúmulo residual.
         if (cachedSubmersionFraction < equilibriumSubmersionThreshold) {
             floatEffectValue = targetFloatEffect * cachedSubmersionFraction;
             return;
@@ -423,8 +299,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         floatEffectValue += (targetFloatEffect - floatEffectValue) * Math.min(delta, 1f);
 
-        // Nunca ultrapassa o alvo teórico em módulo — reaproveita o sinal de
-        // targetFloatEffect em vez de recalcular Math.abs duas vezes.
         if (targetFloatEffect >= 0f) {
             if (floatEffectValue > targetFloatEffect) floatEffectValue = targetFloatEffect;
             else if (floatEffectValue < -targetFloatEffect) floatEffectValue = -targetFloatEffect;
@@ -435,7 +309,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     }
 
     private void applyChange(boolean shouldSimulate) {
-
         if (shouldSimulate && !inLiquid) {
             inLiquid = true;
             object.onLiquidEnter();
@@ -447,13 +320,12 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             restartStoredMovementValues();
             resetFlotation();
             moveC.dataComponent.yAxis.resetMovement();
-            moveC.dataComponent.rAxis.cleanAcceleration();
+            moveC.dataComponent.rAxis.resetMovement();
             object.onLiquidExit();
         }
     }
 
     private void updateLiquidState() {
-
         if (needsUpdateCurrentRegion) {
             updateCurrentRegion();
             needsUpdateCurrentRegion = false;
@@ -466,15 +338,12 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         }
     }
 
-    /// Encontra a região líquida mais próxima do centro do objeto.
     private void updateCurrentRegion() {
-
         if (liquidAndRegionMap.isEmpty()) {
             currentLiquidRegionBuffer = null;
             return;
         }
 
-        // Fast path: única região em contato, não há o que comparar
         if (liquidAndRegionMap.size() == 1) {
             ArrayList<LiquidRegion> onlyList = liquidAndRegionMap.values().iterator().next();
             if (onlyList.size() == 1) {
@@ -494,7 +363,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             ArrayList<LiquidRegion> list = entry.getValue();
 
             for (int i = 0; i < list.size(); i++) {
-
                 LiquidRegion region = list.get(i);
                 if (region == null) continue;
 
@@ -516,9 +384,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         currentLiquidRegionBuffer = closestRegion;
     }
 
-    /// Encontra o líquido de maior densidade e o de maior drag entre os líquidos em contato.
     private void updateCurrentLiquidData() {
-
         if (liquidAndRegionMap.isEmpty()) {
             highestDensityLiquidBuffer = null;
             highestDragLiquidBuffer = null;
@@ -531,6 +397,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             highestDensityLiquidBuffer = onlyData;
             highestDragLiquidBuffer = onlyData;
             recalculateEquilibriumThreshold();
+            needsRecalculateEquilibriumAngle = true;
             return;
         }
 
@@ -538,29 +405,23 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         LiquidData highestDrag = null;
 
         for (LiquidData data : liquidAndRegionMap.keySet()) {
-
             if (highestDensity == null) {
                 highestDensity = data;
                 highestDrag = data;
                 continue;
             }
 
-            if (data.density > highestDensity.density)
-                highestDensity = data;
-
-            if (data.drag > highestDrag.drag)
-                highestDrag = data;
+            if (data.density > highestDensity.density) highestDensity = data;
+            if (data.drag > highestDrag.drag) highestDrag = data;
         }
 
         highestDensityLiquidBuffer = highestDensity;
         highestDragLiquidBuffer = highestDrag;
 
         recalculateEquilibriumThreshold();
+        needsRecalculateEquilibriumAngle = true;
     }
 
-    // --- Liquid buffer ---
-
-    /// Registra contato com um líquido/região. Só marca para recálculo quando necessário.
     public void addLiquid(LiquidData liquidData, LiquidRegion region) {
         if (region == null || liquidData == null) return;
 
@@ -576,7 +437,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         needsUpdateCurrentRegion = true;
     }
 
-    /// Remove contato com um líquido/região. Só remove os dados do líquido quando a última região sai.
     public void removeLiquid(LiquidData liquidData, LiquidRegion region) {
         if (liquidData == null || region == null) return;
 
@@ -596,8 +456,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         }
     }
 
-    // --- Movement data ---
-
     private void storeCurrentMovementValues() {
         if (originalValuesStored) return;
         this.storedMovementData.set(moveC.dataComponent);
@@ -614,8 +472,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         intermediary.set(storedMovementData);
     }
 
-    // --- Recalculation ---
-
     private void calculateResistance(LiquidData data) {
         if (data == null) return;
 
@@ -629,8 +485,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         intermediary.yAxis.deceleration = storedMovementData.yAxis.deceleration + drag;
         intermediary.rAxis.deceleration = storedMovementData.rAxis.deceleration + drag;
     }
-
-    // --- Getters / Setters ---
 
     private void markUpdateSimulationData() {
         needsUpdatePhysicsData = true;
@@ -699,29 +553,25 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         this.torqueStrength = torqueStrength;
     }
 
-    /// Atualiza o centro de massa (em pixels, mesma origem do TransformComponent) usado
-    /// como pivot para o cálculo do torque de estabilidade rotacional. Deve ser chamado
-    /// sempre que a distribuição de massa do objeto mudar (ex: SubmarineNode após
-    /// recalcular a massa de suas SubmarinePart, incluindo passageiros a bordo).
-    ///
-    /// Se nunca chamado, o pivot usado é o centro GEOMÉTRICO do TransformComponent
-    /// (comportamento padrão, correto para objetos simples/simétricos como o Player).
+    public float getEquilibriumAngleDegrees() {
+        return equilibriumAngleDegrees;
+    }
+
     public void updateMassCenter(float x, float y) {
         this.massCenter.set(x, y);
         this.massCenterOverridden = true;
+        this.needsRecalculateEquilibriumAngle = true;
     }
 
-    /// Reseta o centro de massa para acompanhar o centro geométrico do
-    /// TransformComponent automaticamente (comportamento padrão).
     public void clearMassCenterOverride() {
         this.massCenterOverridden = false;
+        this.needsRecalculateEquilibriumAngle = true;
     }
 
     public Vector2 getMassCenter() {
         return massCenter;
     }
 
-    /// Marca para rearmazenar valores de movimentação na próxima atualização.
     public void updateCurrentStoredMovementValues() {
         this.needsUpdateStoredMovement = true;
         this.canInteractBuffer = this.canInteract;
@@ -741,8 +591,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     public boolean hasFloatation() {
         return floatEffectValueModifier != 0 || floatEffectValue != 0;
     }
-
-    // --- Dispose ---
 
     @Override
     public void dispose() {

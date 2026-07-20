@@ -124,7 +124,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             "water",
             1,
             11f,
-            5f
+            2f
         );
 
         RoomLiquid water = new RoomLiquid(
@@ -136,7 +136,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         float
             subX = 400,
-            subY = 60;
+            subY = 190;
 
         List<SubmarinePart> subParts = getBaseSubmarineParts();
 
@@ -363,7 +363,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         SubmarinePart corridor = new SubmarinePart(1, "corridor");
 
-        corridor.baseMass = 4.5f;
+        corridor.baseMass = 1.5f;
         corridor.internalMarginDown
             = corridor.internalMarginUp
             = corridor.internalMarginLeft
