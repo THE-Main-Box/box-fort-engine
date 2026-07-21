@@ -5,7 +5,7 @@ import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.MultiLiquidInteractableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.LiquidInteractableObjectII;
 import official.sketchBook.engine.liquid_related.model.Liquid;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
@@ -35,7 +35,7 @@ public class LiquidContactListener implements MultiContactListener.SubContactLis
             return;
 
         // Tenta interativo simples primeiro
-        SimpleLiquidInteractableObjectII simple = extractSimpleInteractable(tagA, tagB);
+        LiquidInteractableObjectII simple = extractSimpleInteractable(tagA, tagB);
         if (simple != null) {
             simple.getLiquidInteractionC().addLiquid(
                 liquidData,
@@ -48,7 +48,7 @@ public class LiquidContactListener implements MultiContactListener.SubContactLis
         MultiLiquidInteractableObjectII multi = extractMultiInteractable(tagA, tagB);
         if (multi == null) return;
 
-        List<? extends SimpleLiquidInteractableObjectII> list = multi.getLiquidIObj();
+        List<? extends LiquidInteractableObjectII> list = multi.getLiquidIObj();
         for (int i = 0; i < list.size(); i++) {
             list.get(i).getLiquidInteractionC().addLiquid(
                 liquidData,
@@ -72,7 +72,7 @@ public class LiquidContactListener implements MultiContactListener.SubContactLis
         if(region == null)
             return;
 
-        SimpleLiquidInteractableObjectII simple = extractSimpleInteractable(tagA, tagB);
+        LiquidInteractableObjectII simple = extractSimpleInteractable(tagA, tagB);
         if (simple != null) {
             simple.getLiquidInteractionC().removeLiquid(
                 liquidData,
@@ -84,7 +84,7 @@ public class LiquidContactListener implements MultiContactListener.SubContactLis
         MultiLiquidInteractableObjectII multi = extractMultiInteractable(tagA, tagB);
         if (multi == null) return;
 
-        List<? extends SimpleLiquidInteractableObjectII> list = multi.getLiquidIObj();
+        List<? extends LiquidInteractableObjectII> list = multi.getLiquidIObj();
         for (int i = 0; i < list.size(); i++) {
             list.get(i).getLiquidInteractionC().removeLiquid(
                 liquidData,
@@ -102,11 +102,11 @@ public class LiquidContactListener implements MultiContactListener.SubContactLis
         return null;
     }
 
-    private SimpleLiquidInteractableObjectII extractSimpleInteractable(GameObjectTag tagA, GameObjectTag tagB) {
-        if (tagA != null && !(tagA.owner instanceof Liquid) && tagA.owner instanceof SimpleLiquidInteractableObjectII)
-            return (SimpleLiquidInteractableObjectII) tagA.owner;
-        if (tagB != null && !(tagB.owner instanceof Liquid) && tagB.owner instanceof SimpleLiquidInteractableObjectII)
-            return (SimpleLiquidInteractableObjectII) tagB.owner;
+    private LiquidInteractableObjectII extractSimpleInteractable(GameObjectTag tagA, GameObjectTag tagB) {
+        if (tagA != null && !(tagA.owner instanceof Liquid) && tagA.owner instanceof LiquidInteractableObjectII)
+            return (LiquidInteractableObjectII) tagA.owner;
+        if (tagB != null && !(tagB.owner instanceof Liquid) && tagB.owner instanceof LiquidInteractableObjectII)
+            return (LiquidInteractableObjectII) tagB.owner;
         return null;
     }
 

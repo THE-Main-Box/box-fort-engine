@@ -2,8 +2,7 @@ package official.sketchBook.engine.liquid_related.model;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.*;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.MultiLiquidInteractableObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.LiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.CompositeRenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.OptmizedRenderableObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
@@ -31,7 +30,7 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, CompositeR
     private LiquidData liquidData;
     private Body liquidBody;
 
-    private final Set<SimpleLiquidInteractableObjectII>
+    private final Set<LiquidInteractableObjectII>
         currentInsideBuffer = new HashSet<>(),
         insideSet = new HashSet<>();
 

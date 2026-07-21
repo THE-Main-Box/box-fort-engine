@@ -7,7 +7,7 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import official.sketchBook.engine.animation_rendering_related.ObjectAnimationPlayer;
 import official.sketchBook.engine.animation_rendering_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.InteractionTriggerer;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.LiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.JumpCapableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.PhysicalGameObjectII;
@@ -18,6 +18,7 @@ import official.sketchBook.engine.components_related.interact.InteractTriggerCom
 import official.sketchBook.engine.components_related.movement.JumpComponent;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.physics.*;
+import official.sketchBook.engine.components_related.system_utils.SubmersibleVolume;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.animated_renderable_game_object.AnimatedRenderableRoomGameObject;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
@@ -31,6 +32,9 @@ import official.sketchBook.game.components_related.player.PlayerControllerCompon
 import official.sketchBook.game.util_related.constants.WorldConstants;
 import official.sketchBook.game.util_related.path.GameAssetsPaths;
 
+import java.util.Collections;
+import java.util.List;
+
 import static official.sketchBook.game.components_related.player.PlayerAnimationInitializerComponent.initAnimations;
 
 public class Player extends AnimatedRenderableRoomGameObject
@@ -40,7 +44,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     PhysicalGameObjectII,
     RoomGroundInteractableObject,
     JumpCapableObjectII,
-    SimpleLiquidInteractableObjectII,
+        LiquidInteractableObjectII,
     SubmarinePassenger,
     InteractionTriggerer {
 
@@ -231,7 +235,7 @@ public class Player extends AnimatedRenderableRoomGameObject
             0,
             true,
             true,
-            false,
+            true,
             true,
             true,
             false,
@@ -489,6 +493,18 @@ public class Player extends AnimatedRenderableRoomGameObject
 //            );
 //        }
 
+    }
+
+    @Override
+    public List<SubmersibleVolume> getSubmersibleVolume() {
+        SubmersibleVolume vol = new SubmersibleVolume(
+            0,
+            0,
+            transformC.width,
+            transformC.height
+        );
+
+        return Collections.singletonList(vol);
     }
 
     @Override

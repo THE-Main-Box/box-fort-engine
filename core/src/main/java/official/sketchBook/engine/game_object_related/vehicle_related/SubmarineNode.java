@@ -9,7 +9,7 @@ import com.badlogic.gdx.utils.Disposable;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.InteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.PhysicalObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.SimpleLiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.LiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.VehiclePassenger;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.OptmizedRenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
@@ -20,6 +20,7 @@ import official.sketchBook.engine.components_related.physics.MovableObjectPhysic
 import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.components_related.system_utils.RenderableAndDefaultComponentManagerComponent;
+import official.sketchBook.engine.components_related.system_utils.SubmersibleVolume;
 import official.sketchBook.engine.components_related.vehicle.VehicleBaseComponent;
 import official.sketchBook.engine.data_manager_related.BaseGameObjectDataManager;
 import official.sketchBook.game.util_related.constants.DebugConstants;
@@ -36,7 +37,7 @@ import static official.sketchBook.game.util_related.constants.PhysicsConstants.t
 public class SubmarineNode
     implements
     MovableObjectII,
-    SimpleLiquidInteractableObjectII,
+    LiquidInteractableObjectII,
     PhysicalObjectII,
     VehicleSection,
     OptmizedRenderableObjectII,
@@ -290,6 +291,11 @@ public class SubmarineNode
     @Override
     public void inLiquidUpdate() {
 
+    }
+
+    @Override
+    public List<SubmersibleVolume> getSubmersibleVolume() {
+        return null;
     }
 
     @Override
