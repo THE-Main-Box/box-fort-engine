@@ -101,7 +101,7 @@ public class PlayScreen extends BaseScreen {
             250,
             40,
             0,
-            0,
+            45,
             WIDTH,
             HEIGHT,
             1f,

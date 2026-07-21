@@ -81,7 +81,7 @@ public abstract class BaseProjectile
     ){
         this.transformC.x = x;
         this.transformC.y = y;
-        this.transformC.rotation = rotation;
+        this.transformC.setRotation(rotation);
     }
 
     /// Chama os métodos de disparo do controlador

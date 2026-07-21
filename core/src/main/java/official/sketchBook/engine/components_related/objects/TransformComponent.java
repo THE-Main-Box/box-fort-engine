@@ -23,7 +23,7 @@ public class TransformComponent {
         mirrorY;
 
     /// Rotação atual do sprite em graus
-    public float rotation;
+    private float rotation;
 
     private float rotatedHalfWidth;
     private float rotatedHalfHeight;
@@ -112,6 +112,23 @@ public class TransformComponent {
         }
 
         rotationDirty = false;
+    }
+
+    public float getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(float rotation) {
+        this.rotation = wrapDegrees(rotation);
+    }
+
+    private float wrapDegrees(float degrees) {
+        degrees = degrees % 360f;
+
+        if (degrees > 180f) degrees -= 360f;
+        else if (degrees < -180f) degrees += 360f;
+
+        return degrees;
     }
 
     public float getScaleY() {
