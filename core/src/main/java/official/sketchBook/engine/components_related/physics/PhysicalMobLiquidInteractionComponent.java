@@ -16,9 +16,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.toMeters;
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.toPixels;
-
 /// Simula interação física com líquidos — aplica flutuabilidade, resistência, limites de
 /// velocidade e estabilidade rotacional (busca o ponto de equilíbrio/máxima submersão).
 /// Deve ser atualizado após o componente de movimentação.
@@ -26,7 +23,7 @@ import static official.sketchBook.game.util_related.constants.PhysicsConstants.t
 /// ORGANIZAÇÃO DESTA CLASSE (para facilitar manutenção futura):
 /// 1. Estado geral (campos)
 /// 2. Ciclo principal (update / updateSimulation / applyLiquidPhysics)
-/// 3. Sistema de flutuabilidade (empuxo vertical) — não depende de torque
+/// 3. Sistema de flutuabilidade (empuxo vertical) + overshoot de velocidade residual
 /// 4. Submersão por volume + ponto de aplicação de empuxo (calculados juntos, 1 passe só)
 /// 5. Sistema de torque (usa floatApplicationPoint vs massCenter)
 /// 6. Estado de líquido/região (quais líquidos o objeto está tocando)
@@ -46,6 +43,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         inLiquid = false;
 
     private boolean atSurfaceEquilibrium = false;
+    private boolean wasAtSurfaceEquilibrium = false;
 
     private boolean
         originalValuesStored = false,
@@ -59,7 +57,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         isConstraintsDirty = true;
 
     private boolean rotationDirty = true;
-    private boolean massCenterOverridden = false;
 
     // --- floats simples (estado calculado a cada frame) ---
     private float
@@ -72,19 +69,24 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         floatEffectValueModifier;
 
     private float
-        dragMultiplier = 1.0f,
         cachedSubmersionFraction = 1f;
 
     private float equilibriumSubmersionThreshold = 0f;
     private float lastProcessedRotationDegrees = Float.NaN;
     private float cachedTorqueVelocity = 0f;
 
+    /// "Energia da mola": velocidade vertical capturada no instante em que o objeto entra
+    /// no equilíbrio, decaindo gradualmente (puxada pelo drag do líquido) e somada ao
+    /// empuxo normal — permite overshoot ao sair da água sem alterar targetFloat em si.
+    private float residualVerticalVelocity = 0f;
+
     // --- constantes de calibração ---
-    private static final float MIN_EQUILIBRIUM_THRESHOLD = 0.15f;
+    private static final float MIN_EQUILIBRIUM_THRESHOLD = 0.16f;
     private static final float MAX_EQUILIBRIUM_THRESHOLD = 0.95f;
     private static final float EQUILIBRIUM_CALIBRATION_FACTOR = 1.5f;
     private static final float MIN_SUBMERSION_DELTA_TO_RECALC = 0.01f;
     private static final float MIN_ROTATION_DELTA_DEGREES_TO_RECALC = 0.5f;
+    private static final float RESIDUAL_VELOCITY_CUTOFF = 0.01f;
 
     // --- buffers reaproveitados (evita alocação a cada frame/volume) ---
     private final float[] cornerXBuffer = new float[4];
@@ -162,6 +164,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         updateRotationDirtyState();
         updateSubmersionAndApplicationData();
         updateSurfaceEquilibriumState();
+        updateResidualVerticalVelocity();
 
         applyLiquidPhysics(delta);
     }
@@ -175,7 +178,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         calculateFloatEffect(highestDensityLiquidBuffer, delta);
         applyConstraints();
-        applyFloat();
+        applyFloat(delta);
 
         updateTorqueVelocity(delta);
         applyTorque();
@@ -190,15 +193,50 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     }
 
     // ==================================================================
-    // 3. SISTEMA DE FLUTUABILIDADE (empuxo vertical)
+    // 3. SISTEMA DE FLUTUABILIDADE (empuxo vertical) + OVERSHOOT
     // ==================================================================
 
     /// True quando o objeto está no ponto mínimo de submersão que a flutuação natural
-    /// permite (perto do equilíbrio de densidade). Nesse estado, calculateFloatEffect e
-    /// updateTorqueVelocity trocam de "convergência suave" para "resposta direta",
-    /// evitando acúmulo de força residual que causaria oscilação perto da superfície.
+    /// permite (perto do equilíbrio de densidade). Nesse estado, calculateFloatEffect troca
+    /// de "convergência suave" para "resposta direta", evitando acúmulo de força residual
+    /// que causaria oscilação perto da superfície.
     private void updateSurfaceEquilibriumState() {
         atSurfaceEquilibrium = cachedSubmersionFraction <= equilibriumSubmersionThreshold;
+    }
+
+    /// Captura a velocidade vertical no instante em que o objeto entra no equilíbrio pela
+    /// primeira vez (transição false->true) — essa é a "energia da mola" do overshoot.
+    /// Fora do equilíbrio, ou já consumida, o residual permanece zerado.
+    private void updateResidualVerticalVelocity() {
+        boolean justEnteredEquilibrium = atSurfaceEquilibrium && !wasAtSurfaceEquilibrium;
+
+        if (justEnteredEquilibrium) {
+            residualVerticalVelocity = moveC.dataComponent.yAxis.velocity;
+        }
+
+        if (!atSurfaceEquilibrium) {
+            residualVerticalVelocity = 0f;
+        }
+
+        wasAtSurfaceEquilibrium = atSurfaceEquilibrium;
+    }
+
+    /// Aplica o decaimento da mola (puxado pelo drag do líquido, sem constante nova) e
+    /// devolve o valor deste frame antes de decair — para ser somado ao empuxo normal.
+    private float consumeResidualVerticalVelocity(float delta) {
+        if (residualVerticalVelocity == 0f) return 0f;
+
+        float drag = highestDragLiquidBuffer != null ? highestDragLiquidBuffer.drag : 0f;
+
+        float valueThisFrame = residualVerticalVelocity;
+
+        residualVerticalVelocity -= (residualVerticalVelocity *drag) * Math.min(delta, 1f);
+
+        if (Math.abs(residualVerticalVelocity) < RESIDUAL_VELOCITY_CUTOFF) {
+            residualVerticalVelocity = 0f;
+        }
+
+        return valueThisFrame - drag * 2;
     }
 
     /// Recalcula o threshold teórico de submersão em equilíbrio, a partir da densidade
@@ -241,12 +279,16 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     }
 
     /// Entrega o empuxo vertical calculado para o moveC — a pipeline de movimento cuida do
-    /// resto (aceleração, clamps, etc).
-    private void applyFloat() {
+    /// resto (aceleração, clamps, etc). targetFloat nunca é alterado pelo residual: o
+    /// overshoot é somado organicamente num único setMovement, não injetado por fora.
+    private void applyFloat(float delta) {
         if (cachedSubmersionFraction <= 0f) return;
 
         float targetFloat = (floatEffectValue + floatEffectValueModifier) * cachedSubmersionFraction;
-        moveC.dataComponent.yAxis.setMovement(targetFloat);
+
+        float residual = atSurfaceEquilibrium ? consumeResidualVerticalVelocity(delta) : 0f;
+
+        moveC.dataComponent.yAxis.setMovement(targetFloat + residual);
     }
 
     /// Calcula floatEffectValue: fora do equilíbrio, converge suavemente ao valor-alvo
@@ -471,16 +513,11 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         float targetTorque = calculateTorque();
 
         if (atSurfaceEquilibrium) {
-            cachedTorqueVelocity +=
-                (targetTorque - cachedTorqueVelocity)
-                    * Math.min(delta, 1f)
-                    * highestDragLiquidBuffer.drag
-                    * dragMultiplier;
+            cachedTorqueVelocity = targetTorque * cachedSubmersionFraction;
             return;
         }
 
         cachedTorqueVelocity += (targetTorque - cachedTorqueVelocity) * Math.min(delta, 1f);
-
     }
 
     /// Braço de alavanca em espaço local (floatApplicationPoint - massCenter), reprojetado
@@ -497,10 +534,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         float rotatedArmX = localArmX * cos - localArmY * sin;
 
-        //Como o ponto mais denso não muda com o quanto subimos ou descemos,
-        // não deveriamos aplicar o torque seguindo essa ideia
-//        return rotatedArmX * floatEffectValue;
-        return toPixels(rotatedArmX);
+        return rotatedArmX * floatEffectValue;
     }
 
     /// Entrega a velocidade angular calculada para o moveC, do mesmo jeito que applyFloat
@@ -527,6 +561,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             inLiquid = false;
             restartStoredMovementValues();
             resetFlotation();
+            residualVerticalVelocity = 0;
             moveC.dataComponent.yAxis.resetMovement();
             moveC.dataComponent.rAxis.resetMovement();
             object.onLiquidExit();
@@ -701,7 +736,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     private void calculateResistance(LiquidData data) {
         if (data == null) return;
 
-        float drag = data.drag * dragMultiplier;
+        float drag = data.drag;
 
         intermediary.xAxis.weightFactor = drag;
         intermediary.yAxis.weightFactor = drag;
@@ -801,15 +836,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         this.floatEffectValueModifier = v;
     }
 
-    public float getDragMultiplier() {
-        return dragMultiplier;
-    }
-
-    public void setDragMultiplier(float v) {
-        this.dragMultiplier = v;
-        markUpdateSimulationData();
-    }
-
     public boolean isInLiquid() {
         return inLiquid;
     }
@@ -828,11 +854,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     public void updateMassCenter(float x, float y) {
         this.massCenter.set(x, y);
-        this.massCenterOverridden = true;
-    }
-
-    public void clearMassCenterOverride() {
-        this.massCenterOverridden = false;
     }
 
     public Vector2 getFloatApplicationPoint() {
@@ -841,6 +862,10 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     public float getTorque() {
         return cachedTorqueVelocity;
+    }
+
+    public float getResidualVerticalVelocity() {
+        return residualVerticalVelocity;
     }
 
     // ==================================================================

@@ -123,8 +123,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         data = new LiquidData(
             "water",
             1,
-            11f,
-            2f
+            9f,
+            3f
         );
 
         RoomLiquid water = new RoomLiquid(
