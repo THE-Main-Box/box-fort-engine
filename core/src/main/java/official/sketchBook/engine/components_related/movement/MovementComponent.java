@@ -94,8 +94,11 @@ public class MovementComponent implements Component {
         mob.getTransformC().y += dataComponent.
             yAxis.velocity * delta;
 
-        mob.getTransformC().rotation += dataComponent.
-            rAxis.velocity * delta;
+        mob.getTransformC().setRotation(
+            mob.getTransformC().getRotation() +
+                dataComponent.
+                    rAxis.velocity * delta
+        );
 
     }
 

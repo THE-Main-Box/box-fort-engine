@@ -14,7 +14,7 @@ public interface LiquidInteractableObjectII {
 
     void inLiquidUpdate();
 
-    List<SubmersibleVolume> getSubmersibleVolume();
+    List<SubmersibleVolume> getSubmersibleVolumeList();
 
     TransformComponent getTransformC();
     MovementComponent getMoveC();

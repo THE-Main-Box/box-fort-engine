@@ -140,7 +140,9 @@ public class VehicleEngineComponent extends VehicleBaseComponent implements
         // Atualizamos o transform com a posi��o mundial em pixels — usado para culling e render
         transformC.x = worldApplicationPoint.x * PPM;
         transformC.y = worldApplicationPoint.y * PPM;
-        transformC.rotation = ownerSection.getBody().getAngle() * MathUtils.radiansToDegrees;
+        transformC.setRotation(
+            ownerSection.getBody().getAngle() * MathUtils.radiansToDegrees
+        );
 
         /// Aproxima power do targetPower gradualmente
         if (power != targetPower) {

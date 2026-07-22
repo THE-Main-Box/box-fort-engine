@@ -45,7 +45,7 @@ public class AnimationRenderingComponent {
 
             //Atualizamos a rotação da imagem
             currentRenderingSheetHandler.setRotation(
-                currentTransformC.rotation
+                currentTransformC.getRotation()
             );
 
             //Determinamos se podemos inverter a imagem em algum eixo

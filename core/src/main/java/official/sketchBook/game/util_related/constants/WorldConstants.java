@@ -62,12 +62,13 @@ public class WorldConstants {
         public static final float
             MAX_MOVE_SPEED_X = 100,
             MAX_MOVE_SPEED_Y = 200,
-            MAX_MOVE_SPEED_R = 0,
+            MAX_MOVE_SPEED_R = 50,
             MAX_SPEED_X = 400,
             MAX_SPEED_Y = 900,
-            MAX_SPEED_R = 0,
+            MAX_SPEED_R = 50,
             X_DECELERATION = 999,
-            Y_DECELERATION = 0;
+            Y_DECELERATION = 0,
+            R_DECELERATION = 50;
 
         public static final int
             categoryBit = ALLY_ENTITY.bit() |

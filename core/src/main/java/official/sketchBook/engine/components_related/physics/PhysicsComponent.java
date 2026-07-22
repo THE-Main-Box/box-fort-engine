@@ -145,10 +145,10 @@ public class PhysicsComponent implements Component {
         transformC.y = (
             toPixels(tmpPos.y) - halfHeight
         );
-
+        ;
         float bodyAngleDeg = object.getBody().getAngle() * MathUtils.radiansToDegrees;
-        if (Math.abs(transformC.rotation - bodyAngleDeg) > 0.01f) {
-            transformC.rotation = bodyAngleDeg;
+        if (Math.abs(transformC.getRotation() - bodyAngleDeg) > 0.01f) {
+            transformC.setRotation(bodyAngleDeg);
         }
     }
 

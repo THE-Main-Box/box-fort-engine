@@ -17,14 +17,32 @@ import java.util.List;
 import java.util.Map;
 
 /// Simula interação física com líquidos — aplica flutuabilidade, resistência, limites de
-/// velocidade e estabilidade rotacional (busca o ângulo de equilíbrio/máxima submersão).
+/// velocidade e estabilidade rotacional (busca o ponto de equilíbrio/máxima submersão).
 /// Deve ser atualizado após o componente de movimentação.
+///
+/// ORGANIZAÇÃO DESTA CLASSE (para facilitar manutenção futura):
+/// 1. Estado geral (campos)
+/// 2. Ciclo principal (update / updateSimulation / applyLiquidPhysics)
+/// 3. Sistema de flutuabilidade (empuxo vertical) — não depende de torque
+/// 4. Submersão por volume + ponto de aplicação de empuxo (calculados juntos, 1 passe só)
+/// 5. Sistema de torque (usa floatApplicationPoint vs massCenter)
+/// 6. Estado de líquido/região (quais líquidos o objeto está tocando)
+/// 7. Movimento (resistência/constraints aplicados no moveC)
+/// 8. Getters/setters públicos
+/// 9. Finalização (dispose)
 public class PhysicalMobLiquidInteractionComponent implements Component {
 
+    // ==================================================================
+    // 1. ESTADO GERAL
+    // ==================================================================
+
+    // --- booleans simples ---
     private boolean
         canInteractBuffer = false,
         canInteract = true,
         inLiquid = false;
+
+    private boolean atSurfaceEquilibrium = false;
 
     private boolean
         originalValuesStored = false,
@@ -37,6 +55,10 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         needsUpdateMovement = true,
         isConstraintsDirty = true;
 
+    private boolean rotationDirty = true;
+    private boolean massCenterOverridden = false;
+
+    // --- floats simples (estado calculado a cada frame) ---
     private float
         objectDensity,
         mass,
@@ -51,32 +73,29 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         cachedSubmersionFraction = 1f;
 
     private float equilibriumSubmersionThreshold = 0f;
+    private float lastProcessedRotationDegrees = Float.NaN;
+    private float cachedTorqueVelocity = 0f;
 
-    private static final float MIN_EQUILIBRIUM_THRESHOLD = 0.16f;
+    // --- constantes de calibração ---
+    private static final float MIN_EQUILIBRIUM_THRESHOLD = 0.15f;
     private static final float MAX_EQUILIBRIUM_THRESHOLD = 0.95f;
     private static final float EQUILIBRIUM_CALIBRATION_FACTOR = 1.5f;
     private static final float MIN_SUBMERSION_DELTA_TO_RECALC = 0.01f;
+    private static final float MIN_ROTATION_DELTA_DEGREES_TO_RECALC = 0.5f;
 
-    private static final float MIN_APPLICATION_POINT_DELTA_TO_RECALC = 0.01f;
-
-    private float cachedTorque = 0f;
-
+    // --- buffers reaproveitados (evita alocação a cada frame/volume) ---
     private final float[] cornerXBuffer = new float[4];
     private final float[] cornerYBuffer = new float[4];
 
-    private static final float MIN_ROTATION_DELTA_DEGREES_TO_RECALC = 0.5f;
-
-    private float lastProcessedRotationDegrees = Float.NaN;
-    private boolean rotationDirty = true;
-
-    private final MovementDataComponent intermediary;
-    private final MovementDataComponent storedMovementData;
-
+    // --- objetos ---
     private final Vector2
         floatApplicationPoint = new Vector2(),
         massCenter = new Vector2();
 
-    private boolean massCenterOverridden = false;
+    private final MovementDataComponent intermediary;
+    private final MovementDataComponent storedMovementData;
+
+    private final SubmersionAccumulator submersionAccumulator = new SubmersionAccumulator();
 
     private LiquidData
         highestDensityLiquidBuffer,
@@ -91,6 +110,17 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     private boolean disposed = false;
 
+    /// Acumulador reaproveitado a cada frame por updateSubmersionAndApplicationData —
+    /// evita alocar um objeto novo por objeto físico a cada tick (importante para múltiplos
+    /// objetos rodando a 60/s). Os campos são resetados no início de cada passe, não recriados.
+    private static final class SubmersionAccumulator {
+        float weightedFraction;
+        float totalArea;
+        float weightedX;
+        float weightedY;
+        float totalWeight;
+    }
+
     public PhysicalMobLiquidInteractionComponent(LiquidInteractableObjectII object) {
         this.object = object;
         this.moveC = object.getMoveC();
@@ -99,12 +129,9 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         this.updateCurrentStoredMovementValues();
     }
 
-    private void updateStoredMovement() {
-        if (!needsUpdateStoredMovement) return;
-        storeCurrentMovementValues();
-        canInteract = canInteractBuffer;
-        needsUpdateStoredMovement = false;
-    }
+    // ==================================================================
+    // 2. CICLO PRINCIPAL
+    // ==================================================================
 
     @Override
     public void update(float delta) {
@@ -116,6 +143,41 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         object.inLiquidUpdate();
     }
 
+    /// Ponto de entrada de cada frame: recalcula dados físicos (se dirty), estado de
+    /// submersão/torque, e por fim aplica tudo no moveC. A ordem importa: dados de física
+    /// (densidade, threshold) precisam estar prontos antes de calcular submersão, que por
+    /// sua vez precisa estar pronta antes de aplicar empuxo/torque.
+    private void updateSimulation(float delta) {
+        boolean shouldSimulate = canInteract && !liquidAndRegionMap.isEmpty();
+
+        applyChange(shouldSimulate);
+
+        if (!shouldSimulate) return;
+
+        updatePhysicsData();
+        updateMovementData();
+        updateRotationDirtyState();
+        updateSubmersionAndApplicationData();
+        updateSurfaceEquilibriumState();
+
+        applyLiquidPhysics(delta);
+    }
+
+    /// Aplica os efeitos finais no moveC: empuxo vertical e torque de correção rotacional.
+    private void applyLiquidPhysics(float delta) {
+        if (cachedSubmersionFraction <= 0f) {
+            resetSimulatedFloatation();
+            return;
+        }
+
+        calculateFloatEffect(highestDensityLiquidBuffer, delta);
+        applyConstraints();
+        applyFloat();
+
+        updateTorqueVelocity(delta);
+        applyTorque();
+    }
+
     @Override
     public void postUpdate() {
     }
@@ -124,6 +186,20 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     public void initObject() {
     }
 
+    // ==================================================================
+    // 3. SISTEMA DE FLUTUABILIDADE (empuxo vertical)
+    // ==================================================================
+
+    /// True quando o objeto está no ponto mínimo de submersão que a flutuação natural
+    /// permite (perto do equilíbrio de densidade). Nesse estado, calculateFloatEffect e
+    /// updateTorqueVelocity trocam de "convergência suave" para "resposta direta",
+    /// evitando acúmulo de força residual que causaria oscilação perto da superfície.
+    private void updateSurfaceEquilibriumState() {
+        atSurfaceEquilibrium = cachedSubmersionFraction <= equilibriumSubmersionThreshold;
+    }
+
+    /// Recalcula o threshold teórico de submersão em equilíbrio, a partir da densidade
+    /// relativa do objeto frente ao líquido mais denso presente.
     private void recalculateEquilibriumThreshold() {
         if (highestDensityLiquidBuffer == null || highestDensityLiquidBuffer.density <= 0f) {
             equilibriumSubmersionThreshold = MIN_EQUILIBRIUM_THRESHOLD;
@@ -137,172 +213,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             MIN_EQUILIBRIUM_THRESHOLD,
             MAX_EQUILIBRIUM_THRESHOLD
         );
-    }
-
-    private void updateSimulation(float delta) {
-        boolean shouldSimulate = canInteract && !liquidAndRegionMap.isEmpty();
-
-        applyChange(shouldSimulate);
-
-        if (!shouldSimulate) return;
-
-        updatePhysicsData();
-        updateMovementData();
-        updateRotationDirtyState();
-        updateSubmersionDataFromVolumes();
-
-        applyLiquidPhysics(delta);
-    }
-
-    private float calculateTorque() {
-        TransformComponent t = object.getTransformC();
-        float bodyGeomCenterX = t.x + t.width * 0.5f;
-
-        float effectiveMassCenterX = massCenterOverridden ? massCenter.x : bodyGeomCenterX;
-
-        float horizontalArm = floatApplicationPoint.x - effectiveMassCenterX;
-        return horizontalArm * floatEffectValue;
-    }
-    /// Verifica se a rotação mudou o suficiente desde o último processamento para justificar
-    /// recalcular submersão por volume e ponto de aplicação de empuxo. Evita reprocessar a
-    /// cada frame quando o objeto está com rotação praticamente parada.
-    private void updateRotationDirtyState() {
-        float currentRotation = object.getTransformC().rotation;
-
-        if (Float.isNaN(lastProcessedRotationDegrees)) {
-            rotationDirty = true;
-            lastProcessedRotationDegrees = currentRotation;
-            return;
-        }
-
-        float delta = Math.abs(currentRotation - lastProcessedRotationDegrees);
-        rotationDirty = delta > MIN_ROTATION_DELTA_DEGREES_TO_RECALC;
-
-        if (rotationDirty) {
-            lastProcessedRotationDegrees = currentRotation;
-        }
-    }
-    private void updateSubmersionDataFromVolumes() {
-        if (currentLiquidRegionBuffer == null) {
-            cachedSubmersionFraction = 0f;
-            return;
-        }
-
-        List<SubmersibleVolume> volumes = object.getSubmersibleVolume();
-
-        if (volumes == null || volumes.isEmpty()) {
-            cachedSubmersionFraction = 1f;
-            return;
-        }
-
-        boolean shouldUpdateApplicationPoint = moveC.dataComponent.rAxis.canMove && rotationDirty;
-
-        float rotationDegrees = object.getTransformC().rotation;
-
-        float weightedFraction = 0f;
-        float totalArea = 0f;
-
-        float weightedX = 0f;
-        float weightedY = 0f;
-        float totalWeight = 0f;
-
-        for (int i = 0; i < volumes.size(); i++) {
-            SubmersibleVolume vol = volumes.get(i);
-
-            float fraction = calculateVolumeSubmersionFraction(vol, rotationDegrees);
-            float weightedArea = fraction * vol.getArea();
-
-            weightedFraction += weightedArea;
-            totalArea += vol.getArea();
-
-            if (!shouldUpdateApplicationPoint) continue;
-
-            vol.updateSubmersionFraction(fraction, MIN_SUBMERSION_DELTA_TO_RECALC);
-
-            weightedX += vol.getCenterXToBody() * weightedArea;
-            weightedY += vol.getCenterYToBody() * weightedArea;
-            totalWeight += weightedArea;
-        }
-
-        cachedSubmersionFraction = totalArea > 0f
-            ? MathUtils.clamp(weightedFraction / totalArea, 0f, 1f)
-            : 0f;
-
-        if (!shouldUpdateApplicationPoint) return;
-
-        if (totalWeight <= 0f) {
-            floatApplicationPoint.set(
-                massCenterOverridden ? massCenter.x : 0f,
-                massCenterOverridden ? massCenter.y : 0f
-            );
-            return;
-        }
-
-        floatApplicationPoint.set(weightedX / totalWeight, weightedY / totalWeight);
-    }
-    /// Mesmo algoritmo de calculateSubmersionFractionAtAngle do sistema antigo, mas aplicado
-    /// à geometria de um único SubmersibleVolume em vez do corpo inteiro.
-    private float calculateVolumeSubmersionFraction(SubmersibleVolume volume, float angleDegrees) {
-        float surfaceY = currentLiquidRegionBuffer.getY() + currentLiquidRegionBuffer.getHeight();
-
-        computeRotatedVolumeCorners(volume, angleDegrees, cornerXBuffer, cornerYBuffer);
-
-        float minY = cornerYBuffer[0];
-        float maxY = cornerYBuffer[0];
-        for (int i = 1; i < 4; i++) {
-            float y = cornerYBuffer[i];
-            if (y < minY) minY = y;
-            if (y > maxY) maxY = y;
-        }
-
-        if (maxY <= surfaceY) return 1f;
-        if (minY >= surfaceY) return 0f;
-
-        float effectiveHeight = maxY - minY;
-        if (effectiveHeight <= 0f) return 0f;
-
-        return MathUtils.clamp((surfaceY - minY) / effectiveHeight, 0f, 1f);
-    }
-
-    /// Mesma lógica de computeRotatedCorners do sistema antigo, mas os corners são
-    /// derivados da geometria do volume (centro + dimensões relativas ao corpo),
-    /// depois transladados pela posição mundo do corpo.
-    private void computeRotatedVolumeCorners(SubmersibleVolume volume, float angleDegrees, float[] outX, float[] outY) {
-        TransformComponent t = object.getTransformC();
-
-        float halfW = volume.getWidth() * 0.5f;
-        float halfH = volume.getHeight() * 0.5f;
-
-        float bodyGeomCenterX = t.x + t.width * 0.5f;
-        float bodyGeomCenterY = t.y + t.height * 0.5f;
-
-        float pivotX = massCenterOverridden ? massCenter.x : bodyGeomCenterX;
-        float pivotY = massCenterOverridden ? massCenter.y : bodyGeomCenterY;
-
-        // Centro do volume em espaço mundo (não-rotacionado), a partir do offset relativo ao corpo
-        float volumeCenterX = bodyGeomCenterX + volume.getCenterXToBody();
-        float volumeCenterY = bodyGeomCenterY + volume.getCenterYToBody();
-
-        float rad = angleDegrees * MathUtils.degreesToRadians;
-        float cos = MathUtils.cos(rad);
-        float sin = MathUtils.sin(rad);
-
-        float[] localX = {-halfW, halfW, halfW, -halfW};
-        float[] localY = {-halfH, -halfH, halfH, halfH};
-
-        for (int i = 0; i < 4; i++) {
-            float absX = volumeCenterX + localX[i];
-            float absY = volumeCenterY + localY[i];
-
-            float relX = absX - pivotX;
-            float relY = absY - pivotY;
-
-            float rotatedX = relX * cos - relY * sin;
-            float rotatedY = relX * sin + relY * cos;
-
-            outX[i] = pivotX + rotatedX;
-            outY[i] = pivotY + rotatedY;
-        }
     }
 
     private void recalculatePhysicsData() {
@@ -327,38 +237,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         needsUpdateMovement = false;
     }
 
-    private void applyLiquidPhysics(float delta) {
-        if (cachedSubmersionFraction <= 0f) {
-            resetSimulatedFloatation();
-            return;
-        }
-
-        calculateFloatEffect(highestDensityLiquidBuffer, delta);
-        applyConstraints();
-        applyFloat();
-        applyTorque();
-    }
-
-    /// Aplica o torque derivado do desalinhamento entre floatApplicationPoint e massCenter
-    /// diretamente no eixo de rotação, respeitando os mesmos limites de canMove/maxMoveVel
-    /// que os demais eixos já respeitam via updateAxis.
-    private void applyTorque() {
-        if (!moveC.dataComponent.rAxis.canMove) return;
-
-        cachedTorque = calculateTorque();
-
-        moveC.dataComponent.rAxis.setMovement(cachedTorque);
-
-        System.out.println("appPoint=" + floatApplicationPoint + " massCenter=" + massCenter + " floatEffect=" + floatEffectValue);
-        System.out.println(cachedTorque);
-    }
-
-
-
-    public float getTorque() {
-        return cachedTorque;
-    }
-
+    /// Entrega o empuxo vertical calculado para o moveC — a pipeline de movimento cuida do
+    /// resto (aceleração, clamps, etc).
     private void applyFloat() {
         if (cachedSubmersionFraction <= 0f) return;
 
@@ -366,40 +246,16 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         moveC.dataComponent.yAxis.setMovement(targetFloat);
     }
 
-    private void recalculateMovementData() {
-        prepareIntermediary();
-        calculateResistance(highestDragLiquidBuffer);
-    }
-
-    private void applyConstraints() {
-        if (!isConstraintsDirty) return;
-
-        MovementDataComponent target = moveC.dataComponent;
-
-        target.xAxis.weightFactor = intermediary.xAxis.weightFactor;
-        target.yAxis.weightFactor = intermediary.yAxis.weightFactor;
-        target.rAxis.weightFactor = intermediary.rAxis.weightFactor;
-
-        target.xAxis.deceleration = intermediary.xAxis.deceleration;
-        target.yAxis.deceleration = intermediary.yAxis.deceleration;
-        target.rAxis.deceleration = intermediary.rAxis.deceleration;
-
-        target.xAxis.maxMoveVel = intermediary.xAxis.maxMoveVel;
-        target.yAxis.maxMoveVel = intermediary.yAxis.maxMoveVel;
-        target.rAxis.maxMoveVel = intermediary.rAxis.maxMoveVel;
-
-        target.gravityAffected = intermediary.gravityAffected;
-        target.gravityScale = intermediary.gravityScale;
-
-        isConstraintsDirty = false;
-    }
-
+    /// Calcula floatEffectValue: fora do equilíbrio, converge suavemente ao valor-alvo
+    /// (evita saltos); no equilíbrio, é diretamente proporcional à fração de submersão
+    /// (resposta imediata, sem inércia acumulada — isso evita o objeto "quicar" perto da
+    /// superfície).
     private void calculateFloatEffect(LiquidData data, float delta) {
         if (data == null || volume <= 0f) return;
 
         float targetFloatEffect = (data.density - objectDensity) * volume;
 
-        if (cachedSubmersionFraction < equilibriumSubmersionThreshold) {
+        if (atSurfaceEquilibrium) {
             floatEffectValue = targetFloatEffect * cachedSubmersionFraction;
             return;
         }
@@ -414,6 +270,240 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
             else if (floatEffectValue > -targetFloatEffect) floatEffectValue = -targetFloatEffect;
         }
     }
+
+    // ==================================================================
+    // 4. SUBMERSÃO POR VOLUME + PONTO DE APLICAÇÃO DE EMPUXO
+    //
+    // Os dois dados abaixo (cachedSubmersionFraction e floatApplicationPoint) dependem do
+    // mesmo cálculo por volume (fração de submersão via corners rotacionados), então são
+    // calculados juntos num único passe pela lista de volumes — evita repetir a mesma
+    // trigonometria duas vezes por frame quando os dois precisam ser atualizados.
+    //
+    // floatApplicationPoint é puramente geométrico (sem massa/densidade) e só é consumido
+    // pelo sistema de torque (seção 5) — não influencia o empuxo vertical.
+    // ==================================================================
+
+    /// Verifica se a rotação mudou o suficiente desde o último processamento para justificar
+    /// recalcular o ponto de aplicação de empuxo. A fração de submersão (para o empuxo
+    /// vertical) NÃO usa essa flag — ela precisa refletir profundidade a cada frame, mesmo
+    /// parado rotacionalmente. Só floatApplicationPoint (usado exclusivamente pelo torque)
+    /// se beneficia desse guard.
+    private void updateRotationDirtyState() {
+        float currentRotation = object.getTransformC().getRotation();
+
+        if (Float.isNaN(lastProcessedRotationDegrees)) {
+            rotationDirty = true;
+            lastProcessedRotationDegrees = currentRotation;
+            return;
+        }
+
+        float delta = Math.abs(currentRotation - lastProcessedRotationDegrees);
+        rotationDirty = delta > MIN_ROTATION_DELTA_DEGREES_TO_RECALC;
+
+        if (rotationDirty) {
+            lastProcessedRotationDegrees = currentRotation;
+        }
+    }
+
+    /// Passe único sobre a lista de SubmersibleVolume: calcula a fração de submersão de cada
+    /// volume UMA VEZ, e reaproveita o resultado para dois consumidores — a fração agregada
+    /// do corpo inteiro (sempre) e o ponto de aplicação de empuxo (só quando a rotação mudou
+    /// o bastante e o objeto pode rotacionar). cos/sin são calculados uma única vez aqui fora
+    /// do loop, em vez de recalculados por volume.
+    private void updateSubmersionAndApplicationData() {
+        if (currentLiquidRegionBuffer == null) {
+            cachedSubmersionFraction = 0f;
+            return;
+        }
+
+        List<SubmersibleVolume> volumes = object.getSubmersibleVolumeList();
+
+        if (volumes == null || volumes.isEmpty()) {
+            cachedSubmersionFraction = 1f;
+            return;
+        }
+
+        boolean shouldUpdateApplicationPoint = moveC.dataComponent.rAxis.canMove && rotationDirty;
+
+        float rotationDegrees = object.getTransformC().getRotation();
+        float rad = rotationDegrees * MathUtils.degreesToRadians;
+        float cos = MathUtils.cos(rad);
+        float sin = MathUtils.sin(rad);
+
+        resetSubmersionAccumulator();
+
+        for (int i = 0; i < volumes.size(); i++) {
+            accumulateVolumeSubmersion(volumes.get(i), cos, sin, shouldUpdateApplicationPoint);
+        }
+
+        finalizeSubmersionFraction();
+
+        if (shouldUpdateApplicationPoint) {
+            finalizeFloatApplicationPoint();
+        }
+    }
+
+    private void resetSubmersionAccumulator() {
+        submersionAccumulator.weightedFraction = 0f;
+        submersionAccumulator.totalArea = 0f;
+        submersionAccumulator.weightedX = 0f;
+        submersionAccumulator.weightedY = 0f;
+        submersionAccumulator.totalWeight = 0f;
+    }
+
+    /// Processa um único volume: calcula sua fração de submersão (reaproveitando cos/sin já
+    /// prontos) e acumula os dados necessários para os dois consumidores finais.
+    private void accumulateVolumeSubmersion(
+        SubmersibleVolume volume,
+        float cos,
+        float sin,
+        boolean shouldUpdateApplicationPoint
+    ) {
+        float fraction = calculateVolumeSubmersionFraction(volume, cos, sin);
+        float area = volume.getArea();
+        float weightedArea = fraction * area;
+
+        volume.updateSubmersionFraction(fraction, MIN_SUBMERSION_DELTA_TO_RECALC);
+
+        submersionAccumulator.weightedFraction += weightedArea;
+        submersionAccumulator.totalArea += area;
+
+        if (!shouldUpdateApplicationPoint) return;
+
+        submersionAccumulator.weightedX += volume.getCenterXToBody() * weightedArea;
+        submersionAccumulator.weightedY += volume.getCenterYToBody() * weightedArea;
+        submersionAccumulator.totalWeight += weightedArea;
+    }
+
+    private void finalizeSubmersionFraction() {
+        cachedSubmersionFraction = submersionAccumulator.totalArea > 0f
+            ? MathUtils.clamp(submersionAccumulator.weightedFraction / submersionAccumulator.totalArea, 0f, 1f)
+            : 0f;
+    }
+
+    /// Ponto de aplicação = média ponderada (fração × área) da posição local de cada volume.
+    /// Suave por natureza: nenhum volume "vence" discretamente, a contribuição de cada um
+    /// cresce/diminui gradualmente conforme afunda mais ou menos.
+    private void finalizeFloatApplicationPoint() {
+        if (submersionAccumulator.totalWeight <= 0f) return;
+
+        floatApplicationPoint.set(
+            submersionAccumulator.weightedX / submersionAccumulator.totalWeight,
+            submersionAccumulator.weightedY / submersionAccumulator.totalWeight
+        );
+    }
+
+    /// Fração de submersão de um único volume: acha os 4 corners rotacionados e compara
+    /// contra a superfície do líquido. Recebe cos/sin prontos (calculados uma vez por frame
+    /// em updateSubmersionAndApplicationData) em vez de recalcular por volume.
+    private float calculateVolumeSubmersionFraction(SubmersibleVolume volume, float cos, float sin) {
+        float surfaceY = currentLiquidRegionBuffer.getY() + currentLiquidRegionBuffer.getHeight();
+
+        computeRotatedVolumeCorners(volume, cos, sin, cornerXBuffer, cornerYBuffer);
+
+        float minY = cornerYBuffer[0];
+        float maxY = cornerYBuffer[0];
+        for (int i = 1; i < 4; i++) {
+            float y = cornerYBuffer[i];
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+        }
+
+        if (maxY <= surfaceY) return 1f;
+        if (minY >= surfaceY) return 0f;
+
+        float effectiveHeight = maxY - minY;
+        if (effectiveHeight <= 0f) return 0f;
+
+        return MathUtils.clamp((surfaceY - minY) / effectiveHeight, 0f, 1f);
+    }
+
+    /// Rotaciona os 4 corners do volume em torno do centro geométrico do corpo (o mesmo
+    /// pivô que o TransformComponent usa para rotação visual). Puramente geométrico:
+    /// massCenter e floatApplicationPoint não participam aqui — só entram no torque (seção 5).
+    private void computeRotatedVolumeCorners(SubmersibleVolume volume, float cos, float sin, float[] outX, float[] outY) {
+        TransformComponent t = object.getTransformC();
+
+        float halfW = volume.getWidth() * 0.5f;
+        float halfH = volume.getHeight() * 0.5f;
+
+        float bodyGeomCenterX = t.x + t.width * 0.5f;
+        float bodyGeomCenterY = t.y + t.height * 0.5f;
+
+        float volumeCenterX = bodyGeomCenterX + volume.getCenterXToBody();
+        float volumeCenterY = bodyGeomCenterY + volume.getCenterYToBody();
+
+        float[] localX = {-halfW, halfW, halfW, -halfW};
+        float[] localY = {-halfH, -halfH, halfH, halfH};
+
+        for (int i = 0; i < 4; i++) {
+            float absX = volumeCenterX + localX[i];
+            float absY = volumeCenterY + localY[i];
+
+            float relX = absX - bodyGeomCenterX;
+            float relY = absY - bodyGeomCenterY;
+
+            float rotatedX = relX * cos - relY * sin;
+            float rotatedY = relX * sin + relY * cos;
+
+            outX[i] = bodyGeomCenterX + rotatedX;
+            outY[i] = bodyGeomCenterY + rotatedY;
+        }
+    }
+
+    // ==================================================================
+    // 5. SISTEMA DE TORQUE (usa floatApplicationPoint vs massCenter)
+    // ==================================================================
+
+    /// Deriva uma velocidade angular suavizada a partir do braço de alavanca entre
+    /// floatApplicationPoint (centro de empuxo) e massCenter (centro de massa), reprojetado
+    /// pela rotação atual do corpo. Segue o mesmo padrão de calculateFloatEffect: converge
+    /// gradualmente fora do equilíbrio, e é amortecida pela fração de submersão dentro dele.
+    private void updateTorqueVelocity(float delta) {
+        if (!moveC.dataComponent.rAxis.canMove) {
+            cachedTorqueVelocity = 0f;
+            return;
+        }
+
+        float targetTorque = calculateTorque();
+
+        if (atSurfaceEquilibrium) {
+            cachedTorqueVelocity = targetTorque * cachedSubmersionFraction;
+            return;
+        }
+
+        cachedTorqueVelocity += (targetTorque - cachedTorqueVelocity) * Math.min(delta, 1f);
+    }
+
+    /// Braço de alavanca em espaço local (floatApplicationPoint - massCenter), reprojetado
+    /// pela rotação atual do corpo. Como a força de empuxo é puramente vertical, apenas o
+    /// componente X do braço rotacionado contribui para o torque (τ = armX * força).
+    private float calculateTorque() {
+        float localArmX = floatApplicationPoint.x - massCenter.x;
+        float localArmY = floatApplicationPoint.y - massCenter.y;
+
+        float rotationDegrees = object.getTransformC().getRotation();
+        float rad = rotationDegrees * MathUtils.degreesToRadians;
+        float cos = MathUtils.cos(rad);
+        float sin = MathUtils.sin(rad);
+
+        float rotatedArmX = localArmX * cos - localArmY * sin;
+
+        return rotatedArmX * floatEffectValue;
+    }
+
+    /// Entrega a velocidade angular calculada para o moveC, do mesmo jeito que applyFloat
+    /// entrega o empuxo para o yAxis — deixando a pipeline existente processar o valor, sem
+    /// escrever diretamente em transformC.
+    private void applyTorque() {
+        if (!moveC.dataComponent.rAxis.canMove) return;
+
+        moveC.dataComponent.rAxis.setMovement(cachedTorqueVelocity);
+    }
+
+    // ==================================================================
+    // 6. ESTADO DE LÍQUIDO/REGIÃO
+    // ==================================================================
 
     private void applyChange(boolean shouldSimulate) {
         if (shouldSimulate && !inLiquid) {
@@ -445,6 +535,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         }
     }
 
+    /// Escolhe a região de líquido mais próxima do centro do objeto, entre todas as regiões
+    /// registradas. Atalho quando só existe uma região no total (caso comum).
     private void updateCurrentRegion() {
         if (liquidAndRegionMap.isEmpty()) {
             currentLiquidRegionBuffer = null;
@@ -491,6 +583,8 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         currentLiquidRegionBuffer = closestRegion;
     }
 
+    /// Determina qual líquido tem a maior densidade (usado para empuxo) e qual tem o maior
+    /// drag (usado para resistência), entre todos os líquidos que o objeto está tocando.
     private void updateCurrentLiquidData() {
         if (liquidAndRegionMap.isEmpty()) {
             highestDensityLiquidBuffer = null;
@@ -561,6 +655,17 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         }
     }
 
+    // ==================================================================
+    // 7. MOVIMENTO (resistência/constraints aplicados no moveC)
+    // ==================================================================
+
+    private void updateStoredMovement() {
+        if (!needsUpdateStoredMovement) return;
+        storeCurrentMovementValues();
+        canInteract = canInteractBuffer;
+        needsUpdateStoredMovement = false;
+    }
+
     private void storeCurrentMovementValues() {
         if (originalValuesStored) return;
         this.storedMovementData.set(moveC.dataComponent);
@@ -577,6 +682,11 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         intermediary.set(storedMovementData);
     }
 
+    private void recalculateMovementData() {
+        prepareIntermediary();
+        calculateResistance(highestDragLiquidBuffer);
+    }
+
     private void calculateResistance(LiquidData data) {
         if (data == null) return;
 
@@ -591,11 +701,54 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         intermediary.rAxis.deceleration = storedMovementData.rAxis.deceleration + drag;
     }
 
+    private void applyConstraints() {
+        if (!isConstraintsDirty) return;
+
+        MovementDataComponent target = moveC.dataComponent;
+
+        target.xAxis.weightFactor = intermediary.xAxis.weightFactor;
+        target.yAxis.weightFactor = intermediary.yAxis.weightFactor;
+        target.rAxis.weightFactor = intermediary.rAxis.weightFactor;
+
+        target.xAxis.deceleration = intermediary.xAxis.deceleration;
+        target.yAxis.deceleration = intermediary.yAxis.deceleration;
+        target.rAxis.deceleration = intermediary.rAxis.deceleration;
+
+        target.xAxis.maxMoveVel = intermediary.xAxis.maxMoveVel;
+        target.yAxis.maxMoveVel = intermediary.yAxis.maxMoveVel;
+        target.rAxis.maxMoveVel = intermediary.rAxis.maxMoveVel;
+
+        target.gravityAffected = intermediary.gravityAffected;
+        target.gravityScale = intermediary.gravityScale;
+
+        isConstraintsDirty = false;
+    }
+
     private void markUpdateSimulationData() {
         needsUpdatePhysicsData = true;
         needsUpdateMovement = true;
         isConstraintsDirty = true;
     }
+
+    private void resetSimulatedFloatation() {
+        floatEffectValue = 0;
+    }
+
+    public void updateCurrentStoredMovementValues() {
+        this.needsUpdateStoredMovement = true;
+        this.canInteractBuffer = this.canInteract;
+        this.canInteract = false;
+        this.originalValuesStored = false;
+    }
+
+    public void resetFlotation() {
+        floatEffectValue = 0;
+        floatEffectValueModifier = 0;
+    }
+
+    // ==================================================================
+    // 8. GETTERS / SETTERS PÚBLICOS
+    // ==================================================================
 
     public boolean isCanInteract() {
         return canInteract;
@@ -610,8 +763,19 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         return mass;
     }
 
+    public void setMass(float mass) {
+        if (mass < 0) return;
+        this.mass = mass;
+        markUpdateSimulationData();
+    }
+
     public float getVolume() {
         return volume;
+    }
+
+    public void setVolume(float volume) {
+        this.volume = volume;
+        markUpdateSimulationData();
     }
 
     public float getFloatEffect() {
@@ -622,32 +786,33 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         return floatEffectValueModifier;
     }
 
+    public void setFloatingEffectModifier(float v) {
+        this.floatEffectValueModifier = v;
+    }
+
     public float getDragMultiplier() {
         return dragMultiplier;
+    }
+
+    public void setDragMultiplier(float v) {
+        this.dragMultiplier = v;
+        markUpdateSimulationData();
     }
 
     public boolean isInLiquid() {
         return inLiquid;
     }
 
-    public void setMass(float mass) {
-        if (mass < 0) return;
-        this.mass = mass;
-        markUpdateSimulationData();
+    public boolean isAtSurfaceEquilibrium() {
+        return atSurfaceEquilibrium;
     }
 
-    public void setVolume(float volume) {
-        this.volume = volume;
-        markUpdateSimulationData();
+    public boolean hasFloatation() {
+        return floatEffectValueModifier != 0 || floatEffectValue != 0;
     }
 
-    public void setFloatingEffectModifier(float v) {
-        this.floatEffectValueModifier = v;
-    }
-
-    public void setDragMultiplier(float v) {
-        this.dragMultiplier = v;
-        markUpdateSimulationData();
+    public Vector2 getMassCenter() {
+        return massCenter;
     }
 
     public void updateMassCenter(float x, float y) {
@@ -659,31 +824,17 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         this.massCenterOverridden = false;
     }
 
-    public Vector2 getMassCenter() {
-        return massCenter;
-    }
     public Vector2 getFloatApplicationPoint() {
         return floatApplicationPoint;
     }
-    public void updateCurrentStoredMovementValues() {
-        this.needsUpdateStoredMovement = true;
-        this.canInteractBuffer = this.canInteract;
-        this.canInteract = false;
-        this.originalValuesStored = false;
+
+    public float getTorque() {
+        return cachedTorqueVelocity;
     }
 
-    private void resetSimulatedFloatation() {
-        floatEffectValue = 0;
-    }
-
-    public void resetFlotation() {
-        floatEffectValue = 0;
-        floatEffectValueModifier = 0;
-    }
-
-    public boolean hasFloatation() {
-        return floatEffectValueModifier != 0 || floatEffectValue != 0;
-    }
+    // ==================================================================
+    // 9. FINALIZAÇÃO
+    // ==================================================================
 
     @Override
     public void dispose() {
@@ -697,5 +848,4 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         moveC = null;
         object = null;
     }
-
 }
