@@ -339,9 +339,6 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         node_1.addVehicleComponent(controller, false, true, true);
 
-        node_1.getMoveC().dataComponent.rAxis.canMove = false;
-        node_2.getMoveC().dataComponent.rAxis.canMove = false;
-
         Transform t = node_1.getBody().getTransform();
         node_1.getBody().setTransform(
             t.getPosition(),

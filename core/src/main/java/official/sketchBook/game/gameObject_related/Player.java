@@ -34,7 +34,7 @@ import official.sketchBook.game.components_related.player.PlayerControllerCompon
 import official.sketchBook.game.util_related.constants.WorldConstants;
 import official.sketchBook.game.util_related.path.GameAssetsPaths;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import static official.sketchBook.game.components_related.player.PlayerAnimationInitializerComponent.initAnimations;
@@ -73,6 +73,8 @@ public class Player extends AnimatedRenderableRoomGameObject
     /// Corpo físico
     private Body body;
 
+    private final List<SubmersibleVolume> submersibleVolumeList;
+
     public Player(
         PhysicalGameObjectDataManager worldDataManager,
         PlayableRoom ownerRoom,
@@ -107,6 +109,16 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         this.initObject();
 
+        this.submersibleVolumeList = new ArrayList<>();
+        this.submersibleVolumeList.add(
+            new SubmersibleVolume(
+                0,
+                0,
+                transformC.width,
+                transformC.height
+            )
+        );
+
     }
 
     @Override
@@ -139,11 +151,6 @@ public class Player extends AnimatedRenderableRoomGameObject
         );
 
         this.liquidInteractionC.setMass(2200f);
-        this.liquidInteractionC.updateMassCenter(-1,0);
-
-
-//        this.liquidInteractionC.setCanInteractWithLiquid(false);
-
 
     }
 
@@ -238,10 +245,10 @@ public class Player extends AnimatedRenderableRoomGameObject
             WorldConstants.PlayerConstants.R_DECELERATION,
             true,
             true,
+            false,
             true,
             true,
-            true,
-            true,
+            false,
             true,
             true,
             false,
@@ -433,7 +440,6 @@ public class Player extends AnimatedRenderableRoomGameObject
     @Override
     protected void disposeCriticalData() {
         super.disposeCriticalData();
-        System.out.println("Player limpando dados de instancia");
         body = null;
         moveC = null;
         jumpC = null;
@@ -443,7 +449,6 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     public static void disposeStaticResources() {
-        System.out.println("Player limpando dados estaticos");
         controllerC.dispose();
 
         controllerC = null;
@@ -452,7 +457,7 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     @Override
     protected void disposeGeneralData() {
-
+        submersibleVolumeList.clear();
     }
 
     @Override
@@ -480,7 +485,6 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     @Override
     public void inLiquidUpdate() {
-        System.out.println(liquidInteractionC.isAtSurfaceEquilibrium());
 
         if(Gdx.input.isKeyPressed(
             Input.Keys.R
@@ -496,20 +500,12 @@ public class Player extends AnimatedRenderableRoomGameObject
                 liquidInteractionC.getMass() + 100
             );
         }
-        System.out.println("massa: " + liquidInteractionC.getMass());
 
     }
 
     @Override
-    public List<SubmersibleVolume> getSubmersibleVolume() {
-        SubmersibleVolume vol = new SubmersibleVolume(
-            0,
-            0,
-            transformC.width,
-            transformC.height
-        );
-
-        return Collections.singletonList(vol);
+    public List<SubmersibleVolume> getSubmersibleVolumeList() {
+        return submersibleVolumeList;
     }
 
     @Override

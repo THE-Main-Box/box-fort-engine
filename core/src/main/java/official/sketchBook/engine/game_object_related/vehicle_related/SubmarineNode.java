@@ -51,6 +51,8 @@ public class SubmarineNode
     /// Lista de partes físicas
     private final List<SubmarinePart> physicalParts;
 
+    private final List<SubmersibleVolume> submersibleVolumeList;
+
     private final List<VehicleBaseComponent> vehicleComponentList;
 
     private final List<VehiclePassenger> passengerList;
@@ -133,6 +135,8 @@ public class SubmarineNode
         );
 
         this.managerC = new RenderableAndDefaultComponentManagerComponent();
+
+        this.submersibleVolumeList = new ArrayList<>();
 
     }
 
@@ -294,7 +298,7 @@ public class SubmarineNode
     }
 
     @Override
-    public List<SubmersibleVolume> getSubmersibleVolume() {
+    public List<SubmersibleVolume> getSubmersibleVolumeList() {
         return null;
     }
 
@@ -538,6 +542,8 @@ public class SubmarineNode
     public void dispose() {
         if (disposed) return;
 
+
+
         componentsDispose();
 
         nullifyReferences();
@@ -557,6 +563,9 @@ public class SubmarineNode
 
         vehicleComponentList.clear();
         physicalParts.clear();
+        submersibleVolumeList.clear();
+        passengerList.clear();
+
         physicsWorld.destroyBody(internalBody);
 
     }
