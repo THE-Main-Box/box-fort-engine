@@ -16,6 +16,9 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.toMeters;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.toPixels;
+
 /// Simula interação física com líquidos — aplica flutuabilidade, resistência, limites de
 /// velocidade e estabilidade rotacional (busca o ponto de equilíbrio/máxima submersão).
 /// Deve ser atualizado após o componente de movimentação.
@@ -468,11 +471,16 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         float targetTorque = calculateTorque();
 
         if (atSurfaceEquilibrium) {
-            cachedTorqueVelocity = targetTorque * cachedSubmersionFraction;
+            cachedTorqueVelocity +=
+                (targetTorque - cachedTorqueVelocity)
+                    * Math.min(delta, 1f)
+                    * highestDragLiquidBuffer.drag
+                    * dragMultiplier;
             return;
         }
 
         cachedTorqueVelocity += (targetTorque - cachedTorqueVelocity) * Math.min(delta, 1f);
+
     }
 
     /// Braço de alavanca em espaço local (floatApplicationPoint - massCenter), reprojetado
@@ -489,7 +497,10 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
         float rotatedArmX = localArmX * cos - localArmY * sin;
 
-        return rotatedArmX * floatEffectValue;
+        //Como o ponto mais denso não muda com o quanto subimos ou descemos,
+        // não deveriamos aplicar o torque seguindo essa ideia
+//        return rotatedArmX * floatEffectValue;
+        return toPixels(rotatedArmX);
     }
 
     /// Entrega a velocidade angular calculada para o moveC, do mesmo jeito que applyFloat
