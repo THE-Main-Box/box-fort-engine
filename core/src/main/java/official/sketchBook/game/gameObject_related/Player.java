@@ -150,8 +150,7 @@ public class Player extends AnimatedRenderableRoomGameObject
             transformC.width * transformC.height
         );
 
-        this.liquidInteractionC.setMass(2200f);
-        liquidInteractionC.updateMassCenter(-1,0);
+        this.liquidInteractionC.setMass(200f);
 
     }
 
@@ -246,7 +245,7 @@ public class Player extends AnimatedRenderableRoomGameObject
             WorldConstants.PlayerConstants.R_DECELERATION,
             true,
             true,
-            true,
+            false,
             true,
             true,
             true,
