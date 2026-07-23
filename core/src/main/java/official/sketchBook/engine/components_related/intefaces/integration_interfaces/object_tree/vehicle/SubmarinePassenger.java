@@ -1,11 +1,12 @@
 package official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle;
 
-import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
+import official.sketchBook.engine.components_related.physics.LiquidInteractionComponent;
+import official.sketchBook.engine.components_related.physics.MobLiquidInteractionComponent;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
 import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
 
 public interface SubmarinePassenger extends VehiclePassenger{
-    PhysicalMobLiquidInteractionComponent getLiquidInteractionC();
+    LiquidInteractionComponent getLiquidInteractionC();
 
     @Override
     default void onSectionChanged(VehicleSection oldSection, VehicleSection newSection) {
