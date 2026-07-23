@@ -14,7 +14,6 @@ public class PhysicsConstants {
     /// Faixa de tempo que o sistema de física irá tentar seguir
     public static float FIXED_TIMESTAMP;
 
-    public static float BOYANCY_THRESHOLD = 1.0f;
 
     public static float
         ANIMATION_UPDATE_RATE;
@@ -24,7 +23,7 @@ public class PhysicsConstants {
     static {
         VELOCITY_ITERATIONS = 6;
         POSITION_ITERATIONS = 2;
-        updateUps(60);
+        updateUps(30);
 
     }
 
