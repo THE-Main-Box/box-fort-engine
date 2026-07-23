@@ -21,6 +21,7 @@ import official.sketchBook.engine.components_related.interact.InteractTriggerCom
 import official.sketchBook.engine.components_related.movement.JumpComponent;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.physics.*;
+import official.sketchBook.engine.components_related.system_utils.PhysicsUtils;
 import official.sketchBook.engine.components_related.system_utils.SubmersibleVolume;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.animated_renderable_game_object.AnimatedRenderableRoomGameObject;
@@ -79,6 +80,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     public Player(
         PhysicalGameObjectDataManager worldDataManager,
         PlayableRoom ownerRoom,
+        float density,
         float x,
         float y,
         float z,
@@ -108,6 +110,12 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         this.animationRenderC.isRenderDimensionEqualsToObject = false;
 
+        //Aplicador de movimento
+        initMovementComponent();
+
+        //Aplicador final de movimento
+        initPhysicsComponent(density);
+
         this.initObject();
 
         this.submersibleVolumeList = new ArrayList<>();
@@ -130,12 +138,6 @@ public class Player extends AnimatedRenderableRoomGameObject
         //Gerenciador de animações
         initAnimationControllerComponent();
 
-        //Aplicador de movimento
-        initMovementComponent();
-
-        //Aplicador final de movimento
-        initPhysicsComponent();
-
         //Aplicador de movimento secundário
         initJumpComponent();
 
@@ -148,9 +150,12 @@ public class Player extends AnimatedRenderableRoomGameObject
         initTriggerComponent();
 
         this.liquidInteractionC.setMass(
-            9100f
+            PhysicsUtils.calculateMass(body)
         );
 
+        this.liquidInteractionC.setVolume(
+            PhysicsUtils.calculateVolume(body)
+        );
 
     }
 
@@ -263,13 +268,13 @@ public class Player extends AnimatedRenderableRoomGameObject
         );
     }
 
-    private void initPhysicsComponent() {
+    private void initPhysicsComponent(float density) {
 
         this.physicsC = new VehiclePassengerPhysicsComponent(
             this,
             WorldConstants.PlayerConstants.categoryBit,
             WorldConstants.PlayerConstants.maskBit,
-            0.5f,
+            9f,
             2f,
             0f
         );

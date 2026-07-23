@@ -52,8 +52,6 @@ public class PhysicalObjectLiquidInteractionComponent extends LiquidInteractionC
     public void update(float delta) {
         updateLiquidState();
 
-        this.inLiquid = !liquidAndRegionMap.isEmpty();
-
         if(!canInteract || !inLiquid) return;
 
         if (currentLiquidRegionBuffer == null) return;
@@ -61,6 +59,13 @@ public class PhysicalObjectLiquidInteractionComponent extends LiquidInteractionC
 
         applyBuoyancyForEachFixture();
         applyLinearDrag();
+    }
+
+    @Override
+    protected void updateLiquidState() {
+        super.updateLiquidState();
+
+        this.inLiquid = !liquidAndRegionMap.isEmpty();
     }
 
     @Override
