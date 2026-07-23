@@ -10,6 +10,7 @@ import official.sketchBook.engine.animation_rendering_related.ObjectAnimationPla
 import official.sketchBook.engine.animation_rendering_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.InteractionTriggerer;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.LiquidInteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.PhysicalLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.JumpCapableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.PhysicalGameObjectII;
@@ -46,7 +47,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     PhysicalGameObjectII,
     RoomGroundInteractableObject,
     JumpCapableObjectII,
-        LiquidInteractableObjectII,
+    PhysicalLiquidInteractableObjectII,
     SubmarinePassenger,
     InteractionTriggerer {
 
@@ -66,7 +67,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     /// Componente de pulo
     private JumpComponent jumpC;
 
-    private PhysicalMobLiquidInteractionComponent liquidInteractionC;
+    private PhysicalObjectLiquidInteractionComponent liquidInteractionC;
 
     private InteractTriggerComponent triggerC;
 
@@ -146,11 +147,10 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         initTriggerComponent();
 
-        this.liquidInteractionC.setVolume(
-            transformC.width * transformC.height
+        this.liquidInteractionC.setMass(
+            9100f
         );
 
-        this.liquidInteractionC.setMass(200f);
 
     }
 
@@ -264,7 +264,6 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     private void initPhysicsComponent() {
-        this.liquidInteractionC = new PhysicalMobLiquidInteractionComponent(this);
 
         this.physicsC = new VehiclePassengerPhysicsComponent(
             this,
@@ -275,12 +274,15 @@ public class Player extends AnimatedRenderableRoomGameObject
             0f
         );
 
+
         this.createBody();
+
+        this.liquidInteractionC = new PhysicalObjectLiquidInteractionComponent(this);
 
         this.managerC.add(
             liquidInteractionC,
             true,
-            false
+            true
         );
 
         this.managerC.add(
@@ -504,12 +506,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     @Override
-    public List<SubmersibleVolume> getSubmersibleVolumeList() {
-        return submersibleVolumeList;
-    }
-
-    @Override
-    public PhysicalMobLiquidInteractionComponent getLiquidInteractionC() {
+    public PhysicalObjectLiquidInteractionComponent getLiquidInteractionC() {
         return liquidInteractionC;
     }
 

@@ -30,46 +30,12 @@ import java.util.Map;
 /// 7. Movimento (resistência/constraints aplicados no moveC)
 /// 8. Getters/setters públicos
 /// 9. Finalização (dispose)
-public class PhysicalMobLiquidInteractionComponent implements Component {
-
-    // ==================================================================
-    // 1. ESTADO GERAL
-    // ==================================================================
-
-    // --- booleans simples ---
-    private boolean
-        canInteractBuffer = false,
-        canInteract = true,
-        inLiquid = false;
+public class MobLiquidInteractionComponent extends LiquidInteractionComponent {
 
     private boolean atSurfaceEquilibrium = false;
     private boolean wasAtSurfaceEquilibrium = false;
 
-    private boolean
-        originalValuesStored = false,
-        needsUpdateStoredMovement = true;
-
-    private boolean
-        needsUpdateCurrentLiquidData = true,
-        needsUpdateCurrentRegion = true,
-        needsUpdatePhysicsData = true,
-        needsUpdateMovement = true,
-        isConstraintsDirty = true;
-
     private boolean rotationDirty = true;
-
-    // --- floats simples (estado calculado a cada frame) ---
-    private float
-        objectDensity,
-        mass,
-        volume;
-
-    private float
-        floatEffectValue,
-        floatEffectValueModifier;
-
-    private float
-        cachedSubmersionFraction = 1f;
 
     private float equilibriumSubmersionThreshold = 0f;
     private float lastProcessedRotationDegrees = Float.NaN;
@@ -95,25 +61,13 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     private final float[] cornerYBuffer = new float[4];
 
     // --- objetos ---
-    private final Vector2
-        floatApplicationPoint = new Vector2(),
-        massCenter = new Vector2();
-
-    private final MovementDataComponent intermediary;
-    private final MovementDataComponent storedMovementData;
+    private final Vector2 massCenter = new Vector2();
 
     private final SubmersionAccumulator submersionAccumulator = new SubmersionAccumulator();
-
-    private LiquidData
-        highestDensityLiquidBuffer,
-        highestDragLiquidBuffer;
 
     private LiquidRegion currentLiquidRegionBuffer;
 
     private LiquidInteractableObjectII object;
-    private MovementComponent moveC;
-
-    private final IdentityHashMap<LiquidData, ArrayList<LiquidRegion>> liquidAndRegionMap = new IdentityHashMap<>();
 
     private boolean disposed = false;
 
@@ -128,11 +82,10 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         float totalWeight;
     }
 
-    public PhysicalMobLiquidInteractionComponent(LiquidInteractableObjectII object) {
+    public MobLiquidInteractionComponent(LiquidInteractableObjectII object) {
+        super(object.getMoveC());
         this.object = object;
-        this.moveC = object.getMoveC();
-        this.storedMovementData = new MovementDataComponent();
-        this.intermediary = new MovementDataComponent();
+
         this.updateCurrentStoredMovementValues();
     }
 
@@ -572,22 +525,9 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         }
     }
 
-    private void updateLiquidState() {
-        if (needsUpdateCurrentRegion) {
-            updateCurrentRegion();
-            needsUpdateCurrentRegion = false;
-        }
-
-        if (needsUpdateCurrentLiquidData) {
-            updateCurrentLiquidData();
-            needsUpdateMovement = true;
-            needsUpdateCurrentLiquidData = false;
-        }
-    }
-
     /// Escolhe a região de líquido mais próxima do centro do objeto, entre todas as regiões
     /// registradas. Atalho quando só existe uma região no total (caso comum).
-    private void updateCurrentRegion() {
+    protected void updateCurrentRegion() {
         if (liquidAndRegionMap.isEmpty()) {
             currentLiquidRegionBuffer = null;
             return;
@@ -635,7 +575,7 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
 
     /// Determina qual líquido tem a maior densidade (usado para empuxo) e qual tem o maior
     /// drag (usado para resistência), entre todos os líquidos que o objeto está tocando.
-    private void updateCurrentLiquidData() {
+    protected void updateCurrentLiquidData() {
         if (liquidAndRegionMap.isEmpty()) {
             highestDensityLiquidBuffer = null;
             highestDragLiquidBuffer = null;
@@ -671,197 +611,12 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
         recalculateEquilibriumThreshold();
     }
 
-    public void addLiquid(LiquidData liquidData, LiquidRegion region) {
-        if (region == null || liquidData == null) return;
-
-        ArrayList<LiquidRegion> list = liquidAndRegionMap.get(liquidData);
-
-        if (list == null) {
-            list = new ArrayList<>(4);
-            liquidAndRegionMap.put(liquidData, list);
-            needsUpdateCurrentLiquidData = true;
-        }
-
-        list.add(region);
-        needsUpdateCurrentRegion = true;
-    }
-
-    public void removeLiquid(LiquidData liquidData, LiquidRegion region) {
-        if (liquidData == null || region == null) return;
-
-        ArrayList<LiquidRegion> list = liquidAndRegionMap.get(liquidData);
-
-        if (list == null) {
-            needsUpdateCurrentLiquidData = true;
-            return;
-        }
-
-        list.remove(region);
-        needsUpdateCurrentRegion = true;
-
-        if (list.isEmpty()) {
-            liquidAndRegionMap.remove(liquidData);
-            needsUpdateCurrentLiquidData = true;
-        }
-    }
-
-    // ==================================================================
-    // 7. MOVIMENTO (resistência/constraints aplicados no moveC)
-    // ==================================================================
-
-    private void updateStoredMovement() {
-        if (!needsUpdateStoredMovement) return;
-        storeCurrentMovementValues();
-        canInteract = canInteractBuffer;
-        needsUpdateStoredMovement = false;
-    }
-
-    private void storeCurrentMovementValues() {
-        if (originalValuesStored) return;
-        this.storedMovementData.set(moveC.dataComponent);
-        originalValuesStored = true;
-    }
-
-    private void restartStoredMovementValues() {
-        if (!originalValuesStored) return;
-        this.moveC.dataComponent.set(storedMovementData);
-        isConstraintsDirty = true;
-    }
-
-    private void prepareIntermediary() {
-        intermediary.set(storedMovementData);
-    }
-
-    private void recalculateMovementData() {
-        prepareIntermediary();
-        calculateResistance(highestDragLiquidBuffer);
-    }
-
-    private void calculateResistance(LiquidData data) {
-        if (data == null) return;
-
-        float drag = data.drag;
-
-        intermediary.xAxis.weightFactor = drag;
-        intermediary.yAxis.weightFactor = drag;
-        intermediary.rAxis.weightFactor = drag;
-
-        intermediary.xAxis.deceleration = storedMovementData.xAxis.deceleration + drag;
-        intermediary.yAxis.deceleration = storedMovementData.yAxis.deceleration + drag;
-        intermediary.rAxis.deceleration = storedMovementData.rAxis.deceleration + drag;
-    }
-
-    private void applyConstraints() {
-        if (!isConstraintsDirty) return;
-
-        MovementDataComponent target = moveC.dataComponent;
-
-        target.xAxis.weightFactor = intermediary.xAxis.weightFactor;
-        target.yAxis.weightFactor = intermediary.yAxis.weightFactor;
-        target.rAxis.weightFactor = intermediary.rAxis.weightFactor;
-
-        target.xAxis.deceleration = intermediary.xAxis.deceleration;
-        target.yAxis.deceleration = intermediary.yAxis.deceleration;
-        target.rAxis.deceleration = intermediary.rAxis.deceleration;
-
-        target.xAxis.maxMoveVel = intermediary.xAxis.maxMoveVel;
-        target.yAxis.maxMoveVel = intermediary.yAxis.maxMoveVel;
-        target.rAxis.maxMoveVel = intermediary.rAxis.maxMoveVel;
-
-        target.gravityAffected = intermediary.gravityAffected;
-        target.gravityScale = intermediary.gravityScale;
-
-        isConstraintsDirty = false;
-    }
-
-    private void markUpdateSimulationData() {
-        needsUpdatePhysicsData = true;
-        needsUpdateMovement = true;
-        isConstraintsDirty = true;
-    }
-
-    private void resetSimulatedFloatation() {
-        floatEffectValue = 0;
-    }
-
-    public void updateCurrentStoredMovementValues() {
-        this.needsUpdateStoredMovement = true;
-        this.canInteractBuffer = this.canInteract;
-        this.canInteract = false;
-        this.originalValuesStored = false;
-    }
-
-    public void resetFlotation() {
-        floatEffectValue = 0;
-        floatEffectValueModifier = 0;
-    }
-
-    // ==================================================================
-    // 8. GETTERS / SETTERS PÚBLICOS
-    // ==================================================================
-
-    public boolean isCanInteract() {
-        return canInteract;
-    }
-
-    public void setCanInteract(boolean canInteract) {
-        if (this.canInteract == canInteract) return;
-        this.canInteract = canInteract;
-    }
-
-    public float getMass() {
-        return mass;
-    }
-
-    public void setMass(float mass) {
-        if (mass < 0) return;
-        this.mass = mass;
-        markUpdateSimulationData();
-    }
-
-    public float getVolume() {
-        return volume;
-    }
-
-    public void setVolume(float volume) {
-        this.volume = volume;
-        markUpdateSimulationData();
-    }
-
-    public float getFloatEffect() {
-        return floatEffectValue;
-    }
-
-    public float getFloatEffectValueModifier() {
-        return floatEffectValueModifier;
-    }
-
-    public void setFloatingEffectModifier(float v) {
-        this.floatEffectValueModifier = v;
-    }
-
-    public boolean isInLiquid() {
-        return inLiquid;
-    }
-
-    public boolean isAtSurfaceEquilibrium() {
-        return atSurfaceEquilibrium;
-    }
-
-    public boolean hasFloatation() {
-        return floatEffectValueModifier != 0 || floatEffectValue != 0;
-    }
-
     public Vector2 getMassCenter() {
         return massCenter;
     }
 
     public void updateMassCenter(float x, float y) {
         this.massCenter.set(x, y);
-    }
-
-    public Vector2 getFloatApplicationPoint() {
-        return floatApplicationPoint;
     }
 
     public float getTorque() {
@@ -885,7 +640,6 @@ public class PhysicalMobLiquidInteractionComponent implements Component {
     }
 
     public void nullifyReferences() {
-        moveC = null;
         object = null;
     }
 }

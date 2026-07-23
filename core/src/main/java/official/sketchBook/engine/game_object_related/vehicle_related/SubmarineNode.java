@@ -17,7 +17,7 @@ import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.interact.InteractableObjectManagerComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.physics.MovableObjectPhysicsComponent;
-import official.sketchBook.engine.components_related.physics.PhysicalMobLiquidInteractionComponent;
+import official.sketchBook.engine.components_related.physics.MobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.components_related.system_utils.RenderableAndDefaultComponentManagerComponent;
 import official.sketchBook.engine.components_related.system_utils.SubmersibleVolume;
@@ -70,7 +70,7 @@ public class SubmarineNode
     private TransformComponent transformC;
 
     /// Componente para lidar com a interação com liquidos do submarino
-    private PhysicalMobLiquidInteractionComponent liquidInteractionC;
+    private MobLiquidInteractionComponent liquidInteractionC;
 
     /// Gerênciador de componentes lógicos de funcionamento de objeto
     private final RenderableAndDefaultComponentManagerComponent managerC;
@@ -232,7 +232,7 @@ public class SubmarineNode
             true
         );
 
-        liquidInteractionC = new PhysicalMobLiquidInteractionComponent(this);
+        liquidInteractionC = new MobLiquidInteractionComponent(this);
 
         MovableObjectPhysicsComponent vPhysicsC = new MovableObjectPhysicsComponent(
             this,
@@ -498,7 +498,7 @@ public class SubmarineNode
     }
 
     @Override
-    public PhysicalMobLiquidInteractionComponent getLiquidInteractionC() {
+    public MobLiquidInteractionComponent getLiquidInteractionC() {
         return liquidInteractionC;
     }
 

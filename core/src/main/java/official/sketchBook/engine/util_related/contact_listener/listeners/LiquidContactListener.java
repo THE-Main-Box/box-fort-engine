@@ -4,6 +4,7 @@ import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.LIOBase;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.MultiLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.LiquidInteractableObjectII;
 import official.sketchBook.engine.liquid_related.model.Liquid;
@@ -35,7 +36,7 @@ public class LiquidContactListener implements MultiContactListener.SubContactLis
             return;
 
         // Tenta interativo simples primeiro
-        LiquidInteractableObjectII simple = extractSimpleInteractable(tagA, tagB);
+        LIOBase simple = extractSimpleInteractable(tagA, tagB);
         if (simple != null) {
             simple.getLiquidInteractionC().addLiquid(
                 liquidData,
@@ -72,7 +73,7 @@ public class LiquidContactListener implements MultiContactListener.SubContactLis
         if(region == null)
             return;
 
-        LiquidInteractableObjectII simple = extractSimpleInteractable(tagA, tagB);
+        LIOBase simple = extractSimpleInteractable(tagA, tagB);
         if (simple != null) {
             simple.getLiquidInteractionC().removeLiquid(
                 liquidData,
@@ -102,11 +103,11 @@ public class LiquidContactListener implements MultiContactListener.SubContactLis
         return null;
     }
 
-    private LiquidInteractableObjectII extractSimpleInteractable(GameObjectTag tagA, GameObjectTag tagB) {
-        if (tagA != null && !(tagA.owner instanceof Liquid) && tagA.owner instanceof LiquidInteractableObjectII)
-            return (LiquidInteractableObjectII) tagA.owner;
-        if (tagB != null && !(tagB.owner instanceof Liquid) && tagB.owner instanceof LiquidInteractableObjectII)
-            return (LiquidInteractableObjectII) tagB.owner;
+    private LIOBase extractSimpleInteractable(GameObjectTag tagA, GameObjectTag tagB) {
+        if (tagA != null && !(tagA.owner instanceof Liquid) && tagA.owner instanceof LIOBase)
+            return (LIOBase) tagA.owner;
+        if (tagB != null && !(tagB.owner instanceof Liquid) && tagB.owner instanceof LIOBase)
+            return (LIOBase) tagB.owner;
         return null;
     }
 

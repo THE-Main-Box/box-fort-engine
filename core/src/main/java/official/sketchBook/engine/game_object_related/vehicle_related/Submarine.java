@@ -2,6 +2,7 @@ package official.sketchBook.engine.game_object_related.vehicle_related;
 
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.MultiLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.CompositeRenderableObjectII;
+import official.sketchBook.engine.components_related.physics.LiquidInteractionComponent;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
