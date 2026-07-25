@@ -9,7 +9,6 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import official.sketchBook.engine.animation_rendering_related.ObjectAnimationPlayer;
 import official.sketchBook.engine.animation_rendering_related.SpriteSheetDataHandler;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.InteractionTriggerer;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.LiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.PhysicalLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.JumpCapableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.MovableObjectII;
@@ -68,7 +67,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     /// Componente de pulo
     private JumpComponent jumpC;
 
-    private PhysicalObjectLiquidInteractionComponent liquidInteractionC;
+    private PhysicalLiquidInteractionComponent liquidInteractionC;
 
     private InteractTriggerComponent triggerC;
 
@@ -282,7 +281,7 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         this.createBody();
 
-        this.liquidInteractionC = new PhysicalObjectLiquidInteractionComponent(this);
+        this.liquidInteractionC = new PhysicalLiquidInteractionComponent(this);
 
         this.managerC.add(
             liquidInteractionC,
@@ -511,7 +510,7 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     @Override
-    public PhysicalObjectLiquidInteractionComponent getLiquidInteractionC() {
+    public PhysicalLiquidInteractionComponent getLiquidInteractionC() {
         return liquidInteractionC;
     }
 

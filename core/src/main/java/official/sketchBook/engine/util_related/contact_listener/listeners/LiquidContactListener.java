@@ -49,7 +49,7 @@ public class LiquidContactListener implements MultiContactListener.SubContactLis
         MultiLiquidInteractableObjectII multi = extractMultiInteractable(tagA, tagB);
         if (multi == null) return;
 
-        List<? extends LiquidInteractableObjectII> list = multi.getLiquidIObj();
+        List<? extends LIOBase> list = multi.getLiquidIObj();
         for (int i = 0; i < list.size(); i++) {
             list.get(i).getLiquidInteractionC().addLiquid(
                 liquidData,
@@ -85,7 +85,7 @@ public class LiquidContactListener implements MultiContactListener.SubContactLis
         MultiLiquidInteractableObjectII multi = extractMultiInteractable(tagA, tagB);
         if (multi == null) return;
 
-        List<? extends LiquidInteractableObjectII> list = multi.getLiquidIObj();
+        List<? extends LIOBase> list = multi.getLiquidIObj();
         for (int i = 0; i < list.size(); i++) {
             list.get(i).getLiquidInteractionC().removeLiquid(
                 liquidData,

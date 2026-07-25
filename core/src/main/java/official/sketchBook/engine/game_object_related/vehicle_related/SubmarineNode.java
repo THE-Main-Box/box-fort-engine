@@ -7,9 +7,9 @@ import com.badlogic.gdx.physics.box2d.MassData;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Disposable;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.InteractableObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.PhysicalLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.PhysicalObjectII;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.LiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.VehiclePassenger;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.OptmizedRenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
@@ -18,6 +18,7 @@ import official.sketchBook.engine.components_related.interact.InteractableObject
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.physics.MovableObjectPhysicsComponent;
 import official.sketchBook.engine.components_related.physics.MobLiquidInteractionComponent;
+import official.sketchBook.engine.components_related.physics.PhysicalLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.components_related.system_utils.RenderableAndDefaultComponentManagerComponent;
 import official.sketchBook.engine.components_related.system_utils.SubmersibleVolume;
@@ -37,7 +38,7 @@ import static official.sketchBook.game.util_related.constants.PhysicsConstants.t
 public class SubmarineNode
     implements
     MovableObjectII,
-    LiquidInteractableObjectII,
+    PhysicalLiquidInteractableObjectII,
     PhysicalObjectII,
     VehicleSection,
     OptmizedRenderableObjectII,
@@ -70,7 +71,7 @@ public class SubmarineNode
     private TransformComponent transformC;
 
     /// Componente para lidar com a interação com liquidos do submarino
-    private MobLiquidInteractionComponent liquidInteractionC;
+    private PhysicalLiquidInteractionComponent liquidInteractionC;
 
     /// Gerênciador de componentes lógicos de funcionamento de objeto
     private final RenderableAndDefaultComponentManagerComponent managerC;
@@ -232,7 +233,7 @@ public class SubmarineNode
             true
         );
 
-        liquidInteractionC = new MobLiquidInteractionComponent(this);
+        liquidInteractionC = new PhysicalLiquidInteractionComponent(this);
 
         MovableObjectPhysicsComponent vPhysicsC = new MovableObjectPhysicsComponent(
             this,
@@ -295,11 +296,6 @@ public class SubmarineNode
     @Override
     public void inLiquidUpdate() {
 
-    }
-
-    @Override
-    public List<SubmersibleVolume> getSubmersibleVolumeList() {
-        return null;
     }
 
     @Override
@@ -498,7 +494,7 @@ public class SubmarineNode
     }
 
     @Override
-    public MobLiquidInteractionComponent getLiquidInteractionC() {
+    public PhysicalLiquidInteractionComponent getLiquidInteractionC() {
         return liquidInteractionC;
     }
 

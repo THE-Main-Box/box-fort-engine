@@ -8,5 +8,5 @@ public interface MultiLiquidInteractableObjectII {
 
     void inLiquidUpdate();
 
-    List<? extends LiquidInteractableObjectII> getLiquidIObj();
+    List<? extends LIOBase> getLiquidIObj();
 }

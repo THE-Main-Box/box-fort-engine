@@ -14,7 +14,7 @@ import static official.sketchBook.game.util_related.constants.PhysicsConstants.t
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.toPixels;
 
 
-public class PhysicalObjectLiquidInteractionComponent extends LiquidInteractionComponent {
+public class PhysicalLiquidInteractionComponent extends LiquidInteractionComponent {
     private static final float MIN_FRACTION_TO_APPLY_FORCE = 0.001f;
 
     private final Vector2 forceBuffer = new Vector2();
@@ -31,7 +31,7 @@ public class PhysicalObjectLiquidInteractionComponent extends LiquidInteractionC
 
     private boolean disposed = false;
 
-    public PhysicalObjectLiquidInteractionComponent(PhysicalLiquidInteractableObjectII owner) {
+    public PhysicalLiquidInteractionComponent(PhysicalLiquidInteractableObjectII owner) {
         super(owner.getMoveC());
         this.physicsC = owner.getPhysicsC();
 
