@@ -186,7 +186,7 @@ public class MobLiquidInteractionComponent extends LiquidInteractionComponent {
 
         float valueThisFrame = residualVerticalVelocity;
 
-        float decayFactor = MathUtils.clamp(RESIDUAL_DECAY_RATE * Math.min(delta, 1f), 0f, 1f);
+        float decayFactor = MathUtils.clamp(RESIDUAL_DECAY_RATE * delta, 0f, 1f);
         residualVerticalVelocity -= residualVerticalVelocity * decayFactor;
 
         if (Math.abs(residualVerticalVelocity) < RESIDUAL_VELOCITY_CUTOFF) {
@@ -262,7 +262,8 @@ public class MobLiquidInteractionComponent extends LiquidInteractionComponent {
             return;
         }
 
-        floatEffectValue += (targetFloatEffect - floatEffectValue) * Math.min(delta, 1f);
+        floatEffectValue += (targetFloatEffect - floatEffectValue) * delta;
+        floatEffectValue = Math.max(0f, floatEffectValue);
 
         if (targetFloatEffect >= 0f) {
             if (floatEffectValue > targetFloatEffect) floatEffectValue = targetFloatEffect;
@@ -474,7 +475,7 @@ public class MobLiquidInteractionComponent extends LiquidInteractionComponent {
             return;
         }
 
-        cachedTorqueVelocity += (targetTorque - cachedTorqueVelocity) * Math.min(delta, 1f);
+        cachedTorqueVelocity += (targetTorque - cachedTorqueVelocity) * delta;
     }
 
     /// Braço de alavanca em espaço local (floatApplicationPoint - massCenter), reprojetado
