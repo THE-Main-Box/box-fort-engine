@@ -1,26 +1,20 @@
 package official.sketchBook.engine.components_related.physics;
 
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.CircleShape;
-import com.badlogic.gdx.physics.box2d.Fixture;
-import com.badlogic.gdx.physics.box2d.PolygonShape;
-import com.badlogic.gdx.physics.box2d.Shape;
+import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.utils.Array;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.PhysicalLiquidInteractableObjectII;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
 import java.util.Map;
 
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.toMeters;
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.toPixels;
 
 
-public class PhysicalObjectLiquidInteractionComponent extends LiquidInteractionComponent {
+public class PhysicalLiquidInteractionComponent extends LiquidInteractionComponent {
     private static final float MIN_FRACTION_TO_APPLY_FORCE = 0.001f;
 
     private final Vector2 forceBuffer = new Vector2();
@@ -37,7 +31,7 @@ public class PhysicalObjectLiquidInteractionComponent extends LiquidInteractionC
 
     private boolean disposed = false;
 
-    public PhysicalObjectLiquidInteractionComponent(PhysicalLiquidInteractableObjectII owner) {
+    public PhysicalLiquidInteractionComponent(PhysicalLiquidInteractableObjectII owner) {
         super(owner.getMoveC());
         this.physicsC = owner.getPhysicsC();
 
