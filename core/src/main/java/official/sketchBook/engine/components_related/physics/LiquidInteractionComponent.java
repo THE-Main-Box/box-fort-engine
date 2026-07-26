@@ -2,6 +2,7 @@ package official.sketchBook.engine.components_related.physics;
 
 import com.badlogic.gdx.math.Vector2;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.LIOBase;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.MovementDataComponent;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
@@ -60,8 +61,11 @@ public abstract class LiquidInteractionComponent implements Component {
 
     protected final IdentityHashMap<LiquidData, ArrayList<LiquidRegion>> liquidAndRegionMap = new IdentityHashMap<>();
 
-    public LiquidInteractionComponent(MovementComponent moveC) {
+    protected LIOBase owner;
+
+    public LiquidInteractionComponent(LIOBase owner, MovementComponent moveC) {
         this.moveC = moveC;
+        this.owner = owner;
     }
 
     public void addLiquid(LiquidData liquidData, LiquidRegion region) {
@@ -98,6 +102,8 @@ public abstract class LiquidInteractionComponent implements Component {
         }
     }
 
+    protected abstract void updateSimulation(float delta);
+
     protected void updateLiquidState() {
         if (needsUpdateCurrentRegion) {
             updateCurrentRegion();
@@ -108,6 +114,21 @@ public abstract class LiquidInteractionComponent implements Component {
             updateCurrentLiquidData();
             needsUpdateMovement = true;
             needsUpdateCurrentLiquidData = false;
+        }
+    }
+
+    protected void applyChange(boolean shouldSimulate) {
+        if (shouldSimulate && !inLiquid) {
+            inLiquid = true;
+            owner.onLiquidEnter();
+            return;
+        }
+
+        if (!shouldSimulate && inLiquid) {
+            inLiquid = false;
+            restartStoredMovementValues();
+            resetFlotation();
+            owner.onLiquidExit();
         }
     }
 
@@ -229,6 +250,10 @@ public abstract class LiquidInteractionComponent implements Component {
     public void setVolume(float volume) {
         this.volume = volume;
         markUpdateSimulationData();
+    }
+
+    public Vector2 getFloatApplicationPoint() {
+        return floatApplicationPoint;
     }
 
     public float getFloatEffect() {

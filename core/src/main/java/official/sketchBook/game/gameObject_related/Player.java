@@ -20,8 +20,6 @@ import official.sketchBook.engine.components_related.interact.InteractTriggerCom
 import official.sketchBook.engine.components_related.movement.JumpComponent;
 import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.physics.*;
-import official.sketchBook.engine.components_related.system_utils.PhysicsUtils;
-import official.sketchBook.engine.components_related.system_utils.SubmersibleVolume;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.animated_renderable_game_object.AnimatedRenderableRoomGameObject;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
@@ -34,9 +32,6 @@ import official.sketchBook.game.components_related.player.PlayerAnimationControl
 import official.sketchBook.game.components_related.player.PlayerControllerComponent;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 import official.sketchBook.game.util_related.path.GameAssetsPaths;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static official.sketchBook.game.components_related.player.PlayerAnimationInitializerComponent.initAnimations;
 
@@ -74,12 +69,9 @@ public class Player extends AnimatedRenderableRoomGameObject
     /// Corpo físico
     private Body body;
 
-    private final List<SubmersibleVolume> submersibleVolumeList;
-
     public Player(
         PhysicalGameObjectDataManager worldDataManager,
         PlayableRoom ownerRoom,
-        float density,
         float x,
         float y,
         float z,
@@ -113,18 +105,17 @@ public class Player extends AnimatedRenderableRoomGameObject
         initMovementComponent();
 
         //Aplicador final de movimento
-        initPhysicsComponent(density);
+        initPhysicsComponent();
 
         this.initObject();
 
-        this.submersibleVolumeList = new ArrayList<>();
-        this.submersibleVolumeList.add(
-            new SubmersibleVolume(
-                0,
-                0,
-                transformC.width,
-                transformC.height
-            )
+        this.liquidInteractionC.setMass(
+//            toMeters(0.5f)
+            0.05f
+        );
+
+        this.liquidInteractionC.setVolume(
+            transformC.width * transformC.height
         );
 
     }
@@ -147,14 +138,6 @@ public class Player extends AnimatedRenderableRoomGameObject
         initGroundDetectionComponent();
 
         initTriggerComponent();
-
-        this.liquidInteractionC.setMass(
-            PhysicsUtils.calculateMass(body)
-        );
-
-        this.liquidInteractionC.setVolume(
-            PhysicsUtils.calculateVolume(body)
-        );
 
     }
 
@@ -249,7 +232,7 @@ public class Player extends AnimatedRenderableRoomGameObject
             WorldConstants.PlayerConstants.R_DECELERATION,
             true,
             true,
-            false,
+            true,
             true,
             true,
             true,
@@ -267,13 +250,13 @@ public class Player extends AnimatedRenderableRoomGameObject
         );
     }
 
-    private void initPhysicsComponent(float density) {
+    private void initPhysicsComponent() {
 
         this.physicsC = new VehiclePassengerPhysicsComponent(
             this,
             WorldConstants.PlayerConstants.categoryBit,
             WorldConstants.PlayerConstants.maskBit,
-            9f,
+            0,
             2f,
             0f
         );
@@ -463,7 +446,8 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     @Override
     protected void disposeGeneralData() {
-        submersibleVolumeList.clear();
+
+
     }
 
     @Override
@@ -495,17 +479,21 @@ public class Player extends AnimatedRenderableRoomGameObject
         if(Gdx.input.isKeyPressed(
             Input.Keys.R
         )){
-
-            this.liquidInteractionC.setMass(
-                liquidInteractionC.getMass() - 100
+            liquidInteractionC.setMass(
+                liquidInteractionC.getMass() - 0.1f
             );
-        } else if(Gdx.input.isKeyPressed(
+
+        }
+
+        if(Gdx.input.isKeyPressed(
             Input.Keys.C
         )){
-            this.liquidInteractionC.setMass(
-                liquidInteractionC.getMass() + 100
+            liquidInteractionC.setMass(
+                liquidInteractionC.getMass() + 0.1f
             );
         }
+
+        System.out.println(body.getMassData().mass);
 
     }
 

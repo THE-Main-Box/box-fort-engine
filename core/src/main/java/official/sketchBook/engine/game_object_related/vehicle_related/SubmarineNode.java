@@ -13,11 +13,10 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.VehiclePassenger;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.OptmizedRenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
-import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.interact.InteractableObjectManagerComponent;
+import official.sketchBook.engine.components_related.movement.MovementComponent;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 import official.sketchBook.engine.components_related.physics.MovableObjectPhysicsComponent;
-import official.sketchBook.engine.components_related.physics.MobLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.PhysicalLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.components_related.system_utils.RenderableAndDefaultComponentManagerComponent;
@@ -233,9 +232,8 @@ public class SubmarineNode
             true
         );
 
-        liquidInteractionC = new PhysicalLiquidInteractionComponent(this);
 
-        MovableObjectPhysicsComponent vPhysicsC = new MovableObjectPhysicsComponent(
+        this.physicsC = new MovableObjectPhysicsComponent(
             this,
             0,
             0,
@@ -244,9 +242,7 @@ public class SubmarineNode
             0
         );
 
-//        vPhysicsC.autoApplyMovement = false;
-
-        physicsC = vPhysicsC;
+        liquidInteractionC = new PhysicalLiquidInteractionComponent(this);
 
         interactableObjectManagerC = new InteractableObjectManagerComponent(internalBody);
 
@@ -457,7 +453,7 @@ public class SubmarineNode
 
         if (toRender && component instanceof RenderableObjectII) this.managerC.addToRender(component);
 
-        if(component instanceof InteractableObjectII) {
+        if (component instanceof InteractableObjectII) {
             this.interactableObjectManagerC.addToList((InteractableObjectII) component);
         }
 
@@ -537,7 +533,6 @@ public class SubmarineNode
     @Override
     public void dispose() {
         if (disposed) return;
-
 
 
         componentsDispose();

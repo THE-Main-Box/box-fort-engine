@@ -2,10 +2,10 @@ package official.sketchBook.engine.liquid_related.model;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.*;
-import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.LiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.CompositeRenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.OptmizedRenderableObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
+import official.sketchBook.engine.components_related.physics.PhysicalLiquidInteractionComponent;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
 import official.sketchBook.engine.liquid_related.util.LiquidRegion;
@@ -29,10 +29,6 @@ public class RoomLiquid extends BaseRoomGameObject implements Liquid, CompositeR
 
     private LiquidData liquidData;
     private Body liquidBody;
-
-    private final Set<LiquidInteractableObjectII>
-        currentInsideBuffer = new HashSet<>(),
-        insideSet = new HashSet<>();
 
     /// Bounds gerais do líquido (otimização)
     private float minX, minY, maxX, maxY;

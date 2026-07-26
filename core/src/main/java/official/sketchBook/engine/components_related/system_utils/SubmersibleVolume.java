@@ -1,30 +1,23 @@
 package official.sketchBook.engine.components_related.system_utils;
 
+import com.badlogic.gdx.math.MathUtils;
+
 public class SubmersibleVolume {
 
-    private float
-        centerXToBody,
-        centerYToBody;
-    private float
-        width,
-        height;
+    private float centerXToBody;
+    private float centerYToBody;
+    private float radius;
 
-    private boolean
-        dimensionsDataDirty,
-        posDataDirty;
+    private boolean dimensionsDataDirty;
+    private boolean posDataDirty;
 
-    /// Última fração de submersão calculada para este volume especificamente (0 = seco, 1 = totalmente submerso)
     private float lastSubmersionFraction = 0f;
-
-    /// Marcado quando a fração de submersão muda além do epsilon tolerado.
-    /// Ainda não usado para short-circuit — reservado para uma otimização futura.
     private boolean submersionDirty = true;
 
-    public SubmersibleVolume(float centerXToBody, float centerYToBody, float width, float height) {
+    public SubmersibleVolume(float centerXToBody, float centerYToBody, float radius) {
         this.centerXToBody = centerXToBody;
         this.centerYToBody = centerYToBody;
-        this.width = width;
-        this.height = height;
+        this.radius = radius;
         this.dimensionsDataDirty = true;
         this.posDataDirty = true;
     }
@@ -39,13 +32,8 @@ public class SubmersibleVolume {
         this.posDataDirty = true;
     }
 
-    public void setWidth(float width) {
-        this.width = width;
-        this.dimensionsDataDirty = true;
-    }
-
-    public void setHeight(float height) {
-        this.height = height;
+    public void setRadius(float radius) {
+        this.radius = radius;
         this.dimensionsDataDirty = true;
     }
 
@@ -57,12 +45,16 @@ public class SubmersibleVolume {
         return centerYToBody;
     }
 
-    public float getWidth() {
-        return width;
+    public float getRadius() {
+        return radius;
     }
 
-    public float getHeight() {
-        return height;
+    public float getDiameter() {
+        return radius * 2f;
+    }
+
+    public float getArea() {
+        return MathUtils.PI * radius * radius;
     }
 
     public boolean isDimensionsDataDirty() {
@@ -81,15 +73,9 @@ public class SubmersibleVolume {
         return submersionDirty;
     }
 
-    /// Atualiza a fração cacheada e marca dirty se a mudança superar o epsilon informado.
-    /// Quem chama decide o epsilon (fica no componente de física, junto da constante).
     public void updateSubmersionFraction(float newFraction, float epsilon) {
         float delta = Math.abs(newFraction - lastSubmersionFraction);
         this.submersionDirty = delta > epsilon;
         this.lastSubmersionFraction = newFraction;
-    }
-
-    public float getArea() {
-        return height * width;
     }
 }
