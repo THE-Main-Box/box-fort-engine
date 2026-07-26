@@ -98,7 +98,6 @@ public class PlayScreen extends BaseScreen {
         worldManager.mainPlayer = new Player(
             worldManager,
             worldManager.getCurrentRoom(),
-            5,
             250,
             40,
             0,
@@ -159,7 +158,6 @@ public class PlayScreen extends BaseScreen {
             worldManager.mainPlayer = new Player(
                 worldManager,
                 worldManager.getCurrentRoom(),
-                9,
                 250,
                 160,
                 0,
