@@ -33,7 +33,9 @@ import official.sketchBook.game.components_related.player.PlayerControllerCompon
 import official.sketchBook.game.util_related.constants.WorldConstants;
 import official.sketchBook.game.util_related.path.GameAssetsPaths;
 
+import static official.sketchBook.engine.components_related.system_utils.PhysicsUtils.calculateVolume;
 import static official.sketchBook.game.components_related.player.PlayerAnimationInitializerComponent.initAnimations;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.toMeters;
 
 public class Player extends AnimatedRenderableRoomGameObject
     implements
@@ -110,13 +112,13 @@ public class Player extends AnimatedRenderableRoomGameObject
         this.initObject();
 
         this.liquidInteractionC.setMass(
-//            toMeters(0.5f)
-            0.05f
+            toMeters(10f)
         );
 
         this.liquidInteractionC.setVolume(
-            transformC.width * transformC.height
+            calculateVolume(body)
         );
+
 
     }
 
@@ -232,7 +234,7 @@ public class Player extends AnimatedRenderableRoomGameObject
             WorldConstants.PlayerConstants.R_DECELERATION,
             true,
             true,
-            true,
+            false,
             true,
             true,
             true,
@@ -344,15 +346,9 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     @Override
-    public void onRoomSwitch(PlayableRoom oldRoom, PlayableRoom newRoom) {
-        super.onRoomSwitch(oldRoom, newRoom);
-    }
-
-    @Override
     public void update(float delta) {
         super.update(delta);
 
-//        System.out.println(moveC.dataComponent.xAxis.velocity);
     }
 
     @Override
@@ -366,8 +362,17 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     @Override
-    protected void onObjectDestruction() {
-        super.onObjectDestruction();
+    public void onLiquidExit() {
+
+    }
+
+    @Override
+    public void onLiquidEnter() {
+    }
+
+    @Override
+    public void inLiquidUpdate() {
+
     }
 
     public PlayerControllerComponent getControllerC() {
@@ -401,6 +406,26 @@ public class Player extends AnimatedRenderableRoomGameObject
     @Override
     public PhysicalGameObjectDataManager getPhysicalManager() {
         return (PhysicalGameObjectDataManager) this.worldDataManager;
+    }
+
+    @Override
+    public PhysicalLiquidInteractionComponent getLiquidInteractionC() {
+        return liquidInteractionC;
+    }
+
+    @Override
+    public VehiclePassengerPhysicsComponent getVehiclePassengerPhysicsC() {
+        return (VehiclePassengerPhysicsComponent) physicsC;
+    }
+
+    @Override
+    public InteractTriggerComponent getTriggerC() {
+        return triggerC;
+    }
+
+    @Override
+    public Vector2 getCoordinatesInMeters() {
+        return this.body.getPosition();
     }
 
     @Override
@@ -462,59 +487,6 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         sheetDisposed = true;
 
-    }
-
-    @Override
-    public void onLiquidExit() {
-
-    }
-
-    @Override
-    public void onLiquidEnter() {
-    }
-
-    @Override
-    public void inLiquidUpdate() {
-
-        if(Gdx.input.isKeyPressed(
-            Input.Keys.R
-        )){
-            liquidInteractionC.setMass(
-                liquidInteractionC.getMass() - 0.1f
-            );
-
-        }
-
-        if(Gdx.input.isKeyPressed(
-            Input.Keys.C
-        )){
-            liquidInteractionC.setMass(
-                liquidInteractionC.getMass() + 0.1f
-            );
-        }
-
-        System.out.println(body.getMassData().mass);
-
-    }
-
-    @Override
-    public PhysicalLiquidInteractionComponent getLiquidInteractionC() {
-        return liquidInteractionC;
-    }
-
-    @Override
-    public VehiclePassengerPhysicsComponent getVehiclePassengerPhysicsC() {
-        return (VehiclePassengerPhysicsComponent) physicsC;
-    }
-
-    @Override
-    public InteractTriggerComponent getTriggerC() {
-        return triggerC;
-    }
-
-    @Override
-    public Vector2 getCoordinatesInMeters() {
-        return this.body.getPosition();
     }
 
 }

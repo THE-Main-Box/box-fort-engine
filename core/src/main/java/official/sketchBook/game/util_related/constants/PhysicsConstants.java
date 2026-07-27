@@ -23,7 +23,7 @@ public class PhysicsConstants {
     static {
         VELOCITY_ITERATIONS = 6;
         POSITION_ITERATIONS = 2;
-        updateUps(30);
+        updateUps(60);
 
     }
 

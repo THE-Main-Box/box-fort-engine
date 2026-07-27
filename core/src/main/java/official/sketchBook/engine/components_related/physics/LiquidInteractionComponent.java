@@ -15,18 +15,18 @@ public abstract class LiquidInteractionComponent implements Component {
 
     protected final MovementComponent moveC;
 
-    ///Flag de estado de interação
+    /// Flag de estado de interação
     protected boolean
         canInteractBuffer = false,  //Buffer original de interação
         canInteract = true,         //Se podemos interagir atualmente
         inLiquid = false;           //Se estamos dentro de algum liquido atualmente
 
-    ///Flag de estado de update de dados originais
+    /// Flag de estado de update de dados originais
     protected boolean
         originalValuesStored = false,       //Se os dados originais foram armazenados
         needsUpdateStoredMovement = true;   //Se precisamos atualizar para novos dados
 
-    ///Flags de atualização de simulação
+    /// Flags de atualização de simulação
     protected boolean
         needsUpdateCurrentLiquidData = true,    //Se precisamos atualizar os dados de liquido atual
         needsUpdateCurrentRegion = true,        //Se precisamos atualizar a região atual
@@ -34,27 +34,29 @@ public abstract class LiquidInteractionComponent implements Component {
         needsUpdateMovement = true,             //Se precisamos atualizar o movimento
         isConstraintsDirty = true;              //Se precisamos atualizar as constraints por estarem desatualizadas
 
-    ///Valores do objeto para simulação
+    /// Valores do objeto para simulação
     protected float
         objectDensity,      //Densidade total do objeto
         mass,               //Massa do objeto
         volume;             //Volume total do objeto
 
-    ///Valores para a simulação em si
+    /// Valores para a simulação em si
     protected float
         cachedSubmersionFraction = 1f,  //Submersão total do objeto
         floatEffectValue,               //Flutuabilidade a ser aplicada
         floatEffectValueModifier;       //Modificador de flutuabilidade a ser somado
 
-    ///Ponto de aplicação da flutuabilidade do objeto
-    protected final Vector2 floatApplicationPoint = new Vector2();
+    /// Ponto de aplicação da flutuabilidade do objeto
+    protected final Vector2
+        centerOfMass = new Vector2(),
+        floatApplicationPoint = new Vector2();
 
     /// Armazenamento de dados de movimentação
     protected final MovementDataComponent
         storedMovementData = new MovementDataComponent(),
         intermediary = new MovementDataComponent();
 
-    ///Dados de liquido a serem interagidos
+    /// Dados de liquido a serem interagidos
     protected LiquidData
         highestDensityLiquidBuffer,
         highestDragLiquidBuffer;
@@ -120,6 +122,8 @@ public abstract class LiquidInteractionComponent implements Component {
     protected void applyChange(boolean shouldSimulate) {
         if (shouldSimulate && !inLiquid) {
             inLiquid = true;
+
+            onLiquidEnter();
             owner.onLiquidEnter();
             return;
         }
@@ -128,9 +132,14 @@ public abstract class LiquidInteractionComponent implements Component {
             inLiquid = false;
             restartStoredMovementValues();
             resetFlotation();
+
+            onLiquidExit();
             owner.onLiquidExit();
         }
     }
+
+    protected abstract void onLiquidEnter();
+    protected abstract void onLiquidExit();
 
     protected abstract void updateCurrentRegion();
 
@@ -250,6 +259,22 @@ public abstract class LiquidInteractionComponent implements Component {
     public void setVolume(float volume) {
         this.volume = volume;
         markUpdateSimulationData();
+    }
+
+    public Vector2 getCenterOfMass() {
+        return centerOfMass;
+    }
+
+    public void updateCenterOfMass(float x, float y){
+        this.centerOfMass.set(x, y);
+    }
+
+    public void updateCenterOfMass(Vector2 centerOfMass){
+        this.centerOfMass.set(centerOfMass);
+    }
+
+    public float getCachedSubmersionFraction() {
+        return cachedSubmersionFraction;
     }
 
     public Vector2 getFloatApplicationPoint() {
