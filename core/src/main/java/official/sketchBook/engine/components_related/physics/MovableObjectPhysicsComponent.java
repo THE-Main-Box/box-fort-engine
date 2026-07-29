@@ -27,6 +27,29 @@ public class MovableObjectPhysicsComponent extends PhysicsComponent {
         int maskBit,
         float density,
         float frict,
+        float rest,
+        boolean autoConstraintR,
+        boolean autoApplyMovement
+    ) {
+        this(
+            object,
+            categoryBit,
+            maskBit,
+            density,
+            frict,
+            rest
+        );
+
+        this.autoApplyMovement = autoApplyMovement;
+        this.autoConstraintR = autoConstraintR;
+    }
+
+    public MovableObjectPhysicsComponent(
+        PhysicalObjectII object,
+        int categoryBit,
+        int maskBit,
+        float density,
+        float frict,
         float rest
     ) {
         super(

@@ -43,22 +43,17 @@ public class SubmarineNode
     OptmizedRenderableObjectII,
     Disposable {
 
-    private World physicsWorld;
-
     /// Referência ao veículo dono desse node
     private Submarine submarine;
 
     /// Lista de partes físicas
     private final List<SubmarinePart> physicalParts;
 
-    private final List<SubmersibleVolume> submersibleVolumeList;
-
-    private final List<VehicleBaseComponent> vehicleComponentList;
-
+    /// Lista de objetos que podem entrar e interagir com o lado interno do submarino, alterando a massa e outras coisas
     private final List<VehiclePassenger> passengerList;
 
-    /// Dado de massa atual
-    private final MassData massData = new MassData();
+    /// Lista de componentes de uso interno do submarino, componentes importantes como portas e outras coisas
+    private final List<VehicleBaseComponent> vehicleComponentList;
 
     /// Componente para controle de movimentação do sub a partir de velocidade
     private MovementComponent moveC;
@@ -76,6 +71,9 @@ public class SubmarineNode
     private final RenderableAndDefaultComponentManagerComponent managerC;
 
     private InteractableObjectManagerComponent interactableObjectManagerC;
+
+    /// Referência ao mundo físico
+    private World physicsWorld;
 
     /// Body do submarino completo
     private Body
@@ -117,8 +115,9 @@ public class SubmarineNode
         this.vehicleComponentList = new ArrayList<>();
         this.passengerList = new ArrayList<>();
 
-        for (SubmarinePart part : this.physicalParts) {
-            part.setSection(this);
+        //Atualizamos a referencia da seção em que as partes existem
+        for (int i = 0; i < physicalParts.size(); i++) {
+            physicalParts.get(i).setSection(this);
         }
 
         transformC = new TransformComponent(
@@ -136,17 +135,12 @@ public class SubmarineNode
 
         this.managerC = new RenderableAndDefaultComponentManagerComponent();
 
-        this.submersibleVolumeList = new ArrayList<>();
-
     }
 
     /// Inicialização de objeto
     public void initObject() {
         generateBody();
         initComponents();
-
-        physicsC.halfWidth = transformC.getHalfWidth();
-        physicsC.halfHeight = transformC.getHalfHeight();
 
         recalculateMass();
 
@@ -169,8 +163,53 @@ public class SubmarineNode
 
         calculateNodeDimensions();
 
+        this.body.setBullet(true);
+        this.internalBody.setBullet(true);
+
     }
 
+    public void recalculateMass() {
+        float totalMass = 0f;
+        float totalVolume = 0f;
+        float weightedCenterX = 0f;
+        float weightedCenterY = 0f;
+
+        boolean hasValidPart = false;
+
+        for (int i = 0; i < physicalParts.size(); i++) {
+            SubmarinePart part = physicalParts.get(i);
+            if (!part.isBoundsCalculated()) continue;
+
+            float centerX = part.getCenterX();
+            float centerY = part.getCenterY();
+
+            // volume real das fixtures da part, não o AABB (width*height)
+            float volume = part.getVolume();
+            float mass = part.getTotalMass();
+
+            totalVolume += volume;
+            totalMass += mass;
+            weightedCenterX += centerX * mass;
+            weightedCenterY += centerY * mass;
+
+            hasValidPart = true;
+        }
+
+        if (!hasValidPart || totalMass <= 0f) return;
+
+        float centerX = weightedCenterX / totalMass;
+        float centerY = weightedCenterY / totalMass;
+
+        // SubmarineNode não chama mais body.setMassData diretamente.
+        // Ele só entrega os dados agregados; quem aplica no Box2D (com
+        // inércia própria e uma única chamada por frame) é o
+        // liquidInteractionC, que já centraliza esse trabalho.
+        liquidInteractionC.setMass(totalMass);
+        liquidInteractionC.setVolume(totalVolume);
+        liquidInteractionC.updateCenterOfMass(centerX, centerY);
+    }
+
+    //TO-DO:Adicionar sistema para lidar com objetos anexados de outros nodes... possívelmente
     public void calculateNodeDimensions() {
         if (physicalParts == null || physicalParts.isEmpty()) return;
 
@@ -181,25 +220,29 @@ public class SubmarineNode
 
         boolean hasValidPart = false;
 
-        for (SubmarinePart part : physicalParts) {
+        for (int i = 0; i < physicalParts.size(); i++) {
+            SubmarinePart part = physicalParts.get(i);
+
             if (!part.isBoundsCalculated()) {
-                SubmarinePart.calculateAndStoreBounds(part);
+                part.updateBounds(); // fallback único, idempotente
             }
 
-            if (!part.isBoundsCalculated()) continue;
+            // se mesmo após o fallback a part não tem bounds válidos,
+            // ela é ignorada por completo — não entra no AABB nem na massa
+            if (!part.isBoundsCalculated()) {
+                continue;
+            }
 
             hasValidPart = true;
 
-            // Os bounds já estão em METROS, então comparamos direto
-            if (part.internalMinX < minX) minX = part.internalMinX;
-            if (part.internalMinY < minY) minY = part.internalMinY;
-            if (part.internalMaxX > maxX) maxX = part.internalMaxX;
-            if (part.internalMaxY > maxY) maxY = part.internalMaxY;
+            if (part.getInternalMinX() < minX) minX = part.getInternalMinX();
+            if (part.getInternalMinY() < minY) minY = part.getInternalMinY();
+            if (part.getInternalMaxX() > maxX) maxX = part.getInternalMaxX();
+            if (part.getInternalMaxY() > maxY) maxY = part.getInternalMaxY();
         }
 
         if (!hasValidPart) return;
 
-        // Agora sim convertemos UMA VEZ SÓ de metros pra pixels
         float worldWidth = toPixels(maxX - minX);
         float worldHeight = toPixels(maxY - minY);
 
@@ -239,8 +282,13 @@ public class SubmarineNode
             0,
             0,
             0,
-            0
+            0,
+            true,
+            false
         );
+
+        physicsC.halfWidth = transformC.getHalfWidth();
+        physicsC.halfHeight = transformC.getHalfHeight();
 
         liquidInteractionC = new PhysicalLiquidInteractionComponent(this);
 
@@ -357,54 +405,6 @@ public class SubmarineNode
 
         lastPosX = currentX;
         lastPosY = currentY;
-    }
-
-    public void recalculateMass() {
-        float totalMass = 0;
-        float totalVolume = 0;
-        float weightedCenterX = 0;
-        float weightedCenterY = 0;
-
-        SubmarinePart part;
-        for (int i = 0; i < physicalParts.size(); i++) {
-            part = physicalParts.get(i);
-            if (!part.isBoundsCalculated()) continue;
-
-            // Centro geométrico da parte
-            float centerX = (part.internalMinX + part.internalMaxX) / 2f;
-            float centerY = (part.internalMinY + part.internalMaxY) / 2f;
-
-            // Volume e massa da parte
-            float width = part.internalMaxX - part.internalMinX;
-            float height = part.internalMaxY - part.internalMinY;
-
-            float volume = width * height;
-            float mass = part.getTotalMass();
-
-            // Acumulamos tudo
-            totalVolume += volume;
-            totalMass += mass;
-            weightedCenterX += centerX * mass;
-            weightedCenterY += centerY * mass;
-        }
-
-        if (totalMass <= 0) return;
-
-        // Aplicamos no box2d
-        massData.mass = totalMass;
-        massData.center.set(
-            weightedCenterX / totalMass,
-            weightedCenterY / totalMass
-        );
-        float w = toMeters(transformC.width);
-        float h = toMeters(transformC.height);
-        massData.I = totalMass * (w * w + h * h) / 12f;
-
-        body.setMassData(massData);
-
-        // Atualizamos o simulador de interação com líquidos
-        liquidInteractionC.setMass(totalMass);
-        liquidInteractionC.setVolume(totalVolume);
     }
 
     @Override
@@ -554,7 +554,6 @@ public class SubmarineNode
 
         vehicleComponentList.clear();
         physicalParts.clear();
-        submersibleVolumeList.clear();
         passengerList.clear();
 
         physicsWorld.destroyBody(internalBody);

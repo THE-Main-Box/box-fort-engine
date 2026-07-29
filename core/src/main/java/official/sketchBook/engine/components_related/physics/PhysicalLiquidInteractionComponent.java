@@ -19,14 +19,25 @@ import static official.sketchBook.game.util_related.constants.PhysicsConstants.*
  * - cache por fixture para polígonos;
  * - cálculo manual de ponto em mundo (sem getWorldPoint em loop);
  * - área de polígono cacheada;
- * - uma única setMassData por frame quando houver dirty state;
- * - sem alteração funcional do comportamento base.
+ * - uma única setMassData por atualização quando houver dirty state;
+ * - inércia extraída da geometria real das fixtures via Box2D (probe de
+ *   densidade temporária), escalada pela massa manual definida externamente;
+ * - sem dependência de delta na física de massa/inércia (inércia não é uma
+ *   grandeza integrada no tempo, é uma propriedade intrínseca do corpo).
  */
 public class PhysicalLiquidInteractionComponent extends LiquidInteractionComponent {
 
     private static final float MIN_FRACTION_TO_APPLY_FORCE = 0.001f;
     private static final int MAX_POLYGON_VERTICES = 8;
     private static final int MAX_CLIPPED_POLYGON_VERTICES = MAX_POLYGON_VERTICES * 2;
+
+    /**
+     * Densidade uniforme temporária usada apenas para extrair, via
+     * body.resetMassData(), a distribuição geométrica relativa (o "shape"
+     * da inércia) a partir das fixtures reais. As fixtures de produção
+     * mantêm density = 0 sempre — massa é controlada manualmente.
+     */
+    private static final float MASS_PROBE_DENSITY = 1f;
 
     private final Vector2 fixtureBuoyancyPointBuffer = new Vector2();
     private final Vector2 fixtureVertexBuffer = new Vector2();
@@ -39,10 +50,19 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
 
     private final MassData massDataBuffer = new MassData();
 
-    private boolean centerOfMassDirty = false;
-    private boolean inertiaDirty = false;
-    private boolean massDirty = false;
-    private boolean volumeDirty = false;
+    /**
+     * Único gatilho para reaplicar massa/inércia/centro no Box2D.
+     * Ativado apenas por mudanças que de fato alteram o comportamento
+     * físico do corpo: massa e centro de massa. Volume NÃO ativa isso —
+     * volume só alimenta objectDensity e a força de flutuabilidade, que já
+     * lê o campo `volume` diretamente sem precisar tocar o body.
+     */
+    private boolean physicsMassDataDirty = false;
+
+    /**
+     * Gatilho separado, mais barato: só recalcula objectDensity
+     * (mass / volume). Nunca chama resetMassData/setMassData.
+     */
     private boolean densityDirty = false;
 
     private LiquidRegion currentLiquidRegionBuffer;
@@ -463,61 +483,110 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
     // ============================================================
 
     private void resolveDirtyPhysicsData() {
-        if (!massDirty && !volumeDirty && !densityDirty && !inertiaDirty && !centerOfMassDirty) {
+        if (!physicsMassDataDirty && !densityDirty) {
             return;
         }
 
-        if (massDirty || volumeDirty || densityDirty) {
+        if (densityDirty) {
             objectDensity = (volume > 0f) ? (mass / volume) : Float.MAX_VALUE;
             densityDirty = false;
         }
 
-        if (inertiaDirty || massDirty || volumeDirty || centerOfMassDirty) {
+        if (physicsMassDataDirty) {
             applyAllMassDataToBody();
-            inertiaDirty = false;
+            physicsMassDataDirty = false;
         }
-
-        massDirty = false;
-        volumeDirty = false;
-        centerOfMassDirty = false;
-    }
-
-    private float computeApproximateInertia(float mass, float area) {
-        return mass * area / (2f * (float) Math.PI);
     }
 
     /**
-     * Uma única chamada a setMassData por atualização, para evitar custo repetido no Box2D.
-     * Mantém massa, inércia e centro de massa sincronizados com os valores atuais do componente.
+     * Reaplica massa, inércia e centro de massa no body.
+     * Chamado apenas quando physicsMassDataDirty está true — ou seja,
+     * apenas quando mass ou centerOfMass realmente mudaram.
+     * <p>
+     * A inércia é extraída da geometria real das fixtures via Box2D:
+     * setamos uma densidade uniforme temporária (MASS_PROBE_DENSITY),
+     * chamamos resetMassData() para o Box2D calcular I a partir da forma
+     * real do corpo, restauramos density = 0 (as fixtures de produção
+     * nunca carregam densidade própria — massa é sempre manual), e então
+     * escalamos o I obtido pela razão entre a massa real (mass) e a massa
+     * "de prova" calculada pelo probe. Isso preserva a distribuição
+     * espacial real do casco sem exigir densidade de fixture em produção.
      */
     private void applyAllMassDataToBody() {
         Body body = physicsC.object.getBody();
+        Array<Fixture> fixtures = body.getFixtureList();
+
+        for (int i = 0; i < fixtures.size; i++) {
+            Fixture fixture = fixtures.get(i);
+            if (fixture.isSensor()) continue;
+            fixture.setDensity(MASS_PROBE_DENSITY);
+        }
+
+        body.resetMassData();
+        MassData probed = body.getMassData();
+
+        // restaura density = 0 imediatamente — foi só uma sonda, não é
+        // dado de produção
+        for (int i = 0; i < fixtures.size; i++) {
+            Fixture fixture = fixtures.get(i);
+            if (fixture.isSensor()) continue;
+            fixture.setDensity(0f);
+        }
+
+        float probedMass = probed.mass;
+
+        if (probedMass <= 0f) {
+            // sem fixtures válidas para extrair forma — fallback manual puro,
+            // sem inércia derivada de geometria
+            massDataBuffer.mass = mass;
+            massDataBuffer.I = 0f;
+            massDataBuffer.center.set(centerOfMass);
+            body.setMassData(massDataBuffer);
+            return;
+        }
+
+        float massScale = mass / probedMass;
 
         massDataBuffer.mass = mass;
-        massDataBuffer.I = computeApproximateInertia(mass, volume);
+        massDataBuffer.I = probed.I * massScale;
         massDataBuffer.center.set(centerOfMass);
-
         body.setMassData(massDataBuffer);
     }
 
+    /**
+     * Abaixo desse limiar, tratamos o valor como zero. Evita que reduções
+     * repetidas (ex: subtração incremental por frame) deixem mass/volume
+     * presos em resíduos de ponto flutuante (ex: 1.34E-7) que nunca são
+     * corrigidos porque tecnicamente não são negativos.
+     */
+    private static final float MASS_VOLUME_EPSILON = 1e-4f;
+
     @Override
     public void setMass(float mass) {
-        if (mass < 0f) return;
-        if (this.mass == mass) return;
+        // clamp, não rejeição: um valor levemente negativo por erro de
+        // acumulação (ex: -0.0000003) deve virar 0, não ser descartado —
+        // se descartarmos, o campo fica preso no último valor válido antes
+        // do estouro, e chamadores que acham que "zeraram" continuam
+        // vendo um resíduo antigo.
+        float clamped = (mass < MASS_VOLUME_EPSILON) ? 0.4f : mass;
 
-        this.mass = mass;
-        massDirty = true;
+        if (this.mass == clamped) return;
+
+        this.mass = clamped;
+        physicsMassDataDirty = true;
+        densityDirty = true;
 
         markUpdateSimulationData();
     }
 
     @Override
     public void setVolume(float volume) {
-        if (volume < 0f) return;
-        if (this.volume == volume) return;
+        float clamped = (volume < MASS_VOLUME_EPSILON) ? 0f : volume;
 
-        this.volume = volume;
-        volumeDirty = true;
+        if (this.volume == clamped) return;
+
+        this.volume = clamped;
+        densityDirty = true;
 
         markUpdateSimulationData();
     }
@@ -525,14 +594,14 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
     @Override
     public void updateCenterOfMass(float x, float y) {
         super.updateCenterOfMass(x, y);
-        centerOfMassDirty = true;
+        physicsMassDataDirty = true;
         markUpdateSimulationData();
     }
 
     @Override
     public void updateCenterOfMass(Vector2 centerOfMass) {
         super.updateCenterOfMass(centerOfMass);
-        centerOfMassDirty = true;
+        physicsMassDataDirty = true;
         markUpdateSimulationData();
     }
 

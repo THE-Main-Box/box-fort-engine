@@ -5,6 +5,8 @@ import static official.sketchBook.game.util_related.constants.WorldConstants.TIL
 public class RenderingConstants {
     /// Taxa de fps que tentaremos seguir
     public static float FPS_TARGET;
+    public static float
+        ANIMATION_UPDATE_RATE;
 
     /// Quantidade de tiles que podemos visualizar na largura
     public static final int TILES_VIEW_WIDTH = 78;
@@ -21,6 +23,7 @@ public class RenderingConstants {
 
     static {
         FPS_TARGET = 60;
+        ANIMATION_UPDATE_RATE = FPS_TARGET / 2;
 
         updateZoom(1);
     }

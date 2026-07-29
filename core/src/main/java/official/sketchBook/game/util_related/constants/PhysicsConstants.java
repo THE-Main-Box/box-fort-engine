@@ -9,30 +9,14 @@ public class PhysicsConstants {
     public static int VELOCITY_ITERATIONS;
     /// Iterações de posição para o box2d
     public static int POSITION_ITERATIONS;
-    /// Taxa de atualização que tentamos seguir
-    public static float UPS_TARGET;
-    /// Faixa de tempo que o sistema de física irá tentar seguir
-    public static float FIXED_TIMESTAMP;
 
-
-    public static float
-        ANIMATION_UPDATE_RATE;
     /// Acumulador máximo para evitar travamento acidental
-    public static final float MAX_ACCUMULATOR = 0.25f;// Evita travar o PC se o frame demorar muito
+    public static final float MAX_ACCUMULATOR = 0.1f;// Evita travar o PC se o frame demorar muito
 
     static {
-        VELOCITY_ITERATIONS = 6;
-        POSITION_ITERATIONS = 2;
-        updateUps(60);
+        VELOCITY_ITERATIONS = 8;
+        POSITION_ITERATIONS = 3;
 
-    }
-
-    public static void updateUps(float ups) {
-        if (ups <= 0) return;
-        UPS_TARGET = ups;
-        ANIMATION_UPDATE_RATE = ups / 2;
-
-        FIXED_TIMESTAMP = 1 / UPS_TARGET;
     }
 
     public static float toMeters(float pixels) {

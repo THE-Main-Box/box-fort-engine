@@ -363,12 +363,14 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         SubmarinePart corridor = new SubmarinePart(1, "corridor");
 
-        corridor.baseMass = 1.5f;
-        corridor.internalMarginDown
-            = corridor.internalMarginUp
-            = corridor.internalMarginLeft
-            = corridor.internalMarginRight
-            = 2;
+        corridor.updateBaseMass(1.5f);
+
+        corridor.setMargins(
+            2,
+            2,
+            2,
+            2
+        );
 
         corridor.addInternalFixture(
             0,
