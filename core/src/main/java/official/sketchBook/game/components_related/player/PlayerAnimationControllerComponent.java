@@ -5,7 +5,7 @@ import official.sketchBook.engine.components_related.intefaces.base_interfaces.C
 import official.sketchBook.engine.components_related.system_utils.UpdateRateLimiter;
 import official.sketchBook.game.gameObject_related.Player;
 
-import static official.sketchBook.game.util_related.constants.RenderingConstants.ANIMATION_UPDATE_RATE;
+import static official.sketchBook.game.util_related.constants.GameConfigConstants.ANIMATION_UPDATE_RATE;
 import static official.sketchBook.game.util_related.values.AnimationKeys.Entities.*;
 
 public class PlayerAnimationControllerComponent implements Component {

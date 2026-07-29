@@ -7,11 +7,6 @@ public class WorldConstants {
     /// Tamanho das tiles em pixels
     public static final int TILE_SIZE_PX = 8;
 
-    /// Valor padrão para os buckets
-    public static final int
-        INITIAL_CAPACITY = 8,
-        DEFAULT_BUCKET_SIZE = 32;
-
     public static class ProjectilePoolConstants {
         //        public static final int MAX_PROJECTILE_PER_POOL = 900;
         public static final int MAX_PROJECTILE_PER_POOL = 999999999;
@@ -19,13 +14,6 @@ public class WorldConstants {
 
         public static final float POOL_CLEAN_INTERVAL_S = 8f;
         public static final float POOL_REMOVE_INTERVAL_S = 8f;
-    }
-
-    public static class MobConstants {
-        public static final float
-            MAX_SPEED_X = 999,
-            MAX_SPEED_Y = 999,
-            MAX_ROTATION_SPEED = 360;
     }
 
     public static class ProjectileConstants {
@@ -70,18 +58,19 @@ public class WorldConstants {
             Y_DECELERATION = 0,
             R_DECELERATION = 50;
 
-        public static final int
-            categoryBit = ALLY_ENTITY.bit() |
-            LIQUID_SUBMERGEABLE.bit() |
-            VEHICLE_PASSENGER.bit() |
-            INTERACTABLE_TRIGGERER.bit(),
+        public static final int categoryBit =
+            ALLY_ENTITY.bit() |
+                LIQUID_SUBMERGEABLE.bit() |
+                VEHICLE_PASSENGER.bit() |
+                INTERACTABLE_TRIGGERER.bit();
 
-        maskBit = SENSOR.bit() |
-            ENVIRONMENT.bit() |
-            PROJECTILES.bit() |
-            LIQUID.bit() |
-            VEHICLE.bit() |
-            INTERACTABLE.bit();
+        public static final int maskBit =
+            SENSOR.bit() |
+                ENVIRONMENT.bit() |
+                PROJECTILES.bit() |
+                LIQUID.bit() |
+                VEHICLE.bit() |
+                INTERACTABLE.bit();
     }
 
     public static class SubmarineConstants {
@@ -96,6 +85,6 @@ public class WorldConstants {
             X_DEACCELERATION = 90,
             Y_DEACCELERATION = 90,
             R_DEACCELERATION = 90;
-
     }
+
 }

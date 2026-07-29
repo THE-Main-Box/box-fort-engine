@@ -3,10 +3,6 @@ package official.sketchBook.game.util_related.constants;
 import static official.sketchBook.game.util_related.constants.WorldConstants.TILE_SIZE_PX;
 
 public class RenderingConstants {
-    /// Taxa de fps que tentaremos seguir
-    public static float FPS_TARGET;
-    public static float
-        ANIMATION_UPDATE_RATE;
 
     /// Quantidade de tiles que podemos visualizar na largura
     public static final int TILES_VIEW_WIDTH = 78;
@@ -21,9 +17,12 @@ public class RenderingConstants {
 
     public static float ZOOM;
 
+    ///Constantes para sistema de renderização
+    public static final int
+        INITIAL_CAPACITY = 8,       //Balde de objetos
+        DEFAULT_BUCKET_SIZE = 32;   //Quantidade por balde
+
     static {
-        FPS_TARGET = 60;
-        ANIMATION_UPDATE_RATE = FPS_TARGET / 2;
 
         updateZoom(1);
     }

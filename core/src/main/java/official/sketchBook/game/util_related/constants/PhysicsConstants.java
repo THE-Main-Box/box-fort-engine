@@ -10,9 +10,6 @@ public class PhysicsConstants {
     /// Iterações de posição para o box2d
     public static int POSITION_ITERATIONS;
 
-    /// Acumulador máximo para evitar travamento acidental
-    public static final float MAX_ACCUMULATOR = 0.1f;// Evita travar o PC se o frame demorar muito
-
     static {
         VELOCITY_ITERATIONS = 8;
         POSITION_ITERATIONS = 3;
