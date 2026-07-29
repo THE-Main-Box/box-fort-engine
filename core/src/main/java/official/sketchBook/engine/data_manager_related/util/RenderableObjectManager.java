@@ -5,12 +5,11 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.objects.TransformComponent;
 
-import java.util.*;
+import java.util.List;
 import java.util.function.Consumer;
 
-import static official.sketchBook.game.util_related.constants.RenderingConstants.ZOOM;
-import static official.sketchBook.game.util_related.constants.WorldConstants.DEFAULT_BUCKET_SIZE;
-import static official.sketchBook.game.util_related.constants.WorldConstants.INITIAL_CAPACITY;
+import static official.sketchBook.game.util_related.constants.RenderingConstants.DEFAULT_BUCKET_SIZE;
+import static official.sketchBook.game.util_related.constants.RenderingConstants.INITIAL_CAPACITY;
 
 /**
  * Gerenciador de renderização otimizado usando TreeMap (Red-Black Tree).
