@@ -27,27 +27,35 @@ public class SubmarinePart implements Disposable {
     public final List<FixtureData> fixtureDataList;
     public final List<Fixture> internalFixtureList;
 
-    public float
-        baseMass,
-        internalMarginLeft,
-        internalMarginRight,
-        internalMarginUp,
-        internalMarginDown,
+    private float
+        centerX,
+        centerY,
+        width,
+        height,
+        volume;
+
+    private float
         internalMinX,
         internalMinY,
         internalMaxX,
         internalMaxY;
 
-    /// Massa extra somada por passageiros atualmente localizados dentro desta part
-    /// especificamente (diferente de baseMass, que é a massa estrutural fixa da part).
-    /// Usada para que o centro de massa do node reflita a posição real de onde o peso
-    /// dos passageiros está concentrado, não só o total genérico do node inteiro.
-    private float passengerMass = 0f;
+    private float
+        internalMarginLeft,
+        internalMarginRight,
+        internalMarginUp,
+        internalMarginDown;
+
+    private float
+        additionalMass,
+        baseMass;
 
     /// Flags auxiliares
     private boolean
         boundsCalculated = false,   //Se calculamos as dimensões internas
         disposed = false;
+
+    public boolean massDirty = false;
 
     public SubmarinePart(int id, String tag) {
         this.id = id;
@@ -56,106 +64,16 @@ public class SubmarinePart implements Disposable {
         this.internalFixtureList = new ArrayList<>();
     }
 
-    /// Calcula a parte interna do sub, passamos uma pequena margem como limite simples
-    public static void calculateAndStoreBounds(SubmarinePart part) {
-        if (part.isBoundsCalculated()) return;
-
-        float minX = Float.MAX_VALUE;
-        float minY = Float.MAX_VALUE;
-        float maxX = -Float.MAX_VALUE;
-        float maxY = -Float.MAX_VALUE;
-
-        Vector2 vertex = new Vector2();
-
-        for (int j = 0; j < part.internalFixtureList.size(); j++) {
-            Fixture fix = part.internalFixtureList.get(j);
-            if (fix.isSensor()) continue;
-
-            Shape shape = fix.getShape();
-
-            if (shape instanceof PolygonShape) {
-                PolygonShape poly = (PolygonShape) shape;
-
-                for (int i = 0; i < poly.getVertexCount(); i++) {
-                    poly.getVertex(i, vertex);
-
-                    if (vertex.x < minX) minX = vertex.x;
-                    if (vertex.y < minY) minY = vertex.y;
-                    if (vertex.x > maxX) maxX = vertex.x;
-                    if (vertex.y > maxY) maxY = vertex.y;
-                }
-            } else if (shape instanceof CircleShape) {
-                CircleShape circle = (CircleShape) shape;
-
-                Vector2 pos = circle.getPosition();
-                float r = circle.getRadius();
-
-                float cMinX = pos.x - r;
-                float cMaxX = pos.x + r;
-                float cMinY = pos.y - r;
-                float cMaxY = pos.y + r;
-
-                if (cMinX < minX) minX = cMinX;
-                if (cMinY < minY) minY = cMinY;
-                if (cMaxX > maxX) maxX = cMaxX;
-                if (cMaxY > maxY) maxY = cMaxY;
-            }
-            // EdgeShape ignorado
-        }
-
-        if (minX == Float.MAX_VALUE) return;
-
-        part.internalMinX = minX;
-        part.internalMinY = minY;
-        part.internalMaxX = maxX;
-        part.internalMaxY = maxY;
-
-        part.boundsCalculated = true;
-    }
-
-    /// Encontra a SubmarinePart do node cujos bounds contêm a posição global (em
-    /// pixels) informada. Estático e leve: recebe apenas a lista de parts e os dados
-    /// necessários do node (posição/ângulo do internalBody), sem depender de estado
-    /// de instância — pode ser chamado a qualquer momento sem overhead de alocação
-    /// (reaproveita nenhum buffer próprio, mas não aloca objetos novos no caminho comum).
-    ///
-    /// Retorna null se a posição não cair em bounds de nenhuma part calculada (ex:
-    /// passageiro momentaneamente fora de qualquer área interna válida).
-    public static SubmarinePart findPartContaining(
-        List<SubmarinePart> parts,
-        float globalPosX,
-        float globalPosY,
-        float nodeBodyPosXMeters,
-        float nodeBodyPosYMeters,
-        float nodeBodyAngleRadians
+    public void setMargins(
+        float internalMarginLeft,
+        float internalMarginRight,
+        float internalMarginUp,
+        float internalMarginDown
     ) {
-        if (parts == null || parts.isEmpty()) return null;
-
-        // Posição global (pixels) convertida para metros, relativa à origem do internalBody
-        float relXMeters = toMeters(globalPosX) - nodeBodyPosXMeters;
-        float relYMeters = toMeters(globalPosY) - nodeBodyPosYMeters;
-
-        // Desrotaciona pela rotação atual do body — os bounds internos das parts são
-        // calculados em espaço LOCAL do body (sem rotação), então precisamos trazer a
-        // posição global de volta para esse espaço local antes de comparar contra
-        // internalMinX/MaxX/MinY/MaxY.
-        float cos = MathUtils.cos(-nodeBodyAngleRadians);
-        float sin = MathUtils.sin(-nodeBodyAngleRadians);
-
-        float localX = relXMeters * cos - relYMeters * sin;
-        float localY = relXMeters * sin + relYMeters * cos;
-
-        for (int i = 0; i < parts.size(); i++) {
-            SubmarinePart part = parts.get(i);
-            if (!part.isBoundsCalculated()) continue;
-
-            if (localX >= part.internalMinX && localX <= part.internalMaxX
-                && localY >= part.internalMinY && localY <= part.internalMaxY) {
-                return part;
-            }
-        }
-
-        return null;
+        this.internalMarginDown = internalMarginDown;
+        this.internalMarginUp = internalMarginUp;
+        this.internalMarginLeft = internalMarginLeft;
+        this.internalMarginRight = internalMarginRight;
     }
 
     /**
@@ -206,6 +124,32 @@ public class SubmarinePart implements Disposable {
         );
     }
 
+    public void updateBounds() {
+        // reset explícito — sem isso, internalMinX/Y ficam em 0f (default do
+        // Java) em vez de MAX_VALUE, e uma part sem fixtures válidas "engana"
+        // o AABB com bounds falsos ao invés de ficar não-calculada
+        internalMinX = Float.MAX_VALUE;
+        internalMinY = Float.MAX_VALUE;
+        internalMaxX = -Float.MAX_VALUE;
+        internalMaxY = -Float.MAX_VALUE;
+
+        boundsCalculated = false;
+
+        SubmarinePartHelper.updateDimensions(this);
+
+        // updateDimensions só marca boundsCalculated = true quando encontrou
+        // ao menos uma fixture não-sensor válida (ver checagem internalMinX ==
+        // Float.MAX_VALUE dentro dele). Se não achou nenhuma, temos que sair
+        // aqui SEM tocar em centerX/centerY/width/height — eles devem
+        // permanecer no estado "não calculado" para o node ignorar essa part.
+        if (!boundsCalculated) {
+            return;
+        }
+
+        this.centerX = internalMinX + width / 2;
+        this.centerY = internalMinY + height / 2;
+    }
+
     public boolean isBoundsCalculated() {
         return boundsCalculated;
     }
@@ -220,28 +164,278 @@ public class SubmarinePart implements Disposable {
         disposed = true;
     }
 
+    public void addMass(float mass) {
+        if (mass == 0) return;
+        this.additionalMass += mass;
+
+        massDirty = true;
+    }
+
+    public void updateBaseMass(float mass) {
+        if (this.baseMass != 0) return;
+        this.baseMass = mass;
+
+        massDirty = true;
+    }
+
+    public float getBaseMass() {
+        return baseMass;
+    }
+
+    public float getAdditionalMass() {
+        return additionalMass;
+    }
+
+    public float getCenterX() {
+        return centerX;
+    }
+
+    public float getCenterY() {
+        return centerY;
+    }
+
+    public float getInternalMinX() {
+        return internalMinX;
+    }
+
+    public float getInternalMinY() {
+        return internalMinY;
+    }
+
+    public float getInternalMaxX() {
+        return internalMaxX;
+    }
+
+    public float getInternalMaxY() {
+        return internalMaxY;
+    }
+
+    public float getInternalMarginLeft() {
+        return internalMarginLeft;
+    }
+
+    public float getInternalMarginRight() {
+        return internalMarginRight;
+    }
+
+    public float getInternalMarginUp() {
+        return internalMarginUp;
+    }
+
+    public float getInternalMarginDown() {
+        return internalMarginDown;
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+
+    public float getVolume() {
+        return volume;
+    }
+
     /// Massa total da part: estrutural (baseMass) + passageiros atualmente localizados nela.
     public float getTotalMass() {
-        return baseMass + passengerMass;
-    }
-
-    public float getPassengerMass() {
-        return passengerMass;
-    }
-
-    /// Soma (ou subtrai, com valor negativo) massa de passageiro a esta part
-    /// especificamente. Nunca deixa passengerMass ficar negativo por erro de
-    /// contabilidade (ex: chamada de remoção duplicada).
-    public void addPassengerMass(float deltaMass) {
-        this.passengerMass = Math.max(0f, this.passengerMass + deltaMass);
-    }
-
-    public VehicleSection getSection() {
-        return section;
+        return baseMass + additionalMass;
     }
 
     public void setSection(SubmarineNode node) {
-        if (this.section == node || node == null || this.section != null) return;
+        if (this.section != null) return;
         this.section = node;
+    }
+
+    private static class SubmarinePartHelper {
+
+        private static final Vector2 VERTEX_BUFFER_A = new Vector2();
+        private static final Vector2 VERTEX_BUFFER_B = new Vector2();
+
+        /**
+         * Atualiza:
+         * <p>
+         * - bounds internos
+         * - width
+         * - height
+         * - volume (m²)
+         */
+        private static void updateDimensions(SubmarinePart part) {
+
+            float volume = 0f;
+
+            for (int i = 0; i < part.internalFixtureList.size(); i++) {
+
+                Fixture fixture = part.internalFixtureList.get(i);
+
+                if (fixture.isSensor()) {
+                    continue;
+                }
+
+                Shape shape = fixture.getShape();
+
+                if (shape instanceof PolygonShape) {
+
+                    volume += updatePolygonDimensions(
+                        (PolygonShape) shape,
+                        part
+                    );
+
+                } else if (shape instanceof CircleShape) {
+
+                    volume += updateCircleDimensions(
+                        (CircleShape) shape,
+                        part
+                    );
+                }
+            }
+
+            if (part.internalMinX == Float.MAX_VALUE) {
+                return;
+            }
+
+            part.width = part.internalMaxX - part.internalMinX;
+            part.height = part.internalMaxY - part.internalMinY;
+
+            part.volume = volume;
+
+            part.boundsCalculated = true;
+        }
+
+        /**
+         * Atualiza os bounds do polígono e retorna sua área.
+         */
+        private static float updatePolygonDimensions(
+            PolygonShape polygon,
+            SubmarinePart part
+        ) {
+            int count = polygon.getVertexCount();
+
+            float area = 0f;
+
+            polygon.getVertex(
+                count - 1,
+                VERTEX_BUFFER_A
+            );
+
+            for (int i = 0; i < count; i++) {
+
+                polygon.getVertex(
+                    i,
+                    VERTEX_BUFFER_B
+                );
+
+                updateBounds(
+                    part,
+                    VERTEX_BUFFER_B.x,
+                    VERTEX_BUFFER_B.y
+                );
+
+                area +=
+                    (VERTEX_BUFFER_A.x * VERTEX_BUFFER_B.y)
+                        -
+                        (VERTEX_BUFFER_B.x * VERTEX_BUFFER_A.y);
+
+                VERTEX_BUFFER_A.set(
+                    VERTEX_BUFFER_B
+                );
+            }
+
+            return Math.abs(area) * 0.5f;
+        }
+
+        /**
+         * Atualiza os bounds do círculo e retorna sua área.
+         */
+        private static float updateCircleDimensions(
+            CircleShape circle,
+            SubmarinePart part
+        ) {
+            Vector2 position = circle.getPosition();
+
+            float radius = circle.getRadius();
+
+            float minX = position.x - radius;
+            float maxX = position.x + radius;
+
+            float minY = position.y - radius;
+            float maxY = position.y + radius;
+
+            updateBounds(part, minX, minY);
+            updateBounds(part, maxX, maxY);
+
+            return MathUtils.PI * radius * radius;
+        }
+
+        /**
+         * Atualiza os limites acumulados da part.
+         */
+        private static void updateBounds(
+            SubmarinePart part,
+            float x,
+            float y
+        ) {
+            if (x < part.internalMinX) {
+                part.internalMinX = x;
+            }
+
+            if (x > part.internalMaxX) {
+                part.internalMaxX = x;
+            }
+
+            if (y < part.internalMinY) {
+                part.internalMinY = y;
+            }
+
+            if (y > part.internalMaxY) {
+                part.internalMaxY = y;
+            }
+        }
+
+        /// Encontra a SubmarinePart do node cujos bounds contêm a posição global (em
+        /// pixels) informada. Estático e leve: recebe apenas a lista de parts e os dados
+        /// necessários do node (posição/ângulo do internalBody), sem depender de estado
+        /// de instância — pode ser chamado a qualquer momento sem overhead de alocação
+        /// (reaproveita nenhum buffer próprio, mas não aloca objetos novos no caminho comum).
+        ///
+        /// Retorna null se a posição não cair em bounds de nenhuma part calculada (ex:
+        /// passageiro momentaneamente fora de qualquer área interna válida).
+        public static SubmarinePart findPartContaining(
+            List<SubmarinePart> parts,
+            float globalPosX,
+            float globalPosY,
+            float nodeBodyPosXMeters,
+            float nodeBodyPosYMeters,
+            float nodeBodyAngleRadians
+        ) {
+            if (parts == null || parts.isEmpty()) return null;
+
+            // Posição global (pixels) convertida para metros, relativa à origem do internalBody
+            float relXMeters = toMeters(globalPosX) - nodeBodyPosXMeters;
+            float relYMeters = toMeters(globalPosY) - nodeBodyPosYMeters;
+
+            // Desrotaciona pela rotação atual do body — os bounds internos das parts são
+            // calculados em espaço LOCAL do body (sem rotação), então precisamos trazer a
+            // posição global de volta para esse espaço local antes de comparar contra
+            // internalMinX/MaxX/MinY/MaxY.
+            float cos = MathUtils.cos(-nodeBodyAngleRadians);
+            float sin = MathUtils.sin(-nodeBodyAngleRadians);
+
+            float localX = relXMeters * cos - relYMeters * sin;
+            float localY = relXMeters * sin + relYMeters * cos;
+
+            for (int i = 0; i < parts.size(); i++) {
+                SubmarinePart part = parts.get(i);
+                if (!part.isBoundsCalculated()) continue;
+
+                if (localX >= part.internalMinX && localX <= part.internalMaxX
+                    && localY >= part.internalMinY && localY <= part.internalMaxY) {
+                    return part;
+                }
+            }
+
+            return null;
+        }
     }
 }

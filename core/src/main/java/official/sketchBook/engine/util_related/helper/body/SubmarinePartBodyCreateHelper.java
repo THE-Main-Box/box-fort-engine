@@ -10,7 +10,7 @@ import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import java.util.List;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.PPM;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.*;
 
 public class SubmarinePartBodyCreateHelper {
 
@@ -35,17 +35,17 @@ public class SubmarinePartBodyCreateHelper {
             if (!part.isBoundsCalculated()) continue;
 
             //A partir das dimensões internas definimos os dados da composição da body
-            float width = part.internalMaxX - part.internalMinX;            //Largura
-            float height = part.internalMaxY - part.internalMinY;           //Altura
-            float centerX = (part.internalMinX + part.internalMaxX) / 2f;   //Centro no eixo x
-            float centerY = (part.internalMinY + part.internalMaxY) / 2f;   //Centro no eixo y
+            float width = part.getWidth();            //Largura
+            float height = part.getHeight();           //Altura
+            float centerX = part.getCenterX();   //Centro no eixo x
+            float centerY = part.getCenterY();   //Centro no eixo y
 
             //Criamos o shape do corpo, sempre o mais simples possível
             Shape externalShape = BodyCreatorHelper.createBoxShape(
-                width * PPM,
-                height * PPM,
-                centerX * PPM,
-                centerY * PPM
+                toPixels(width),
+                toPixels(height),
+                toPixels(centerX),
+                toPixels(centerY)
             );
 
             //Determinamo algumas coisas importantes para o bom funcionamento da body externa
@@ -109,7 +109,11 @@ public class SubmarinePartBodyCreateHelper {
     ) {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.KinematicBody;
-        bodyDef.position.set(transformC.x / PPM, transformC.y / PPM);
+
+        bodyDef.position.set(
+            toMeters(transformC.x),
+            toMeters(transformC.y)
+        );
 
         Body internal = world.createBody(bodyDef);
 
@@ -128,7 +132,7 @@ public class SubmarinePartBodyCreateHelper {
                 }
             }
 
-            SubmarinePart.calculateAndStoreBounds(part);
+            part.updateBounds();
 
             if (!part.isBoundsCalculated()) continue;
 
@@ -148,15 +152,15 @@ public class SubmarinePartBodyCreateHelper {
         float toInteriorMargin = 2f;
 
         // fallback seguro: usa bounds já calculado (independente do formato original)
-        float marginLeft = (toInteriorMargin + part.internalMarginLeft) / PPM;
-        float marginRight = (toInteriorMargin + part.internalMarginRight) / PPM;
-        float marginUp = (toInteriorMargin + part.internalMarginUp) / PPM;
-        float marginDown = (toInteriorMargin + part.internalMarginDown) / PPM;
+        float marginLeft = (toInteriorMargin + part.getInternalMarginLeft()) / PPM;
+        float marginRight = (toInteriorMargin + part.getInternalMarginRight()) / PPM;
+        float marginUp = (toInteriorMargin + part.getInternalMarginUp()) / PPM;
+        float marginDown = (toInteriorMargin + part.getInternalMarginDown()) / PPM;
 
-        float minX = part.internalMinX + marginLeft;
-        float maxX = part.internalMaxX - marginRight;
-        float minY = part.internalMinY + marginDown;
-        float maxY = part.internalMaxY - marginUp;
+        float minX = part.getInternalMinX() + marginLeft;
+        float maxX = part.getInternalMaxX() - marginRight;
+        float minY = part.getInternalMinY() + marginDown;
+        float maxY = part.getInternalMaxY() - marginUp;
 
         float width = maxX - minX;
         float height = maxY - minY;

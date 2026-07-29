@@ -4,9 +4,6 @@ import official.sketchBook.engine.components_related.intefaces.base_interfaces.U
 import official.sketchBook.engine.data_manager_related.BaseGameObjectDataManager;
 import official.sketchBook.engine.screen_related.BaseScreen;
 
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.FIXED_TIMESTAMP;
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.MAX_ACCUMULATOR;
-
 public class SingleThreadUpdateSystem implements UpdateSystem {
     private float accumulator = 0;
     private int updates = 0;
@@ -20,25 +17,18 @@ public class SingleThreadUpdateSystem implements UpdateSystem {
         this.gameObjectManager = gameObjectManager;
         this.screen = screen;
     }
+
     @Override
     public void update(float delta) {
-        accumulator += Math.min(delta, MAX_ACCUMULATOR);
 
-        while (accumulator >= FIXED_TIMESTAMP) {
-            // Atualiza o mundo se existir
-            if (gameObjectManager != null) {
-                gameObjectManager.update(FIXED_TIMESTAMP);
-                gameObjectManager.postUpdate();
-            }
-
-            //Atualiza a screen
-            screen.updateScreen(delta);
-
-            // Subtrai do acumulador
-            accumulator -= FIXED_TIMESTAMP;
-            updates++;
+        if (gameObjectManager != null) {
+            gameObjectManager.update(delta);
+            gameObjectManager.postUpdate();
         }
 
+        screen.updateScreen(delta);
+
+        updates++;
     }
 
     public BaseGameObjectDataManager getGameObjectManager() {
