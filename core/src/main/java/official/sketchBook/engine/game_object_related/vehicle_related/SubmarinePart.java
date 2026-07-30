@@ -47,7 +47,6 @@ public class SubmarinePart implements Disposable {
         internalMarginDown;
 
     private float
-        additionalMass,
         baseMass;
 
     /// Flags auxiliares
@@ -164,13 +163,6 @@ public class SubmarinePart implements Disposable {
         disposed = true;
     }
 
-    public void addMass(float mass) {
-        if (mass == 0) return;
-        this.additionalMass += mass;
-
-        massDirty = true;
-    }
-
     public void updateBaseMass(float mass) {
         if (this.baseMass != 0) return;
         this.baseMass = mass;
@@ -180,10 +172,6 @@ public class SubmarinePart implements Disposable {
 
     public float getBaseMass() {
         return baseMass;
-    }
-
-    public float getAdditionalMass() {
-        return additionalMass;
     }
 
     public float getCenterX() {
@@ -240,7 +228,7 @@ public class SubmarinePart implements Disposable {
 
     /// Massa total da part: estrutural (baseMass) + passageiros atualmente localizados nela.
     public float getTotalMass() {
-        return baseMass + additionalMass;
+        return baseMass;
     }
 
     public void setSection(SubmarineNode node) {
