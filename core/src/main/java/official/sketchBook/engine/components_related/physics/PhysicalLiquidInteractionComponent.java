@@ -497,21 +497,6 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
             physicsMassDataDirty = false;
         }
     }
-
-    /**
-     * Reaplica massa, inércia e centro de massa no body.
-     * Chamado apenas quando physicsMassDataDirty está true — ou seja,
-     * apenas quando mass ou centerOfMass realmente mudaram.
-     * <p>
-     * A inércia é extraída da geometria real das fixtures via Box2D:
-     * setamos uma densidade uniforme temporária (MASS_PROBE_DENSITY),
-     * chamamos resetMassData() para o Box2D calcular I a partir da forma
-     * real do corpo, restauramos density = 0 (as fixtures de produção
-     * nunca carregam densidade própria — massa é sempre manual), e então
-     * escalamos o I obtido pela razão entre a massa real (mass) e a massa
-     * "de prova" calculada pelo probe. Isso preserva a distribuição
-     * espacial real do casco sem exigir densidade de fixture em produção.
-     */
     private void applyAllMassDataToBody() {
         Body body = physicsC.object.getBody();
         Array<Fixture> fixtures = body.getFixtureList();
@@ -525,8 +510,6 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
         body.resetMassData();
         MassData probed = body.getMassData();
 
-        // restaura density = 0 imediatamente — foi só uma sonda, não é
-        // dado de produção
         for (int i = 0; i < fixtures.size; i++) {
             Fixture fixture = fixtures.get(i);
             if (fixture.isSensor()) continue;
@@ -536,23 +519,40 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
         float probedMass = probed.mass;
 
         if (probedMass <= 0f) {
-            // sem fixtures válidas para extrair forma — fallback manual puro,
-            // sem inércia derivada de geometria
             massDataBuffer.mass = mass;
-            massDataBuffer.I = 0f;
+            massDataBuffer.I = Math.max(mass * 1e-3f, 1e-4f);
             massDataBuffer.center.set(centerOfMass);
             body.setMassData(massDataBuffer);
             return;
         }
 
-        float massScale = mass / probedMass;
+        // raio de giração ao quadrado em torno do centróide REAL do probe —
+        // propriedade pura da forma, independente de densidade/massa manual
+        float gyrationRadiusSq = probed.I / probedMass;
+
+        // I reconstruído em torno do centróide REAL (probed.center),
+        // usando a massa manual
+        float iAtProbeCenter = mass * gyrationRadiusSq;
+
+        // teorema dos eixos paralelos: como vamos forçar o centro de massa
+        // em centerOfMass (que pode divergir do centróide real do casco,
+        // ex: passageiros deslocando o CM), precisamos somar m*d²,
+        // onde d é a distância entre o centróide real e o centro forçado
+        float dx = centerOfMass.x - probed.center.x;
+        float dy = centerOfMass.y - probed.center.y;
+        float dSq = dx * dx + dy * dy;
+
+        float finalI = iAtProbeCenter + mass * dSq;
+
+        if (!(finalI > 0f)) {
+            finalI = Math.max(mass * 1e-3f, 1e-4f);
+        }
 
         massDataBuffer.mass = mass;
-        massDataBuffer.I = probed.I * massScale;
+        massDataBuffer.I = finalI;
         massDataBuffer.center.set(centerOfMass);
         body.setMassData(massDataBuffer);
     }
-
     /**
      * Abaixo desse limiar, tratamos o valor como zero. Evita que reduções
      * repetidas (ex: subtração incremental por frame) deixem mass/volume

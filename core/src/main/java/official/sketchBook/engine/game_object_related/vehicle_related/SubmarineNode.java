@@ -1,15 +1,16 @@
 package official.sketchBook.engine.game_object_related.vehicle_related;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.MassData;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Disposable;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.InteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.liquid.PhysicalLiquidInteractableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.MovableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.PhysicalObjectII;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.SubmarinePassenger;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.VehiclePassenger;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.OptmizedRenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
@@ -20,18 +21,16 @@ import official.sketchBook.engine.components_related.physics.MovableObjectPhysic
 import official.sketchBook.engine.components_related.physics.PhysicalLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.components_related.system_utils.RenderableAndDefaultComponentManagerComponent;
-import official.sketchBook.engine.components_related.system_utils.SubmersibleVolume;
 import official.sketchBook.engine.components_related.vehicle.VehicleBaseComponent;
-import official.sketchBook.engine.data_manager_related.BaseGameObjectDataManager;
-import official.sketchBook.game.util_related.constants.DebugConstants;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createExternalBody;
 import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createInternalBody;
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.toMeters;
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.toPixels;
 
 public class SubmarineNode
@@ -50,10 +49,12 @@ public class SubmarineNode
     private final List<SubmarinePart> physicalParts;
 
     /// Lista de objetos que podem entrar e interagir com o lado interno do submarino, alterando a massa e outras coisas
-    private final List<VehiclePassenger> passengerList;
+    private final List<SubmarinePassenger>
+        pendingRemove = new ArrayList<>(),
+        pendingAdd = new ArrayList<>(),
+        passengerList = new ArrayList<>();
 
-    /// Lista de componentes de uso interno do submarino, componentes importantes como portas e outras coisas
-    private final List<VehicleBaseComponent> vehicleComponentList;
+    private final List<VehicleBaseComponent> vehicleComponentList = new ArrayList<>();
 
     /// Componente para controle de movimentação do sub a partir de velocidade
     private MovementComponent moveC;
@@ -72,6 +73,7 @@ public class SubmarineNode
 
     private InteractableObjectManagerComponent interactableObjectManagerC;
 
+
     /// Referência ao mundo físico
     private World physicsWorld;
 
@@ -82,10 +84,10 @@ public class SubmarineNode
 
     /// Dados bufferizados de velocidade para sincronização de objetos internos
     private float
-        lastPosX = 0f,      //Antiga velocidade do eixo X
-        lastPosY = 0f,      //Antiga velocidade do eixo Y
-        velX = 0f,          //Atual velocidade do eixo X
-        velY = 0f;          //Atual velocidade do eixo Y
+        lastPosX = 0f,
+        lastPosY = 0f,
+        velX = 0f,
+        velY = 0f;
 
     /// Flags de auxilio de estado
     private boolean
@@ -112,10 +114,6 @@ public class SubmarineNode
 
         this.physicalParts = physicalParts;
 
-        this.vehicleComponentList = new ArrayList<>();
-        this.passengerList = new ArrayList<>();
-
-        //Atualizamos a referencia da seção em que as partes existem
         for (int i = 0; i < physicalParts.size(); i++) {
             physicalParts.get(i).setSection(this);
         }
@@ -137,7 +135,6 @@ public class SubmarineNode
 
     }
 
-    /// Inicialização de objeto
     public void initObject() {
         generateBody();
         initComponents();
@@ -174,7 +171,7 @@ public class SubmarineNode
         float weightedCenterX = 0f;
         float weightedCenterY = 0f;
 
-        boolean hasValidPart = false;
+        boolean hasValidContribution = false;
 
         for (int i = 0; i < physicalParts.size(); i++) {
             SubmarinePart part = physicalParts.get(i);
@@ -182,8 +179,6 @@ public class SubmarineNode
 
             float centerX = part.getCenterX();
             float centerY = part.getCenterY();
-
-            // volume real das fixtures da part, não o AABB (width*height)
             float volume = part.getVolume();
             float mass = part.getTotalMass();
 
@@ -192,24 +187,63 @@ public class SubmarineNode
             weightedCenterX += centerX * mass;
             weightedCenterY += centerY * mass;
 
-            hasValidPart = true;
+            hasValidContribution = true;
         }
 
-        if (!hasValidPart || totalMass <= 0f) return;
+        for (int i = 0; i < passengerList.size(); i++) {
+            SubmarinePassenger passenger = passengerList.get(i);
+
+            float passengerMass = passenger.getLiquidInteractionC().getMass();
+            if (passengerMass <= 0f) continue;
+
+            Body passengerBody = passenger.getBody();
+            if (passengerBody == null) continue; // defensivo, sem tocar em map nenhum
+
+            float relX = relativePosBuffer.x; // ver abaixo
+            float relY = relativePosBuffer.y;
+            computePassengerRelativePosition(passengerBody, relativePosBuffer);
+
+            float passengerVolume = passenger.getLiquidInteractionC().getVolume();
+
+            totalMass += passengerMass;
+            totalVolume += passengerVolume;
+            weightedCenterX += relativePosBuffer.x * passengerMass;
+            weightedCenterY += relativePosBuffer.y * passengerMass;
+
+            hasValidContribution = true;
+        }
+
+        if (!hasValidContribution || totalMass <= 0f) return;
 
         float centerX = weightedCenterX / totalMass;
         float centerY = weightedCenterY / totalMass;
 
-        // SubmarineNode não chama mais body.setMassData diretamente.
-        // Ele só entrega os dados agregados; quem aplica no Box2D (com
-        // inércia própria e uma única chamada por frame) é o
-        // liquidInteractionC, que já centraliza esse trabalho.
         liquidInteractionC.setMass(totalMass);
         liquidInteractionC.setVolume(totalVolume);
         liquidInteractionC.updateCenterOfMass(centerX, centerY);
     }
 
-    //TO-DO:Adicionar sistema para lidar com objetos anexados de outros nodes... possívelmente
+    // UM único Vector2 reaproveitado como scratch, não por passageiro — sem IdentityHashMap
+    private final Vector2 relativePosBuffer = new Vector2();
+
+    private void computePassengerRelativePosition(Body passengerBody, Vector2 out) {
+        Vector2 worldPos = passengerBody.getPosition();
+        Vector2 nodePos = internalBody.getPosition();
+        float nodeAngle = internalBody.getAngle();
+
+        float relXMeters = worldPos.x - nodePos.x;
+        float relYMeters = worldPos.y - nodePos.y;
+
+        float cos = MathUtils.cos(-nodeAngle);
+        float sin = MathUtils.sin(-nodeAngle);
+
+        float localX = relXMeters * cos - relYMeters * sin;
+        float localY = relXMeters * sin + relYMeters * cos;
+
+        out.set(localX, localY);
+    }
+
+    //TO-DO:Adicionar sistema para lidar com objetos anexados de outros nodes... possévelmente
     public void calculateNodeDimensions() {
         if (physicalParts == null || physicalParts.isEmpty()) return;
 
@@ -224,11 +258,9 @@ public class SubmarineNode
             SubmarinePart part = physicalParts.get(i);
 
             if (!part.isBoundsCalculated()) {
-                part.updateBounds(); // fallback único, idempotente
+                part.updateBounds();
             }
 
-            // se mesmo após o fallback a part não tem bounds válidos,
-            // ela é ignorada por completo — não entra no AABB nem na massa
             if (!part.isBoundsCalculated()) {
                 continue;
             }
@@ -275,7 +307,6 @@ public class SubmarineNode
             true
         );
 
-
         this.physicsC = new MovableObjectPhysicsComponent(
             this,
             0,
@@ -294,39 +325,34 @@ public class SubmarineNode
 
         interactableObjectManagerC = new InteractableObjectManagerComponent(internalBody);
 
-        this.managerC.add(
-            moveC,
-            true,
-            false
-        );
-
-        this.managerC.add(
-            liquidInteractionC,
-            true,
-            false
-        );
-
-        this.managerC.add(
-            physicsC,
-            true,
-            false
-        );
-
-        this.managerC.add(
-            interactableObjectManagerC,
-            false,
-            true
-        );
+        this.managerC.add(moveC, true, false);
+        this.managerC.add(liquidInteractionC, true, false);
+        this.managerC.add(physicsC, true, false);
+        this.managerC.add(interactableObjectManagerC, false, true);
     }
 
     @Override
     public void onPassengerEnter(VehiclePassenger passenger) {
-        passengerList.add(passenger);
+        if (!(passenger instanceof SubmarinePassenger)) return;
+        SubmarinePassenger sp = (SubmarinePassenger) passenger;
+
+        pendingRemove.remove(sp); // cancela remoção pendente, se houver (entrou nesse frame de novo)
+
+        if (passengerList.contains(sp) || pendingAdd.contains(sp)) return; // já dentro ou já vai entrar
+
+        pendingAdd.add(sp);
     }
 
     @Override
     public void onPassengerExit(VehiclePassenger passenger) {
-        passengerList.remove(passenger);
+        if (!(passenger instanceof SubmarinePassenger)) return;
+        SubmarinePassenger sp = (SubmarinePassenger) passenger;
+
+        pendingAdd.remove(sp); // cancela entrada pendente, se houver (saiu antes de ser processado)
+
+        if (!passengerList.contains(sp) || pendingRemove.contains(sp)) return; // já fora ou já vai sair
+
+        pendingRemove.add(sp);
     }
 
     @Override
@@ -348,20 +374,27 @@ public class SubmarineNode
     }
 
     public void update(float delta) {
-        managerC.update(delta);
+        applyPendingPassengerChanges();
 
-        applyLiquidYAxisToBody();
+        managerC.update(delta);
+        recalculateMass();
     }
 
-    private void applyLiquidYAxisToBody() {
-        float yVelocity = moveC.dataComponent.yAxis.velocity;
+    private void applyPendingPassengerChanges() {
+        if (pendingRemove.isEmpty() && pendingAdd.isEmpty()) return;
 
-        if (yVelocity == 0f) return;
+        for (int i = 0; i < pendingRemove.size(); i++) {
+            passengerList.remove(pendingRemove.get(i));
+        }
+        pendingRemove.clear();
 
-        Vector2 currentVel = body.getLinearVelocity();
-
-        // Só sobrescreve o componente Y da velocidade, preserva X (controlado pelo motor)
-        body.setLinearVelocity(currentVel.x, yVelocity);
+        for (int i = 0; i < pendingAdd.size(); i++) {
+            SubmarinePassenger sp = pendingAdd.get(i);
+            if (!passengerList.contains(sp)) {
+                passengerList.add(sp);
+            }
+        }
+        pendingAdd.clear();
     }
 
     public void postUpdate() {
@@ -382,7 +415,6 @@ public class SubmarineNode
     private void updateVelocity() {
         final float delta = physicsC.getDeltaTime();
 
-        // evita divisão desnecessária
         if (delta == 0f) return;
 
         final Vector2 pos = body.getPosition();
@@ -434,13 +466,7 @@ public class SubmarineNode
 
     @Override
     public void render(SpriteBatch batch) {
-        //Chama o sistema de renderização dos componentes renderizáveis
         this.managerC.render(batch);
-
-        if (!DebugConstants.show_hit_boxes) return;
-        BaseGameObjectDataManager.toRender.add(
-            this.transformC
-        );
     }
 
     public void addVehicleComponent(
@@ -457,11 +483,7 @@ public class SubmarineNode
             this.interactableObjectManagerC.addToList((InteractableObjectII) component);
         }
 
-        this.managerC.add(
-            component,
-            toUpdate,
-            toPostUpdate
-        );
+        this.managerC.add(component, toUpdate, toPostUpdate);
     }
 
     @Override
@@ -533,7 +555,6 @@ public class SubmarineNode
     @Override
     public void dispose() {
         if (disposed) return;
-
 
         componentsDispose();
 
