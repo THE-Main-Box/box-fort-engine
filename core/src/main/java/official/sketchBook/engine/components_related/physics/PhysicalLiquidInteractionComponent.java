@@ -513,6 +513,8 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
      * espacial real do casco sem exigir densidade de fixture em produção.
      */
     private void applyAllMassDataToBody() {
+
+
         Body body = physicsC.object.getBody();
         Array<Fixture> fixtures = body.getFixtureList();
 
