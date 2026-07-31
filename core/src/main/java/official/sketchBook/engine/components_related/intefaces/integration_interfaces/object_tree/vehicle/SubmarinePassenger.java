@@ -1,10 +1,12 @@
 package official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle;
 
+import com.badlogic.gdx.math.Vector2;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.ObjectMassContributor;
 import official.sketchBook.engine.components_related.physics.LiquidInteractionComponent;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
 import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
 
-public interface SubmarinePassenger extends VehiclePassenger{
+public interface SubmarinePassenger extends VehiclePassenger, ObjectMassContributor {
     LiquidInteractionComponent getLiquidInteractionC();
 
     @Override
@@ -34,5 +36,17 @@ public interface SubmarinePassenger extends VehiclePassenger{
             getVehiclePassengerPhysicsC().setCurrentSection(newSection);
             getLiquidInteractionC().setCanInteract(false);
         }
+    }
+
+    default float getContributionMass(){
+        return getLiquidInteractionC().getMass();
+    }
+
+    default Vector2 getContributionPoint(){
+        return getVehiclePassengerPhysicsC().getObject().getBody().getPosition();
+    }
+
+    default boolean isContributing(){
+        return true;
     }
 }

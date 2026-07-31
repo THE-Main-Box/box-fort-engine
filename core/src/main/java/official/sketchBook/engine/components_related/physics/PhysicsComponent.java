@@ -333,6 +333,10 @@ public class PhysicsComponent implements Component {
 
     }
 
+    public PhysicalObjectII getObject() {
+        return object;
+    }
+
     public short getMaskBit() {
         return maskBit;
     }

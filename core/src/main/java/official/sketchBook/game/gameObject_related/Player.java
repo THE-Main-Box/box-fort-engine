@@ -112,7 +112,7 @@ public class Player extends AnimatedRenderableRoomGameObject
         this.initObject();
 
         this.liquidInteractionC.setMass(
-            toMeters(20f)
+            toMeters(200f)
         );
 
         this.liquidInteractionC.setVolume(
@@ -466,6 +466,11 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     public void setInScreen(boolean inScreen) {
         this.inScreen = inScreen;
+    }
+
+    @Override
+    public boolean isContributing() {
+        return this.isOnGround();
     }
 
     @Override
