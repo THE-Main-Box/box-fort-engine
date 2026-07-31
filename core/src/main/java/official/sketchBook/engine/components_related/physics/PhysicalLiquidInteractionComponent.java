@@ -13,21 +13,19 @@ import java.util.Map;
 
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.*;
 
-/**
- * Simula interação física com líquidos usando fixtures reais do Box2D.
- * Otimizações principais:
- * - cache por fixture para polígonos;
- * - cálculo manual de ponto em mundo (sem getWorldPoint em loop);
- * - área de polígono cacheada;
- * - uma única setMassData por atualização quando houver dirty state;
- * - inércia extraída da geometria real das fixtures via Box2D (probe de
- *   densidade temporária), escalada pela massa manual definida externamente;
- * - sem dependência de delta na física de massa/inércia (inércia não é uma
- *   grandeza integrada no tempo, é uma propriedade intrínseca do corpo).
- */
+
 public class PhysicalLiquidInteractionComponent extends LiquidInteractionComponent {
 
+
+    /**
+     * Abaixo desse limiar, tratamos o valor como zero. Evita que reduções
+     * repetidas (ex: subtração incremental por frame) deixem mass/volume
+     * presos em resíduos de ponto flutuante (ex: 1.34E-7) que nunca são
+     * corrigidos porque tecnicamente não são negativos.
+     */
+    private static final float MASS_VOLUME_EPSILON = 1e-4f;
     private static final float MIN_FRACTION_TO_APPLY_FORCE = 0.001f;
+
     private static final int MAX_POLYGON_VERTICES = 8;
     private static final int MAX_CLIPPED_POLYGON_VERTICES = MAX_POLYGON_VERTICES * 2;
 
@@ -39,17 +37,28 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
      */
     private static final float MASS_PROBE_DENSITY = 1f;
 
-    private final Vector2 fixtureBuoyancyPointBuffer = new Vector2();
-    private final Vector2 fixtureVertexBuffer = new Vector2();
+    private final float[]
+        worldVertexX = new float[MAX_POLYGON_VERTICES],
+        worldVertexY = new float[MAX_POLYGON_VERTICES];
 
-    private final float[] worldVertexX = new float[MAX_POLYGON_VERTICES];
-    private final float[] worldVertexY = new float[MAX_POLYGON_VERTICES];
+    private final float[]
+        clippedX = new float[MAX_CLIPPED_POLYGON_VERTICES],
+        clippedY = new float[MAX_CLIPPED_POLYGON_VERTICES];
 
-    private final float[] clippedX = new float[MAX_CLIPPED_POLYGON_VERTICES];
-    private final float[] clippedY = new float[MAX_CLIPPED_POLYGON_VERTICES];
+    private final Vector2
+        fixtureVertexBuffer = new Vector2(),
+        fixtureBuoyancyPointBuffer = new Vector2();
 
     private final MassData massDataBuffer = new MassData();
 
+    private final PhysicsComponent physicsC;
+
+    private LiquidRegion currentLiquidRegionBuffer;
+
+    private final IdentityHashMap<Fixture, FixtureCache>
+        fixtureCache = new IdentityHashMap<>();
+
+    private boolean disposed = false;
     /**
      * Único gatilho para reaplicar massa/inércia/centro no Box2D.
      * Ativado apenas por mudanças que de fato alteram o comportamento
@@ -65,32 +74,11 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
      */
     private boolean densityDirty = false;
 
-    private LiquidRegion currentLiquidRegionBuffer;
+    private boolean geometryProbeCached = false;
+    private float cachedProbedMass;
+    private float cachedProbedI;
+    private final Vector2 cachedProbedCenter = new Vector2();
 
-    private final PhysicsComponent physicsC;
-    private boolean disposed = false;
-
-    /**
-     * Cache por fixture.
-     * Cada polygon shape guarda vértices locais + área.
-     * Isso evita chamar getVertex() e recalcular área todo frame.
-     */
-    private static final class FixtureCache {
-        final float[] localX;
-        final float[] localY;
-        final int count;
-        final float area;
-
-        FixtureCache(float[] localX, float[] localY, int count, float area) {
-            this.localX = localX;
-            this.localY = localY;
-            this.count = count;
-            this.area = area;
-        }
-    }
-
-    private final IdentityHashMap<Fixture, FixtureCache> fixtureCache =
-        new IdentityHashMap<Fixture, FixtureCache>();
 
     public PhysicalLiquidInteractionComponent(PhysicalLiquidInteractableObjectII owner) {
         super(owner, owner.getMoveC());
@@ -483,12 +471,16 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
     // ============================================================
 
     private void resolveDirtyPhysicsData() {
-        if (!physicsMassDataDirty && !densityDirty) {
-            return;
-        }
+        if (!physicsMassDataDirty && !densityDirty) return;
 
         if (densityDirty) {
-            objectDensity = (volume > 0f) ? (mass / volume) : Float.MAX_VALUE;
+            objectDensity = (volume > 0f)
+                ?
+                (mass / volume)
+                :
+                Float.MAX_VALUE
+            ;
+
             densityDirty = false;
         }
 
@@ -497,8 +489,10 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
             physicsMassDataDirty = false;
         }
     }
-    private void applyAllMassDataToBody() {
-        Body body = physicsC.object.getBody();
+
+    private void ensureGeometryProbe(Body body) {
+        if (geometryProbeCached) return;
+
         Array<Fixture> fixtures = body.getFixtureList();
 
         for (int i = 0; i < fixtures.size; i++) {
@@ -516,9 +510,19 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
             fixture.setDensity(0f);
         }
 
-        float probedMass = probed.mass;
+        cachedProbedMass = probed.mass;
+        cachedProbedI = probed.I;
+        cachedProbedCenter.set(probed.center);
 
-        if (probedMass <= 0f) {
+        geometryProbeCached = true;
+    }
+
+    private void applyAllMassDataToBody() {
+        Body body = physicsC.object.getBody();
+
+        ensureGeometryProbe(body);
+
+        if (cachedProbedMass <= 0f) {
             massDataBuffer.mass = mass;
             massDataBuffer.I = Math.max(mass * 1e-3f, 1e-4f);
             massDataBuffer.center.set(centerOfMass);
@@ -526,53 +530,33 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
             return;
         }
 
-        // raio de giração ao quadrado em torno do centróide REAL do probe —
-        // propriedade pura da forma, independente de densidade/massa manual
-        float gyrationRadiusSq = probed.I / probedMass;
+        massDataBuffer.mass = mass;
+        massDataBuffer.I = getFinalI();
+        massDataBuffer.center.set(centerOfMass);
+        body.setMassData(massDataBuffer);
+    }
 
-        // I reconstruído em torno do centróide REAL (probed.center),
-        // usando a massa manual
+    private float getFinalI() {
+        float gyrationRadiusSq = cachedProbedI / cachedProbedMass;
         float iAtProbeCenter = mass * gyrationRadiusSq;
 
-        // teorema dos eixos paralelos: como vamos forçar o centro de massa
-        // em centerOfMass (que pode divergir do centróide real do casco,
-        // ex: passageiros deslocando o CM), precisamos somar m*d²,
-        // onde d é a distância entre o centróide real e o centro forçado
-        float dx = centerOfMass.x - probed.center.x;
-        float dy = centerOfMass.y - probed.center.y;
+        float dx = centerOfMass.x - cachedProbedCenter.x;
+        float dy = centerOfMass.y - cachedProbedCenter.y;
         float dSq = dx * dx + dy * dy;
 
         float finalI = iAtProbeCenter + mass * dSq;
 
-        if (!(finalI > 0f)) {
-            finalI = Math.max(mass * 1e-3f, 1e-4f);
-        }
-
-        massDataBuffer.mass = mass;
-        massDataBuffer.I = finalI;
-        massDataBuffer.center.set(centerOfMass);
-        body.setMassData(massDataBuffer);
+        return (finalI > 0f) ? finalI : Math.max(mass * 1e-3f, 1e-4f);
     }
-    /**
-     * Abaixo desse limiar, tratamos o valor como zero. Evita que reduções
-     * repetidas (ex: subtração incremental por frame) deixem mass/volume
-     * presos em resíduos de ponto flutuante (ex: 1.34E-7) que nunca são
-     * corrigidos porque tecnicamente não são negativos.
-     */
-    private static final float MASS_VOLUME_EPSILON = 1e-4f;
 
     @Override
     public void setMass(float mass) {
-        // clamp, não rejeição: um valor levemente negativo por erro de
-        // acumulação (ex: -0.0000003) deve virar 0, não ser descartado —
-        // se descartarmos, o campo fica preso no último valor válido antes
-        // do estouro, e chamadores que acham que "zeraram" continuam
-        // vendo um resíduo antigo.
         float clamped = (mass < MASS_VOLUME_EPSILON) ? 0.4f : mass;
 
         if (this.mass == clamped) return;
 
         this.mass = clamped;
+
         physicsMassDataDirty = true;
         densityDirty = true;
 
@@ -586,6 +570,8 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
         if (this.volume == clamped) return;
 
         this.volume = clamped;
+
+        // volume NÃO afeta I nem center — só densidade
         densityDirty = true;
 
         markUpdateSimulationData();
@@ -593,16 +579,23 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
 
     @Override
     public void updateCenterOfMass(float x, float y) {
+        if (centerOfMass.x == x && centerOfMass.y == y) return;
+
         super.updateCenterOfMass(x, y);
+
         physicsMassDataDirty = true;
+
         markUpdateSimulationData();
     }
 
     @Override
     public void updateCenterOfMass(Vector2 centerOfMass) {
-        super.updateCenterOfMass(centerOfMass);
-        physicsMassDataDirty = true;
-        markUpdateSimulationData();
+        updateCenterOfMass(centerOfMass.x, centerOfMass.y);
+    }
+
+    ///Deve ser chamado ao alterar a geometria real do corpo
+    public void invalidateGeometryProbe() {
+        geometryProbeCached = false;
     }
 
     // ============================================================
@@ -701,5 +694,24 @@ public class PhysicalLiquidInteractionComponent extends LiquidInteractionCompone
         liquidAndRegionMap.clear();
         fixtureCache.clear();
         disposed = true;
+    }
+
+    /**
+     * Cache por fixture.
+     * Cada polygon shape guarda vértices locais + área.
+     * Isso evita chamar getVertex() e recalcular área todo frame.
+     */
+    private static final class FixtureCache {
+        final float[] localX;
+        final float[] localY;
+        final int count;
+        final float area;
+
+        FixtureCache(float[] localX, float[] localY, int count, float area) {
+            this.localX = localX;
+            this.localY = localY;
+            this.count = count;
+            this.area = area;
+        }
     }
 }

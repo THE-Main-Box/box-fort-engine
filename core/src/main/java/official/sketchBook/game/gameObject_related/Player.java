@@ -112,7 +112,7 @@ public class Player extends AnimatedRenderableRoomGameObject
         this.initObject();
 
         this.liquidInteractionC.setMass(
-            toMeters(200f)
+            toMeters(20f)
         );
 
         this.liquidInteractionC.setVolume(
