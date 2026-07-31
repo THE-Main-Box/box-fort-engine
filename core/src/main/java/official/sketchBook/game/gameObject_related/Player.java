@@ -469,6 +469,11 @@ public class Player extends AnimatedRenderableRoomGameObject
     }
 
     @Override
+    public boolean isContributing() {
+        return this.isOnGround();
+    }
+
+    @Override
     protected void disposeCriticalData() {
         super.disposeCriticalData();
         body = null;

@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.MassData;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Disposable;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.InteractableObjectII;
@@ -13,6 +12,7 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.physics.PhysicalObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.SubmarinePassenger;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.vehicle.VehiclePassenger;
+import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.ObjectMassContributor;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.OptmizedRenderableObjectII;
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.util_related.RenderableObjectII;
 import official.sketchBook.engine.components_related.interact.InteractableObjectManagerComponent;
@@ -22,17 +22,16 @@ import official.sketchBook.engine.components_related.physics.MovableObjectPhysic
 import official.sketchBook.engine.components_related.physics.PhysicalLiquidInteractionComponent;
 import official.sketchBook.engine.components_related.physics.PhysicsComponent;
 import official.sketchBook.engine.components_related.system_utils.RenderableAndDefaultComponentManagerComponent;
+import official.sketchBook.engine.components_related.system_utils.UpdateRateLimiter;
 import official.sketchBook.engine.components_related.vehicle.VehicleBaseComponent;
+import official.sketchBook.game.util_related.constants.GameConfigConstants;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
 
 import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createExternalBody;
 import static official.sketchBook.engine.util_related.helper.body.SubmarinePartBodyCreateHelper.createInternalBody;
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.toMeters;
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.toPixels;
 
 public class SubmarineNode
@@ -50,27 +49,37 @@ public class SubmarineNode
     /// Lista de partes físicas
     private final List<SubmarinePart> physicalParts;
 
-    /// Lista de objetos que podem entrar e interagir com o lado interno do submarino, alterando a massa e outras coisas
-    private final List<SubmarinePassenger> passengerList;
+    /**
+     * Lista de objetos que entraram/saíram do submarino via contato físico
+     * (VehicleContactListener). Trata identidade e ciclo de vida de
+     * "estar dentro do veículo". Todo SubmarinePassenger que entra também
+     * é registrado como contribuinte de massa em onPassengerEnter — a
+     * lista de contribuintes continua existindo separadamente para
+     * permitir contribuintes que NÃO são passageiros (ex: algo preso ao
+     * casco sem trigger de contato).
+     */
+    private final List<SubmarinePassenger>
+        pendingRemove = new ArrayList<>(),
+        pendingAdd = new ArrayList<>(),
+        passengerList = new ArrayList<>();
 
     /**
-     * Posição relativa (em metros, espaço local do internalBody, SEM
-     * rotação) de cada passageiro atualmente dentro do submarino. Chave é
-     * o próprio passageiro — garante identidade única, evitando adicionar
-     * ou remover contribuições de massa incorretamente. O Vector2 é
-     * reaproveitado a cada recálculo, não realocado.
-     * <p>
-     * A massa e o volume de cada passageiro NÃO são copiados para cá —
-     * são sempre lidos direto de passenger.getLiquidInteractionC() no
-     * momento do recálculo, para nunca ter duas fontes de verdade
-     * divergentes.
+     * Lista de contribuintes de massa — sistema separado de passengerList,
+     * conectado por política padrão em onPassengerEnter/onPassengerExit.
+     * Permite registrar contribuintes que não são passageiros via
+     * addMassContributor/removeMassContributor diretamente.
      */
-    private final Map<SubmarinePassenger, Vector2> passengerRelativePosition = new IdentityHashMap<>();
+    private final List<ObjectMassContributor>
+        contributorPendingRemove = new ArrayList<>(),
+        contributorPendingAdd = new ArrayList<>(),
+        contributorList = new ArrayList<>();
+
+    private final List<VehicleBaseComponent> vehicleComponentList = new ArrayList<>();
 
     /// Componente para controle de movimentação do sub a partir de velocidade
     private MovementComponent moveC;
 
-    /// Componente de física, para controle da física atravéz de pipelines já existentes
+    /// Componente de física, para controle da física através de pipelines já existentes
     private PhysicsComponent physicsC;
 
     /// Componente de transform contendo os dados de dimensões do nó
@@ -109,6 +118,36 @@ public class SubmarineNode
     /// Indíce de renderização
     public int renderIndex;
 
+    // ============================================================
+    // CACHE DA CONTRIBUIÇÃO DO CASCO
+    // ============================================================
+
+    /**
+     * Marca que a contribuição do casco (SubmarinePart) precisa ser
+     * recalculada. Só deve ser marcado true quando algo no casco
+     * realmente muda (ex: dano estrutural alterando massa/volume de uma
+     * parte) — NÃO por entrada/saída de passageiros ou contribuintes.
+     * <p>
+     * Começa true para forçar o primeiro cálculo em initObject().
+     */
+    private boolean hullContributionDirty = true;
+
+    private float cachedHullMass = 0f;
+    private float cachedHullVolume = 0f;
+    private float cachedHullWeightedX = 0f;
+    private float cachedHullWeightedY = 0f;
+    private boolean cachedHullValid = false;
+
+    /**
+     * Rate limiter para o recálculo de massa/centro de massa. Evita
+     * reprocessar contribuintes e reaplicar MassData no Box2D todo
+     * frame sem necessidade — roda na taxa definida por
+     * GameConfigConstants.PASSENGER_POSITION_MASS_CALC_RATE (padrão
+     * FPS_TARGET / 2).
+     */
+    private final UpdateRateLimiter massRecalcLimiter =
+        new UpdateRateLimiter(GameConfigConstants.PASSENGER_POSITION_MASS_CALC_RATE, true);
+
     public SubmarineNode(
         World physicsWorld,
         List<SubmarinePart> physicalParts,
@@ -123,9 +162,6 @@ public class SubmarineNode
         this.physicsWorld = physicsWorld;
 
         this.physicalParts = physicalParts;
-
-        this.vehicleComponentList = new ArrayList<>();
-        this.passengerList = new ArrayList<>();
 
         for (int i = 0; i < physicalParts.size(); i++) {
             physicalParts.get(i).setSection(this);
@@ -147,8 +183,6 @@ public class SubmarineNode
         this.managerC = new RenderableAndDefaultComponentManagerComponent();
 
     }
-
-    private final List<VehicleBaseComponent> vehicleComponentList;
 
     public void initObject() {
         generateBody();
@@ -180,64 +214,118 @@ public class SubmarineNode
 
     }
 
+    // ============================================================
+    // MASSA / CENTRO DE MASSA
+    // ============================================================
+
     /**
-     * Recalcula massa total, volume total e centro de massa combinado do
-     * submarino, somando a contribuição do casco (SubmarinePart) com a
-     * contribuição de cada passageiro atualmente dentro dele.
-     * <p>
-     * Massa/volume de cada passageiro são lidos diretamente do
-     * LiquidInteractionComponent dele (nunca copiados/cacheados aqui) —
-     * ele é sempre a fonte de verdade da própria massa. Isso evita
-     * dessincronização: se o peso de um passageiro mudar por qualquer
-     * motivo (ex: ele largou um item), o próximo recalculateMass() já
-     * reflete isso automaticamente, sem precisar de nenhum evento extra
-     * de sincronização entre os dois lados.
+     * Marca a contribuição do casco como suja, forçando recálculo na
+     * próxima chamada de recalculateMass(). Chame isso apenas quando
+     * SubmarinePart tiver sua massa, volume ou centro alterados (ex:
+     * dano estrutural) — nunca por causa de passageiros/contribuintes.
      */
-    public void recalculateMass() {
+    public void markHullContributionDirty() {
+        hullContributionDirty = true;
+    }
+
+    /**
+     * Recalcula a contribuição do casco (SubmarinePart) e armazena em
+     * cache. Só executa de fato se hullContributionDirty estiver true —
+     * caso contrário é um no-op O(1).
+     */
+    private void recalculateHullContribution() {
+        if (!hullContributionDirty) return;
+
         float totalMass = 0f;
         float totalVolume = 0f;
-        float weightedCenterX = 0f;
-        float weightedCenterY = 0f;
+        float weightedX = 0f;
+        float weightedY = 0f;
+        boolean valid = false;
 
-        boolean hasValidContribution = false;
-
-        // ---- casco (SubmarinePart) ----
         for (int i = 0; i < physicalParts.size(); i++) {
             SubmarinePart part = physicalParts.get(i);
             if (!part.isBoundsCalculated()) continue;
 
             float centerX = part.getCenterX();
             float centerY = part.getCenterY();
-
             float volume = part.getVolume();
             float mass = part.getTotalMass();
 
             totalVolume += volume;
             totalMass += mass;
-            weightedCenterX += centerX * mass;
-            weightedCenterY += centerY * mass;
+            weightedX += centerX * mass;
+            weightedY += centerY * mass;
 
-            hasValidContribution = true;
+            valid = true;
         }
 
-        // ---- passageiros ----
-        for (int i = 0; i < passengerList.size(); i++) {
-            SubmarinePassenger passenger = passengerList.get(i);
+        cachedHullMass = totalMass;
+        cachedHullVolume = totalVolume;
+        cachedHullWeightedX = weightedX;
+        cachedHullWeightedY = weightedY;
+        cachedHullValid = valid;
 
-            float passengerMass = passenger.getLiquidInteractionC().getMass();
-            if (passengerMass <= 0f) continue;
+        hullContributionDirty = false;
+    }
 
-            Vector2 relativePos = updatePassengerRelativePosition(passenger);
-            if (relativePos == null) continue;
+    /**
+     * Recalcula massa total, volume total e centro de massa combinado do
+     * submarino, somando a contribuição cacheada do casco com a soma live
+     * dos contribuintes de massa (contributorList).
+     * <p>
+     * totalVolume reflete APENAS o casco — contribuintes não deslocam
+     * volume adicional de água, então não participam do cálculo de
+     * empuxo, só do cálculo de massa/centro de massa.
+     * <p>
+     * cos/sin do ângulo do node são calculados UMA vez por chamada, fora
+     * do loop de contribuintes, já que todos compartilham o mesmo
+     * referencial (internalBody) naquele instante — evita recalcular
+     * trigonometria por contribuinte (custo real com 20-40 contribuintes
+     * simultâneos).
+     */
+    public void recalculateMass() {
+        recalculateHullContribution();
 
-            float passengerVolume = passenger.getLiquidInteractionC().getVolume();
+        float totalMass = cachedHullMass;
+        float totalVolume = cachedHullVolume;
+        float weightedCenterX = cachedHullWeightedX;
+        float weightedCenterY = cachedHullWeightedY;
 
-            totalMass += passengerMass;
-            totalVolume += passengerVolume;
-            weightedCenterX += relativePos.x * passengerMass;
-            weightedCenterY += relativePos.y * passengerMass;
+        boolean hasValidContribution = cachedHullValid;
 
-            hasValidContribution = true;
+        int contributorCount = contributorList.size();
+
+        if (contributorCount > 0) {
+            Vector2 nodePos = internalBody.getPosition();
+            float nodeAngle = internalBody.getAngle();
+            float cos = MathUtils.cos(-nodeAngle);
+            float sin = MathUtils.sin(-nodeAngle);
+            float nodeX = nodePos.x;
+            float nodeY = nodePos.y;
+
+            for (int i = 0; i < contributorCount; i++) {
+                ObjectMassContributor contributor = contributorList.get(i);
+
+                if (!contributor.isContributing()) continue;
+
+                float contribMass = contributor.getContributionMass();
+                if (contribMass <= 0f) continue;
+
+                Vector2 worldPoint = contributor.getContributionPoint();
+                if (worldPoint == null) continue;
+
+                float relX = worldPoint.x - nodeX;
+                float relY = worldPoint.y - nodeY;
+
+                float localX = relX * cos - relY * sin;
+                float localY = relX * sin + relY * cos;
+
+                totalMass += contribMass;
+                weightedCenterX += localX * contribMass;
+                weightedCenterY += localY * contribMass;
+
+                hasValidContribution = true;
+            }
         }
 
         if (!hasValidContribution || totalMass <= 0f) return;
@@ -250,47 +338,7 @@ public class SubmarineNode
         liquidInteractionC.updateCenterOfMass(centerX, centerY);
     }
 
-    /**
-     * Converte a posição atual do body do passageiro (mundo, pixels via
-     * Box2D em metros) para o espaço local do internalBody do submarino
-     * (metros, sem rotação) — mesmo referencial usado por
-     * SubmarinePart.getCenterX()/getCenterY(), então os dois podem ser
-     * somados diretamente na média ponderada.
-     * <p>
-     * Atualiza (não realoca) o Vector2 já associado ao passageiro no map.
-     * Retorna null se o passageiro não tiver mais um body válido (ex:
-     * disposed entre o enter e este recálculo — defensivo).
-     */
-    private Vector2 updatePassengerRelativePosition(SubmarinePassenger passenger) {
-        Body passengerBody = passenger.getBody();
-        if (passengerBody == null) return null;
-
-        Vector2 relativePos = passengerRelativePosition.computeIfAbsent(passenger, k -> new Vector2());
-        // não deveria acontecer se onPassengerEnter sempre popula o
-        // map antes de recalculateMass ser chamado, mas defensivo
-        // contra ordens de chamada inesperadas
-
-        Vector2 worldPos = passengerBody.getPosition();
-        Vector2 nodePos = internalBody.getPosition();
-        float nodeAngle = internalBody.getAngle();
-
-        float relXMeters = worldPos.x - nodePos.x;
-        float relYMeters = worldPos.y - nodePos.y;
-
-        // desrotaciona pela rotação atual do submarino — mesmo tratamento
-        // usado em SubmarinePart.findPartContaining, para cair no mesmo
-        // espaço local (sem rotação) onde centerX/centerY das parts vivem
-        float cos = MathUtils.cos(-nodeAngle);
-        float sin = MathUtils.sin(-nodeAngle);
-
-        float localX = relXMeters * cos - relYMeters * sin;
-        float localY = relXMeters * sin + relYMeters * cos;
-
-        relativePos.set(localX, localY);
-        return relativePos;
-    }
-
-    //TO-DO:Adicionar sistema para lidar com objetos anexados de outros nodes... possévelmente
+    //TO-DO:Adicionar sistema para lidar com objetos anexados de outros nodes... possívelmente
     public void calculateNodeDimensions() {
         if (physicalParts == null || physicalParts.isEmpty()) return;
 
@@ -378,33 +426,72 @@ public class SubmarineNode
         this.managerC.add(interactableObjectManagerC, false, true);
     }
 
+    // ============================================================
+    // PASSAGEIROS (identidade / ciclo de vida do veículo)
+    // ============================================================
+
     @Override
     public void onPassengerEnter(VehiclePassenger passenger) {
         if (!(passenger instanceof SubmarinePassenger)) return;
+        SubmarinePassenger sp = (SubmarinePassenger) passenger;
 
-        SubmarinePassenger submarinePassenger = (SubmarinePassenger) passenger;
+        pendingRemove.remove(sp); // cancela remoção pendente, se houver (entrou nesse frame de novo)
 
-        // evita duplicar entrada se onPassengerEnter for chamado duas
-        // vezes para o mesmo passageiro (ex: eventos de trigger repetidos)
-        if (passengerRelativePosition.containsKey(submarinePassenger)) return;
+        if (!passengerList.contains(sp) && !pendingAdd.contains(sp)) {
+            pendingAdd.add(sp);
+        }
 
-        passengerList.add(submarinePassenger);
-        passengerRelativePosition.put(submarinePassenger, new Vector2());
-
-        recalculateMass();
+        // sp já É um ObjectMassContributor por herança de SubmarinePassenger —
+        // sem necessidade de cast a partir do parâmetro genérico "passenger"
+        addMassContributor(sp);
     }
 
     @Override
     public void onPassengerExit(VehiclePassenger passenger) {
         if (!(passenger instanceof SubmarinePassenger)) return;
+        SubmarinePassenger sp = (SubmarinePassenger) passenger;
 
-        SubmarinePassenger submarinePassenger = (SubmarinePassenger) passenger;
+        pendingAdd.remove(sp); // cancela entrada pendente, se houver (saiu antes de ser processado)
 
-        boolean removed = passengerList.remove(submarinePassenger);
-
-        if (removed) {
-            recalculateMass();
+        if (passengerList.contains(sp) && !pendingRemove.contains(sp)) {
+            pendingRemove.add(sp);
         }
+
+        removeMassContributor(sp);
+    }
+
+    // ============================================================
+    // CONTRIBUINTES DE MASSA
+    // ============================================================
+
+    /**
+     * Registra um contribuinte de massa. Idempotente e seguro de chamar
+     * a qualquer momento, inclusive durante callbacks de física — a
+     * mutação real da lista só ocorre em applyPendingContributorChanges(),
+     * fora do step físico.
+     */
+    public void addMassContributor(ObjectMassContributor contributor) {
+        if (contributor == null) return;
+
+        contributorPendingRemove.remove(contributor);
+
+        if (contributorList.contains(contributor) || contributorPendingAdd.contains(contributor)) return;
+
+        contributorPendingAdd.add(contributor);
+    }
+
+    /**
+     * Remove um contribuinte de massa. Mesma garantia de segurança que
+     * addMassContributor — enfileira a remoção, não muta a lista na hora.
+     */
+    public void removeMassContributor(ObjectMassContributor contributor) {
+        if (contributor == null) return;
+
+        contributorPendingAdd.remove(contributor);
+
+        if (!contributorList.contains(contributor) || contributorPendingRemove.contains(contributor)) return;
+
+        contributorPendingRemove.add(contributor);
     }
 
     @Override
@@ -425,10 +512,74 @@ public class SubmarineNode
 
     }
 
+    /**
+     * As filas de passageiro/contribuinte são sempre aplicadas todo
+     * frame (O(1) quando vazias). O que é limitado por taxa é
+     * recalculateMass() em si, via massRecalcLimiter — esse é o passo
+     * caro (soma de contribuintes + reaplicação de MassData no Box2D).
+     */
     public void update(float delta) {
+        applyPendingPassengerChanges();
+        applyPendingContributorChanges();
+
         managerC.update(delta);
 
-        recalculateMass();
+        if (massRecalcLimiter.shouldUpdate(delta)) {
+            recalculateMass();
+        }
+    }
+
+    private void applyPendingPassengerChanges() {
+        applyPending(pendingAdd, pendingRemove, passengerList);
+    }
+
+    private void applyPendingContributorChanges() {
+        applyPending(contributorPendingAdd, contributorPendingRemove, contributorList);
+    }
+
+    /**
+     * Aplica filas de add/remove pendentes numa lista alvo, de forma
+     * genérica e reutilizável. Só toca a lista alvo se houver algo
+     * pendente. Remoção via swap-com-último-elemento (O(1) após a busca)
+     * é segura aqui porque a ordem de passengerList/contributorList
+     * nunca importa para o cálculo de massa.
+     * <p>
+     * Chamado exclusivamente fora de callbacks de física (no início de
+     * update()) — garante que a lista alvo nunca é mutada em um instante
+     * em que o Box2D possa estar iterando/validando estado.
+     */
+    private static <T> void applyPending(List<T> toAdd, List<T> toRemove, List<T> target) {
+        if (toRemove.isEmpty() && toAdd.isEmpty()) return;
+
+        for (int i = 0; i < toRemove.size(); i++) {
+            removeUnordered(target, toRemove.get(i));
+        }
+        toRemove.clear();
+
+        for (int i = 0; i < toAdd.size(); i++) {
+            T item = toAdd.get(i);
+            if (!target.contains(item)) {
+                target.add(item);
+            }
+        }
+        toAdd.clear();
+    }
+
+    /**
+     * Remove trocando pelo último elemento e removendo o último índice —
+     * O(n) de busca + O(1) de remoção, em vez de O(n) busca + O(n) shift
+     * do ArrayList.remove(Object) padrão. Seguro porque a ordem da lista
+     * nunca é significativa para passageiros/contribuintes.
+     */
+    private static <T> void removeUnordered(List<T> list, T item) {
+        int index = list.indexOf(item);
+        if (index < 0) return;
+
+        int lastIndex = list.size() - 1;
+        if (index != lastIndex) {
+            list.set(index, list.get(lastIndex));
+        }
+        list.remove(lastIndex);
     }
 
     public void postUpdate() {
@@ -609,8 +760,14 @@ public class SubmarineNode
 
         vehicleComponentList.clear();
         physicalParts.clear();
+
         passengerList.clear();
-        passengerRelativePosition.clear();
+        pendingAdd.clear();
+        pendingRemove.clear();
+
+        contributorList.clear();
+        contributorPendingAdd.clear();
+        contributorPendingRemove.clear();
 
         physicsWorld.destroyBody(internalBody);
 
