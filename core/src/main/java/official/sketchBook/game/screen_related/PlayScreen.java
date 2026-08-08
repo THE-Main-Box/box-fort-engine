@@ -94,22 +94,6 @@ public class PlayScreen extends BaseScreen {
             this
         );
 
-        //Cria o jogador principal e Informa ao manager qual é o jogador principal
-        worldManager.mainPlayer = new Player(
-            worldManager,
-            worldManager.getCurrentRoom(),
-            250,
-            40,
-            0,
-            -45,
-            WIDTH,
-            HEIGHT,
-            1f,
-            1f,
-            false,
-            false
-        );
-
         testEmitter = new Emitter(worldManager.getGlobalProjectilePool());
         testEmitter.configure(Bullet.class);
     }
@@ -150,25 +134,6 @@ public class PlayScreen extends BaseScreen {
             worldManager.removeGameObject(worldManager.mainPlayer);
 //            worldManager.destroyManager();
 //            worldManager.disposeGraphics();
-        }
-
-        if (Gdx.input.isKeyPressed(
-            Input.Keys.F
-        )) {
-            worldManager.mainPlayer = new Player(
-                worldManager,
-                worldManager.getCurrentRoom(),
-                250,
-                160,
-                0,
-                0,
-                WIDTH,
-                HEIGHT,
-                1f,
-                1f,
-                false,
-                false
-            );
         }
 
 

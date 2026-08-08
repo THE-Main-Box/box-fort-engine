@@ -114,7 +114,7 @@ public class InteractableObjectManagerComponent implements Component, SelfListen
         GameObjectTag bodyTagB = getFromBodyTag(contact.getFixtureB());
 
         InteractionTriggerer triggerer = extractTriggerer(bodyTagA, bodyTagB);
-        if (triggerer == null) return;
+        if (triggerer == null || triggerer.getTriggerC() == null) return;
 
         triggerer.getTriggerC().removeInteractable(interactable);
     }
