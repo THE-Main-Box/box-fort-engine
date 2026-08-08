@@ -1,7 +1,5 @@
 package official.sketchBook.game.gameObject_related;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -27,6 +25,10 @@ import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.engine.util_related.pools.RayCastPool;
+import official.sketchBook.engine.util_related.serialization.SaveData;
+import official.sketchBook.engine.util_related.serialization.SaveDataInstance;
+import official.sketchBook.engine.util_related.serialization.SaveDataInstanceRegistry;
+import official.sketchBook.engine.util_related.serialization.context.TransformedRoomObjectContext;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.components_related.player.PlayerAnimationControllerComponent;
 import official.sketchBook.game.components_related.player.PlayerControllerComponent;
@@ -57,9 +59,9 @@ public class Player extends AnimatedRenderableRoomGameObject
     private static PlayerControllerComponent controllerC;
     /// Componente de movimento
     private MovementComponent moveC;
-    /// Componente de aplicação de movimento ao corpo físico
+    /// Componente de aplica��o de movimento ao corpo f�sico
     private MovableObjectPhysicsComponent physicsC;
-    /// Componente de detecção de colisão com rayCast
+    /// Componente de detec��o de colis�o com rayCast
     private RayCastGroundDetectionComponent groundDetection;
     /// Componente de pulo
     private JumpComponent jumpC;
@@ -68,7 +70,7 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     private InteractTriggerComponent triggerC;
 
-    /// Corpo físico
+    /// Corpo f�sico
     private Body body;
 
     public Player(
@@ -103,62 +105,29 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         this.animationRenderC.isRenderDimensionEqualsToObject = false;
 
-        //Aplicador de movimento
         initMovementComponent();
-
-        //Aplicador final de movimento
         initPhysicsComponent();
 
         this.initObject();
-
-        this.liquidInteractionC.setMass(
-            toMeters(20f)
-        );
-
-        this.liquidInteractionC.setVolume(
-            calculateVolume(body)
-        );
-
-
     }
 
     @Override
     public void initObject() {
-
-        //Controlador
         initControllerComponent();
-        //Gerenciador de animações
         initAnimationControllerComponent();
-
-        //Aplicador de movimento secundário
         initJumpComponent();
-
-        //Renderizador
         initRenderingComponent();
-
-        //Detecção de colisão
         initGroundDetectionComponent();
-
         initTriggerComponent();
-
     }
 
     private void initTriggerComponent() {
         this.triggerC = new InteractTriggerComponent(this);
-
-        this.managerC.add(
-            triggerC,
-            true,
-            false
-        );
+        this.managerC.add(triggerC, true, false);
     }
 
     private void initAnimationControllerComponent() {
-        this.managerC.add(
-            new PlayerAnimationControllerComponent(this),
-            true,
-            false
-        );
+        this.managerC.add(new PlayerAnimationControllerComponent(this), true, false);
     }
 
     private void initJumpComponent() {
@@ -174,11 +143,7 @@ public class Player extends AnimatedRenderableRoomGameObject
             false
         );
 
-        this.managerC.add(
-            jumpC,
-            true,
-            true
-        );
+        this.managerC.add(jumpC, true, true);
     }
 
     private void initGroundDetectionComponent() {
@@ -189,19 +154,13 @@ public class Player extends AnimatedRenderableRoomGameObject
             ObjectType.VEHICLE
         );
 
-        this.managerC.add(
-            groundDetection,
-            false,
-            true
-        );
+        this.managerC.add(groundDetection, false, true);
     }
 
     private void initControllerComponent() {
         if (controllerC == null || controllerC.player == null) {
             controllerC = new PlayerControllerComponent(this);
         } else {
-
-            //Fazemos com que o antigo player perca o acesso ao controller
             controllerC.player.managerC.remove(
                 PlayerControllerComponent.class,
                 true,
@@ -209,15 +168,10 @@ public class Player extends AnimatedRenderableRoomGameObject
                 false
             );
 
-            //Atualizamos quem é o dono do controller
             controllerC.player = this;
         }
 
-        this.managerC.add(
-            controllerC,
-            true,
-            false
-        );
+        this.managerC.add(controllerC, true, false);
     }
 
     private void initMovementComponent() {
@@ -245,15 +199,10 @@ public class Player extends AnimatedRenderableRoomGameObject
             true
         );
 
-        this.managerC.add(
-            moveC,
-            true,
-            false
-        );
+        this.managerC.add(moveC, true, false);
     }
 
     private void initPhysicsComponent() {
-
         this.physicsC = new VehiclePassengerPhysicsComponent(
             this,
             WorldConstants.PlayerConstants.categoryBit,
@@ -263,22 +212,12 @@ public class Player extends AnimatedRenderableRoomGameObject
             0f
         );
 
-
         this.createBody();
 
         this.liquidInteractionC = new PhysicalLiquidInteractionComponent(this);
 
-        this.managerC.add(
-            liquidInteractionC,
-            true,
-            true
-        );
-
-        this.managerC.add(
-            physicsC,
-            true,
-            true
-        );
+        this.managerC.add(liquidInteractionC, true, true);
+        this.managerC.add(physicsC, true, true);
     }
 
     private void initRenderingComponent() {
@@ -305,20 +244,13 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         initAnimations(aniPlayer);
 
-        this.animationRenderC.addNewLayer(
-            sheetHandler,
-            aniPlayer,
-            transformC
-        );
+        this.animationRenderC.addNewLayer(sheetHandler, aniPlayer, transformC);
     }
 
     private void createBody() {
         body = BodyCreatorHelper.createBox(
             this.getPhysicalManager().getPhysicsWorld(),
-            new Vector2(
-                this.transformC.x,
-                this.transformC.y
-            ),
+            new Vector2(this.transformC.x, this.transformC.y),
             this.transformC.getRotation(),
             this.transformC.width,
             this.transformC.height,
@@ -332,13 +264,7 @@ public class Player extends AnimatedRenderableRoomGameObject
 
         this.body.setLinearDamping(0);
 
-        this.body.setUserData(
-            new GameObjectTag(
-                ObjectType.ENTITY,
-                this
-            )
-        );
-
+        this.body.setUserData(new GameObjectTag(ObjectType.ENTITY, this));
     }
 
     @Override
@@ -348,7 +274,6 @@ public class Player extends AnimatedRenderableRoomGameObject
     @Override
     public void update(float delta) {
         super.update(delta);
-
     }
 
     @Override
@@ -363,7 +288,6 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     @Override
     public void onLiquidExit() {
-
     }
 
     @Override
@@ -372,24 +296,6 @@ public class Player extends AnimatedRenderableRoomGameObject
 
     @Override
     public void inLiquidUpdate() {
-
-//        if(Gdx.input.isKeyPressed(
-//            Input.Keys.R
-//        )){
-//
-//            this.liquidInteractionC.setMass(
-//                liquidInteractionC.getMass() - 0.1f
-//            );
-//        } else if(Gdx.input.isKeyPressed(
-//            Input.Keys.C
-//        )){
-//            this.liquidInteractionC.setMass(
-//                liquidInteractionC.getMass() + 0.1f
-//            );
-//        }
-//
-//        System.out.println(liquidInteractionC.getMass());
-
     }
 
     public PlayerControllerComponent getControllerC() {
@@ -481,20 +387,16 @@ public class Player extends AnimatedRenderableRoomGameObject
         jumpC = null;
         groundDetection = null;
         triggerC = null;
-
     }
 
     public static void disposeStaticResources() {
         controllerC.dispose();
-
         controllerC = null;
         disposeSheet();
     }
 
     @Override
     protected void disposeGeneralData() {
-
-
     }
 
     @Override
@@ -504,11 +406,94 @@ public class Player extends AnimatedRenderableRoomGameObject
     private static void disposeSheet() {
         if (sheetDisposed) return;
         playerSheet.dispose();
-
         playerSheet = null;
-
         sheetDisposed = true;
+    }
 
+    // ============================================================
+    // SISTEMA DE SAVE
+    // ============================================================
+
+    /**
+     * Extrai o estado atual do Player como SaveData. volume N�O entra
+     * de prop�sito ? j� � recalculado a partir da geometria do body em
+     * toda instancia��o (calculateVolume(body) no construtor); salvar
+     * um valor derivado da f�sica arrisca ficar dessincronizado do
+     * body real se a geometria mudar entre vers�es do jogo.
+     */
+    public SaveData save() {
+        return new SaveData()
+            .put("x", transformC.x)
+            .put("y", transformC.y)
+            .put("z", transformC.z)
+            .put("rotation", transformC.getRotation())
+            .put("mass", liquidInteractionC.getMass());
+    }
+
+    /**
+     * DTO de save do Player. width/height/scaleX/scaleY/mirrorX/mirrorY
+     * N�O v�m daqui ? v�m do {@link TransformedRoomObjectContext}
+     * (config de spawn, ex: WorldConstants.PlayerConstants.WIDTH/HEIGHT),
+     * porque hoje s�o sempre os mesmos valores fixos, n�o variam por
+     * inst�ncia salva. Se isso mudar no futuro (ex: hitbox diferente
+     * por upgrade), esses campos migram pra dentro de loadFields.
+     */
+    public static class PlayerSaveData extends SaveDataInstance<Player, TransformedRoomObjectContext> {
+
+        public static final String TYPE_KEY = "player";
+
+        private float x, y, z, rotation;
+        private float mass;
+
+        @Override
+        public void loadFields(SaveData data) {
+            // posi��o sem default plaus�vel ? um Player corrompido
+            // spawnando em 0,0 dentro de uma parede � pior que recusar
+            // carregar.
+            this.x = data.getFloatRequired("x");
+            this.y = data.getFloatRequired("y");
+            this.z = data.getFloatRequired("z");
+            this.rotation = data.getFloatRequired("rotation");
+
+            // mass tem default plaus�vel: o mesmo valor fixo que o
+            // construtor j� usa quando n�o vem de save (toMeters(20f)).
+            this.mass = data.getFloat("mass", toMeters(20f));
+        }
+
+        @Override
+        public SaveData save(Player instance) {
+            return instance.save();
+        }
+
+        @Override
+        protected Player executeInstantiation(TransformedRoomObjectContext context) {
+            Player player = new Player(
+                (PhysicalGameObjectDataManager) context.worldDataManager,
+                context.ownerRoom,
+                x,
+                y,
+                z,
+                rotation,
+                context.width,
+                context.height,
+                context.scaleX,
+                context.scaleY,
+                context.mirrorX,
+                context.mirrorY
+            );
+
+            // mass salvo sobrescreve o default fixo que o construtor
+            // aplica sozinho ? volume continua sendo o que o
+            // construtor j� calculou do body, nunca sobrescrito.
+            player.liquidInteractionC.setMass(
+                mass
+            );
+            player.liquidInteractionC.setVolume(
+                calculateVolume(player.body)
+            );
+
+            return player;
+        }
     }
 
 }

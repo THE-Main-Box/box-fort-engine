@@ -4,6 +4,8 @@ import com.badlogic.gdx.physics.box2d.Transform;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
 import official.sketchBook.engine.components_related.system_utils.ControllerGroup;
+import official.sketchBook.engine.util_related.serialization.SaveDataInstanceRegistry;
+import official.sketchBook.engine.util_related.serialization.SaveManager;
 import official.sketchBook.game.components_related.vehicle.VehicleControllerComponent;
 import official.sketchBook.game.components_related.vehicle.VehicleDoor;
 import official.sketchBook.game.components_related.vehicle.VehicleEngineComponent;
@@ -23,6 +25,7 @@ import official.sketchBook.engine.world_gen.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.gameObject_related.Player;
 import official.sketchBook.game.projectile_related.factories.ProjectilePoolFactory;
+import official.sketchBook.game.serialization.SaveFileLoader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +48,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     /// Gerenciador de salas do mundo
     private PlayableRoom currentRoom;
     private PlayableRoomManager roomManager;
+
+    private SaveFileLoader SFLoader;
 
     /// Câmera do jogo (referência, não é owned)
     private OrthographicCameraManager gameCamera;
@@ -75,335 +80,21 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     protected void setupSystems() {
         super.setupSystems();
 
+        initSDIRegistration();
+
         initPools();
 
         //Inicializa o manager de salas
         roomManager = new PlayableRoomManager();
+        SFLoader = new SaveFileLoader(this);
 
-        //Cria a sala inicial
-        currentRoom = new PlayableRoom(
-            1,
-            0,
-            0,
-            physicsWorld
-        );
-
-        //Adiciona os modelos de tile
-        roomManager.addNewTileModel(
-            currentRoom,
-            1,
-            1
-        );
-
-        //Inicializa a grid da sala
-        roomManager.initRoomGrid(
-            currentRoom,
-            initBaseTileMap()
-        );
-
-        List<LiquidRegion> regionList = new ArrayList<>();
-        LiquidData data;
-
-        regionList.add(
-            new LiquidRegion(
-                200,
-                10,
-                5000,
-                150
-            )
-        );
-
-//        data = new LiquidData(
-//            "water",
-//            1,
-//            9.5f,
-//            5f
-//        );
-
-        data = new LiquidData(
-            "water",
-            1,
-            9f,
-            2f
-        );
-
-        RoomLiquid water = new RoomLiquid(
-            this,
-            currentRoom,
-            data,
-            regionList
-        );
-
-        float
-            subX = 400,
-            subY = 190;
-
-        List<SubmarinePart> subParts = getBaseSubmarineParts();
-
-        List<SubmarineNode> nodeList = new ArrayList<>();
-
-        SubmarineNode node_1 = new SubmarineNode(
-            physicsWorld,
-            subParts,
-            subX,
-            subY,
-            0,
-            0,
-            false,
-            false
-        );
-
-        SubmarineNode node_2 = new SubmarineNode(
-            physicsWorld,
-            getBaseSubmarineParts(),
-            subX + 120,
-            subY,
-            0,
-            0,
-            false,
-            false
-        );
-
-        nodeList.add(
-            node_2
-        );
-
-        nodeList.add(
-            node_1
-        );
-
-        Submarine baseSubmarine = new Submarine(
-            this,
-            currentRoom,
-            nodeList
-        );
-
-        /*
-         * To-do: para as portas, um sistema de criação será interessante, a base de orientações
-         *  Em sumo a idéia é simples, temos as dimensões, altura e largura,
-         *  com base nisso usaremos as dimensões,
-         *  para podermos determinar o offset vertical e horizontal com base na posição já determinada, caso necessário,
-         *   mas iremos usar claramente para a orientação da fixture sensor,
-         *  caso haja, e não só caso haja,
-         *  mas irá nos ajudar em muitas outras circunstancias,
-         *  como determinar o quanto devemos puxar, empurrar, ou levantar ou abaixar,
-         *   a fixture sensor
-         * */
-
-
-        VehicleDoor door = new VehicleDoor(
-            node_1,
-            new FixtureData(
-                0,
-                0,
-                55,
-                0,
-                0,
-                9,
-                40,
-                VEHICLE.bit(),
-                VEHICLE_PASSENGER.bit(),
-                false,
-                false
-            ),
-            new FixtureData(
-                0,
-                0,
-                55 - 9,
-                0,
-                0,
-                9 * 4,
-                40,
-                INTERACTABLE.bit(),
-                INTERACTABLE_TRIGGERER.bit(),
-                false,
-                true
-            ),
-            false,
-            false,
-            false
-        );
-
-        VehicleDoor door2 = new VehicleDoor(
-            node_1,
-            new FixtureData(
-                0,
-                0,
-                0,
-                0,
-                0,
-                -55,
-                0,
-                0,
-                9,
-                40,
-                VEHICLE.bit(),
-                VEHICLE_PASSENGER.bit(),
-                false,
-                false
-            ),
-            new FixtureData(
-                0,
-                0,
-                -55 + 9,
-                0,
-                0,
-                9 * 4,
-                40,
-                INTERACTABLE.bit(),
-                INTERACTABLE_TRIGGERER.bit(),
-                false,
-                true
-            ),
-            false,
-            false,
-            true
-        );
-
-        VehicleControllerComponent controller = new VehicleControllerComponent(
-            node_1,
-            new FixtureData(
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                VEHICLE.bit(),
-                VEHICLE_PASSENGER.bit(),
-                false,
-                false
-            ),
-            new FixtureData(
-                0,
-                0,
-                0,
-                0,
-                0,
-                12 * 4,
-                30,
-                INTERACTABLE.bit(),
-                INTERACTABLE_TRIGGERER.bit(),
-                false,
-                true
-            )
-        );
-
-
-        VehicleEngineComponent engine = new VehicleEngineComponent(
-            node_1,
-            node_1.getBody(),
-            1f,
-            0f,
-            0f,
-            0f,
-            500f,
-            -1f,
-            1f,
-            0f,
-            10f,
-            false,
-            false
-        );
-
-        // --- Grupo frente: power 1.0 ---
-        ControllerGroup engineForwardGroup = controller.addGroup("engine_drive");
-        // --- Grupo ré: power -1.0 ---
-        ControllerGroup engineReverseGroup = controller.addGroup("engine_reverse");
-
-        ControllerGroup turnOff = controller.addGroup("engine_off");
-
-        //Adiciona o motor no grupo da frente
-        engineForwardGroup.add(engine);
-
-        //Adiciona o motor no grupo de ré
-        engineReverseGroup.add(engine);
-
-        //Adiciona o motor para desligar
-        turnOff.add(engine);
-
-        //Seta a config do grupo da frente
-        engineForwardGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(1f, true));
-        //Seta a config do grupo de ré
-        engineReverseGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(-1f, true));
-
-        turnOff.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(0f, false));
-
-
-        // --- Adiciona ao node ---
-        node_1.addVehicleComponent(engine, false, true, true);
-
-        node_1.addVehicleComponent(door, true, true, true);
-        node_1.addVehicleComponent(door2, false, true, true);
-
-        node_1.addVehicleComponent(controller, false, true, true);
-
-        Transform t = node_1.getBody().getTransform();
-        node_1.getBody().setTransform(
-            t.getPosition(),
-            45
-        );
-
-        //TO-do: lidar com o sistema de controle,
-        //  para que não possamos ativar quando o jogador estiver fora do sub ou fora do alcance correto
+        SFLoader.loadSaveFile();
 
     }
 
-    private static List<SubmarinePart> getBaseSubmarineParts() {
-        List<SubmarinePart> subParts = new ArrayList<>();
-
-        float
-            width = 120,
-            height = 10;
-
-        int
-            categoryBit = VEHICLE.bit(),
-            maskBit = VEHICLE_PASSENGER.bit();
-
-        SubmarinePart corridor = new SubmarinePart(1, "corridor");
-
-        corridor.updateBaseMass(1.5f);
-
-        corridor.setMargins(
-            2,
-            2,
-            2,
-            2
-        );
-
-        corridor.addInternalFixture(
-            0,
-            0,
-            0,
-            25,
-            0,
-            width,
-            height,
-            categoryBit,
-            maskBit,
-            true,
-            false
-        );
-
-        corridor.addInternalFixture(
-            0,
-            0,
-            0,
-            -25,
-            0,
-            width,
-            height,
-            categoryBit,
-            maskBit,
-            true,
-            false
-        );
-
-        subParts.add(corridor);
-        return subParts;
+    private void initSDIRegistration(){
+        SaveDataInstanceRegistry.GLOBAL.register(Player.PlayerSaveData.TYPE_KEY, Player.PlayerSaveData::new);
     }
-
 
     @Override
     protected void setupContactListeners() {
@@ -506,34 +197,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         cachedCamHeight = gameCamera.getCamera().viewportHeight * gameCamera.getCamera().zoom;
     }
 
-    private int[][] initBaseTileMap() {
-        int
-            width = TILES_VIEW_WIDTH * 3,
-            height = TILES_VIEW_HEIGHT;
 
-        int[][] toReturn = new int[height][width];
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                toReturn[y][x] = 0;
-
-                List<Boolean> canCreate = new ArrayList<>();
-                canCreate.add(y >= height - 2);  //chão
-                canCreate.add(y == 0);                      //teto
-                canCreate.add(x == 0);                      //parede esquerda
-                canCreate.add(x == width - 1);   //parede direita
-
-                for (boolean value : canCreate) {
-                    if (value) {
-                        toReturn[y][x] = 1;
-                        break;
-                    }
-                }
-            }
-        }
-
-        return toReturn;
-    }
 
     @Override
     protected void onManagerDestruction() {
@@ -585,6 +249,10 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
             );
         }
 
+    }
+
+    public PlayableRoomManager getRoomManager() {
+        return roomManager;
     }
 
     /// Define a câmera do jogo (chamado por PlayScreen após criar o manager)
