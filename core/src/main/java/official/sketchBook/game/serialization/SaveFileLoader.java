@@ -11,17 +11,16 @@ import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.util_related.path.SerializationPaths;
-import official.sketchBook.engine.util_related.serialization.SaveDataInstance;
 import official.sketchBook.engine.util_related.serialization.SaveDataInstanceRegistry;
 import official.sketchBook.engine.util_related.serialization.SaveManager;
-import official.sketchBook.engine.util_related.serialization.context.TransformedRoomObjectContext;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.components_related.vehicle.VehicleControllerComponent;
 import official.sketchBook.game.components_related.vehicle.VehicleDoor;
 import official.sketchBook.game.components_related.vehicle.VehicleEngineComponent;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;
-import official.sketchBook.game.gameObject_related.Player;
+import official.sketchBook.game.gameObject_related.player.Player;
+import official.sketchBook.game.gameObject_related.player.PlayerContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -150,18 +149,8 @@ public class SaveFileLoader {
         return toReturn;
     }
 
-    /**
-     * Carrega o Player pelo SaveManager, usando o registry global (via
-     * {@code Player.static{}}) e o {@link TransformedRoomObjectContext}
-     * montado agora que a sala j� existe.
-     * <p>
-     * width/height/scaleX/scaleY/mirrorX/mirrorY vêm de config de
-     * spawn (WorldConstants.PlayerConstants), N�O do SaveData ? n�o
-     * s�o "estado salvo da inst�ncia", ver justificativa na classe
-     * PlayerSaveData dentro de Player.
-     */
     private void loadPlayer(PlayableRoom room) {
-        TransformedRoomObjectContext context = new TransformedRoomObjectContext(
+        PlayerContext context = new PlayerContext(
             objectManager,
             room,
             RoomObjectScope.GLOBAL,
@@ -171,6 +160,9 @@ public class SaveFileLoader {
             1f,
             1f,
             false,
+            false,
+            0,
+            0,
             false
         );
 
@@ -179,6 +171,7 @@ public class SaveFileLoader {
             Player.class.getSimpleName().toLowerCase(),         //Nome do arquivo a buscar (nome da classe minúscula)
             context                                             //Contexto de instanciação
         );
+
     }
 
     private void loadVehicles(PlayableRoom currentRoom) {

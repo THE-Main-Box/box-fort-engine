@@ -2,10 +2,9 @@ package official.sketchBook.game.components_related.player;
 
 import com.badlogic.gdx.Input;
 import official.sketchBook.engine.components_related.base_components.KeyBoundControllerComponent;
-import official.sketchBook.engine.components_related.physics.VehiclePassengerPhysicsComponent;
 import official.sketchBook.game.components_related.vehicle.VehicleControllerComponent;
 import official.sketchBook.engine.util_related.enumerators.Direction;
-import official.sketchBook.game.gameObject_related.Player;
+import official.sketchBook.game.gameObject_related.player.Player;
 import official.sketchBook.game.util_related.values.ControlKeys;
 
 public class PlayerControllerComponent extends KeyBoundControllerComponent {

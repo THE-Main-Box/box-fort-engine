@@ -1,4 +1,4 @@
-package official.sketchBook.game.gameObject_related;
+package official.sketchBook.game.gameObject_related.player;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
@@ -26,18 +26,13 @@ import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.engine.util_related.pools.RayCastPool;
 import official.sketchBook.engine.util_related.serialization.SaveData;
-import official.sketchBook.engine.util_related.serialization.SaveDataInstance;
-import official.sketchBook.engine.util_related.serialization.SaveDataInstanceRegistry;
-import official.sketchBook.engine.util_related.serialization.context.TransformedRoomObjectContext;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.components_related.player.PlayerAnimationControllerComponent;
 import official.sketchBook.game.components_related.player.PlayerControllerComponent;
 import official.sketchBook.game.util_related.constants.WorldConstants;
 import official.sketchBook.game.util_related.path.GameAssetsPaths;
 
-import static official.sketchBook.engine.components_related.system_utils.PhysicsUtils.calculateVolume;
 import static official.sketchBook.game.components_related.player.PlayerAnimationInitializerComponent.initAnimations;
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.toMeters;
 
 public class Player extends AnimatedRenderableRoomGameObject
     implements
@@ -426,74 +421,14 @@ public class Player extends AnimatedRenderableRoomGameObject
             .put("x", transformC.x)
             .put("y", transformC.y)
             .put("z", transformC.z)
+            .put("mirror_x", transformC.mirrorX)
+            .put("mirror_y", transformC.mirrorY)
             .put("rotation", transformC.getRotation())
-            .put("mass", liquidInteractionC.getMass());
+            .put("mass", liquidInteractionC.getMass())
+            .put("volume", liquidInteractionC.getVolume())
+            .put("can_interact", liquidInteractionC.isCanInteract());
     }
 
-    /**
-     * DTO de save do Player. width/height/scaleX/scaleY/mirrorX/mirrorY
-     * N�O v�m daqui ? v�m do {@link TransformedRoomObjectContext}
-     * (config de spawn, ex: WorldConstants.PlayerConstants.WIDTH/HEIGHT),
-     * porque hoje s�o sempre os mesmos valores fixos, n�o variam por
-     * inst�ncia salva. Se isso mudar no futuro (ex: hitbox diferente
-     * por upgrade), esses campos migram pra dentro de loadFields.
-     */
-    public static class PlayerSaveData extends SaveDataInstance<Player, TransformedRoomObjectContext> {
 
-        public static final String TYPE_KEY = "player";
-
-        private float x, y, z, rotation;
-        private float mass;
-
-        @Override
-        public void loadFields(SaveData data) {
-            // posi��o sem default plaus�vel ? um Player corrompido
-            // spawnando em 0,0 dentro de uma parede � pior que recusar
-            // carregar.
-            this.x = data.getFloatRequired("x");
-            this.y = data.getFloatRequired("y");
-            this.z = data.getFloatRequired("z");
-            this.rotation = data.getFloatRequired("rotation");
-
-            // mass tem default plaus�vel: o mesmo valor fixo que o
-            // construtor j� usa quando n�o vem de save (toMeters(20f)).
-            this.mass = data.getFloat("mass", toMeters(20f));
-        }
-
-        @Override
-        public SaveData save(Player instance) {
-            return instance.save();
-        }
-
-        @Override
-        protected Player executeInstantiation(TransformedRoomObjectContext context) {
-            Player player = new Player(
-                (PhysicalGameObjectDataManager) context.worldDataManager,
-                context.ownerRoom,
-                x,
-                y,
-                z,
-                rotation,
-                context.width,
-                context.height,
-                context.scaleX,
-                context.scaleY,
-                context.mirrorX,
-                context.mirrorY
-            );
-
-            // mass salvo sobrescreve o default fixo que o construtor
-            // aplica sozinho ? volume continua sendo o que o
-            // construtor j� calculou do body, nunca sobrescrito.
-            player.liquidInteractionC.setMass(
-                mass
-            );
-            player.liquidInteractionC.setVolume(
-                calculateVolume(player.body)
-            );
-
-            return player;
-        }
-    }
 
 }
