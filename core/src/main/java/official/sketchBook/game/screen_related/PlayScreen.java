@@ -15,14 +15,11 @@ import official.sketchBook.engine.game_object_related.projectile_related.util.Em
 import official.sketchBook.engine.screen_related.BaseScreen;
 import official.sketchBook.engine.util_related.pools.RayCastPool;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;
-import official.sketchBook.game.gameObject_related.Player;
 import official.sketchBook.game.projectile_related.model.Bullet;
 
 import static official.sketchBook.game.util_related.constants.DebugConstants.*;
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.*;
 import static official.sketchBook.game.util_related.constants.RenderingConstants.*;
-import static official.sketchBook.game.util_related.constants.WorldConstants.PlayerConstants.HEIGHT;
-import static official.sketchBook.game.util_related.constants.WorldConstants.PlayerConstants.WIDTH;
 
 public class PlayScreen extends BaseScreen {
     private OrthographicCameraManager uiCameraManager;

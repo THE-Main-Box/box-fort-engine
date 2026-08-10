@@ -1,38 +1,19 @@
 package official.sketchBook.game.dataManager_related;
 
-import com.badlogic.gdx.physics.box2d.Transform;
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.camera_related.OrthographicCameraManager;
-import official.sketchBook.engine.components_related.system_utils.ControllerGroup;
-import official.sketchBook.engine.util_related.serialization.SaveDataInstanceRegistry;
-import official.sketchBook.engine.util_related.serialization.SaveManager;
-import official.sketchBook.game.components_related.vehicle.VehicleControllerComponent;
-import official.sketchBook.game.components_related.vehicle.VehicleDoor;
-import official.sketchBook.game.components_related.vehicle.VehicleEngineComponent;
 import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
-import official.sketchBook.engine.game_object_related.vehicle_related.Submarine;
-import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
-import official.sketchBook.engine.game_object_related.vehicle_related.SubmarinePart;
-import official.sketchBook.engine.liquid_related.model.LiquidData;
-import official.sketchBook.engine.liquid_related.model.RoomLiquid;
-import official.sketchBook.engine.liquid_related.util.LiquidRegion;
 import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.listeners.*;
-import official.sketchBook.engine.util_related.helper.body.FixtureData;
 import official.sketchBook.engine.util_related.pools.GlobalProjectilePool;
 import official.sketchBook.engine.util_related.pools.RayCastPool;
+import official.sketchBook.engine.util_related.serialization.SaveDataInstanceRegistry;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
-import official.sketchBook.game.gameObject_related.Player;
+import official.sketchBook.game.gameObject_related.player.Player;
+import official.sketchBook.game.gameObject_related.player.PlayerSaveData;
 import official.sketchBook.game.projectile_related.factories.ProjectilePoolFactory;
 import official.sketchBook.game.serialization.SaveFileLoader;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
-import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_HEIGHT;
-import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_WIDTH;
 
 public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
@@ -93,7 +74,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     }
 
     private void initSDIRegistration(){
-        SaveDataInstanceRegistry.GLOBAL.register(Player.PlayerSaveData.TYPE_KEY, Player.PlayerSaveData::new);
+        SaveDataInstanceRegistry.GLOBAL.register(PlayerSaveData.TYPE_KEY, PlayerSaveData::new);
     }
 
     @Override

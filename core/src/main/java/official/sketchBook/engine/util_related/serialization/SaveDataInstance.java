@@ -1,27 +1,5 @@
 package official.sketchBook.engine.util_related.serialization;
-/**
- * Classe base de todo DTO/intermedi�rio do sistema de save.
- * <p>
- * Padr�o validado externamente (ver OlegDzhuraev/SaveSystem, Unity):
- * cada objeto "salv�vel" do jogo (Player, SubmarineNode, ...) tem um
- * DTO correspondente 1:1, sem tipos complexos dentro ? s� dados
- * planos. Esse DTO � o que de fato passa pelo registry/JSON, NUNCA a
- * classe de jogo em si.
- * <p>
- * A parte que n�o vem de nenhuma refer�ncia externa, e resolve o
- * problema real do projeto (Player/SubmarineNode precisam de
- * World/room pra existir, um DTO puro n�o): {@link #newInstance}
- * recebe um contexto {@code C} (o que for necess�rio pra construir o
- * objeto de verdade) e delega pra {@link #executeInstantiation}, que �
- * o �nico m�todo que cada subclasse precisa implementar de fato. O
- * try/catch fica centralizado AQUI, uma vez s�, ent�o nenhuma
- * subclasse esquece de tratar falha de constru��o.
- * <p>
- * T = a classe de jogo final (Player, SubmarineNode).
- * C = o contexto necess�rio pra constru�-la (pode ser um record
- * pr�prio, ou {@code Void} quando a classe n�o precisa de nada
- * externo).
- */
+
 public abstract class SaveDataInstance<T, C> {
 
     /**
@@ -43,10 +21,9 @@ public abstract class SaveDataInstance<T, C> {
     public abstract void loadFields(SaveData data);
 
     /**
-     * Ponto de extens�o real: como construir T a partir do estado
-     * atual do DTO (j� populado via loadFields) mais o contexto
-     * externo recebido. Pode lan�ar livremente ? newInstance cerca
-     * isso com try/catch.
+     * Contexto vem já instanciado com dados padrão
+     * Aqui dentro passamos os dados obtidos no {@link #loadFields(SaveData)}
+     * já que aqui apenas recebemos dados padrão já passados no context
      */
     protected abstract T executeInstantiation(C context);
 

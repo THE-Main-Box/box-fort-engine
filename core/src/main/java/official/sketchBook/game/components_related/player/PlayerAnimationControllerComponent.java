@@ -3,7 +3,7 @@ package official.sketchBook.game.components_related.player;
 import official.sketchBook.engine.animation_rendering_related.ObjectAnimationPlayer;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.components_related.system_utils.UpdateRateLimiter;
-import official.sketchBook.game.gameObject_related.Player;
+import official.sketchBook.game.gameObject_related.player.Player;
 
 import static official.sketchBook.game.util_related.constants.GameConfigConstants.ANIMATION_UPDATE_RATE;
 import static official.sketchBook.game.util_related.values.AnimationKeys.Entities.*;
