@@ -14,6 +14,7 @@ import official.sketchBook.engine.util_related.path.SerializationPaths;
 import official.sketchBook.engine.util_related.serialization.SaveDataInstanceRegistry;
 import official.sketchBook.engine.util_related.serialization.SaveManager;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
+import official.sketchBook.engine.world_gen.model.PhysicalPlayableRoom;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.components_related.vehicle.VehicleControllerComponent;
 import official.sketchBook.game.components_related.vehicle.VehicleDoor;
@@ -23,6 +24,7 @@ import official.sketchBook.game.gameObject_related.player.Player;
 import official.sketchBook.game.gameObject_related.player.PlayerContext;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
@@ -30,6 +32,7 @@ import static official.sketchBook.game.util_related.constants.RenderingConstants
 import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_WIDTH;
 import static official.sketchBook.game.util_related.constants.WorldConstants.PlayerConstants.HEIGHT;
 import static official.sketchBook.game.util_related.constants.WorldConstants.PlayerConstants.WIDTH;
+import static official.sketchBook.game.util_related.constants.WorldConstants.TILE_SIZE_PX;
 
 /**
  * Orquestrador central de carregamento de um save: sala primeiro,
@@ -97,22 +100,20 @@ public class SaveFileLoader {
     private PlayableRoom loadCurrentRoom() {
         PlayableRoomManager manager = objectManager.getRoomManager();
 
-        PlayableRoom currentRoom = new PlayableRoom(
+        PhysicalPlayableRoom currentRoom = new PhysicalPlayableRoom(
             1,
             0,
             0,
             objectManager.getPhysicsWorld()
         );
 
-        manager.addNewTileModel(
-            currentRoom,
-            1,
+        currentRoom.addNewTileModel(
             1
         );
 
-        manager.initRoomGrid(
-            currentRoom,
-            initBaseTileMap()
+        currentRoom.initRoomGrid(
+            initBaseTileMap(),
+            TILE_SIZE_PX
         );
 
         objectManager.setCurrentRoom(currentRoom);
@@ -120,28 +121,28 @@ public class SaveFileLoader {
         return currentRoom;
     }
 
-    private int[][] initBaseTileMap() {
+    private int[][][] initBaseTileMap() {
         int
+            layers = 1,
             width = TILES_VIEW_WIDTH * 3,
             height = TILES_VIEW_HEIGHT;
 
-        int[][] toReturn = new int[height][width];
+        int[][][] toReturn = new int[layers][height][width];
+
+        int layer = 0; // única camada gerada por este método, por enquanto
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                toReturn[y][x] = 0;
+                toReturn[layer][y][x] = 0;
 
-                List<Boolean> canCreate = new ArrayList<>();
-                canCreate.add(y >= height - 2);
-                canCreate.add(y == 0);
-                canCreate.add(x == 0);
-                canCreate.add(x == width - 1);
+                boolean isBorderTile =
+                    y >= height - 2 ||
+                        y == 0 ||
+                        x == 0 ||
+                        x == width - 1;
 
-                for (boolean value : canCreate) {
-                    if (value) {
-                        toReturn[y][x] = 1;
-                        break;
-                    }
+                if (isBorderTile) {
+                    toReturn[layer][y][x] = 1;
                 }
             }
         }
