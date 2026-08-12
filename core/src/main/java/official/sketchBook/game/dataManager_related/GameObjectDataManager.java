@@ -9,11 +9,14 @@ import official.sketchBook.engine.util_related.pools.GlobalProjectilePool;
 import official.sketchBook.engine.util_related.pools.RayCastPool;
 import official.sketchBook.engine.util_related.serialization.SaveDataInstanceRegistry;
 import official.sketchBook.engine.world_gen.PlayableRoomManager;
+import official.sketchBook.engine.world_gen.RoomRetentionPool;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.gameObject_related.player.Player;
 import official.sketchBook.game.gameObject_related.player.PlayerSaveData;
 import official.sketchBook.game.projectile_related.factories.ProjectilePoolFactory;
 import official.sketchBook.game.serialization.SaveFileLoader;
+
+import static official.sketchBook.game.util_related.constants.WorldConstants.DEFAULT_ROOM_CLEANUP_TIME;
 
 public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
@@ -29,6 +32,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     /// Gerenciador de salas do mundo
     private PlayableRoom currentRoom;
     private PlayableRoomManager roomManager;
+    private RoomRetentionPool roomRetentionPool;
 
     private SaveFileLoader SFLoader;
 
@@ -67,6 +71,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         //Inicializa o manager de salas
         roomManager = new PlayableRoomManager();
+        roomRetentionPool = new RoomRetentionPool(DEFAULT_ROOM_CLEANUP_TIME);
         SFLoader = new SaveFileLoader(this);
 
         SFLoader.loadSaveFile();
@@ -137,6 +142,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         //Chama o update padrão
         super.update(delta);
 
+        roomRetentionPool.update(delta);
+
         //Depois de tudo atualizado, move a camera
         updateCameraTracking();
     }
@@ -188,6 +195,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     @Override
     protected void disposeGeneralData() {
         super.disposeGeneralData();
+
+        roomRetentionPool.disposeAllRetained();
         currentRoom.dispose();
 
         if (globalProjectilePool != null) globalProjectilePool.dispose();
@@ -203,11 +212,19 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
         //Atualizamos as referencias
         PlayableRoom oldRoom = this.currentRoom;
+
+        //Se a sala nova estava retida (jogador voltou antes do timer expirar),
+        //resgatamos a mesma inst?ncia em vez de tratar como sala nova
+        PlayableRoom reclaimedRoom = roomRetentionPool.reclaim(newRoom.getRoomId());
+        if (reclaimedRoom != null) {
+            newRoom = reclaimedRoom;
+        }
+
         this.currentRoom = newRoom;
 
-        //passamos todos os objetos ainda ativos que são de sala para uma validação,
+        //passamos todos os objetos ainda ativos que s�o de sala para uma valida��o,
         // assim decidindo e agindo,
-        // se eles vão para a próxima sala ou se serão marcados para serem destruídos
+        // se eles v�o para a pr�xima sala ou se ser�o marcados para serem destru�dos
         roomManager.transitionRoomObjects(
             updatableObjectList,
             oldRoom,
@@ -215,13 +232,14 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
         );
 
         /*
-         * Como os objetos em si, que eram da sala que deveriam ser disposed,
-         * foram lidados préviamente com a função de usada para a transição,
-         * aqui iremos apenas realizar uma limpeza final de dados que são gerenciados únicamente pela sala
+         * A sala antiga N?O sofre dispose nem cleanUpRoom imediato ? ela entra
+         * em reten??o com um timer. Se o jogador voltar antes do timer expirar,
+         * ela ? resgatada intacta acima. Se expirar sem retorno, o
+         * RoomRetentionPool chama dispose() de verdade nela sozinho.
          */
-
-        //Realizamos um dispose dos dados da antiga sala
-        roomManager.cleanUpRoom(oldRoom);
+        if (oldRoom != null) {
+            roomRetentionPool.retain(oldRoom);
+        }
 
         if (gameCamera != null) {
             gameCamera.updateRoomLimits(
@@ -229,7 +247,6 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
                 currentRoom.roomHeightPx
             );
         }
-
     }
 
     public PlayableRoomManager getRoomManager() {
@@ -239,6 +256,10 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     /// Define a câmera do jogo (chamado por PlayScreen após criar o manager)
     public void setGameCamera(OrthographicCameraManager camera) {
         this.gameCamera = camera;
+    }
+
+    public RoomRetentionPool getRoomRetentionPool() {
+        return roomRetentionPool;
     }
 
     public GlobalProjectilePool getGlobalProjectilePool() {

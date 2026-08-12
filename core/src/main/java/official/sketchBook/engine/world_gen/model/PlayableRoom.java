@@ -1,13 +1,8 @@
 package official.sketchBook.engine.world_gen.model;
 
-import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PlayableRoom {
 
@@ -29,11 +24,11 @@ public class PlayableRoom {
         roomWidthPx,
         roomHeightPx;
 
-    ///Grade em camadas
+    /// Grade em camadas
     protected int[][][] grid;
 
     /// Lista de referência a todas as tiles que estamos usando
-    public Map<Integer, TileModel> tileModelIdMap;
+    public Set<Integer> registeredTileIds;
 
     /// Lista de referência a objetos presentes na sala, são apenas referencias,
     /// e não são gerenciados aqui dentro
@@ -50,34 +45,14 @@ public class PlayableRoom {
         this.roomXPos = roomX;                              //Posição que iremos começar a gerar a sala no eixo x
         this.roomYPos = roomY;                              //Posição que iremos começar a gerar a sala no eixo y
 
-
-        this.tileModelIdMap = new HashMap<>();               //Inicializamos o hashMap
-        roomGameObjectList = new ArrayList<>();
+        this.registeredTileIds = new HashSet<>();               //Inicializamos o set
+        this.roomGameObjectList = new ArrayList<>();            //Iniciamos o map
     }
 
-    /**
-     * Adiciona dentro da biblioteca da sala um novo tipo de tile
-     * cujo o qual será usado de referencia para sistemas posteriores
-     *
-     * @param id   id de referência da tile
-     */
-    public void addNewTileModel(
-        int id
-    ) {
-        //se já temos o id inserido não podemos sobrescrever
-        if (this.tileModelIdMap.containsKey(id)) {
-            throw new IllegalArgumentException("já possuimos uma tile marcada com esse id");
+    public void registerTileId(int id) {
+        if (!registeredTileIds.add(id)) {
+            throw new IllegalArgumentException("já possuímos uma tile marcada com esse id");
         }
-
-        //Iniciamos uma nova tile com um id que será referenciado internamente
-        TileModel modelToAdd = new TileModel(id);
-
-        //Adicionamos no mapa interno pra ser referenciado internamente, usando o id passado na geração como chave
-        this.tileModelIdMap.put(
-            id,
-            modelToAdd
-        );
-
     }
 
     /**
@@ -134,20 +109,68 @@ public class PlayableRoom {
      * passa por aqui, nunca acessando o array diretamente.
      *
      * @throws IllegalArgumentException se o id n�o foi registrado previamente
-     *         via addNewTileModel (evita tile "fantasma" sem TileModel associado)
+     *                                  via addNewTileModel (evita tile "fantasma" sem TileModel associado)
      */
     public void setGridDataAt(int z, int y, int x, int tileId) {
-        if (tileId != 0 && !tileModelIdMap.containsKey(tileId)) {
+        if (tileId != 0 && !registeredTileIds.contains(tileId)) {
             throw new IllegalArgumentException(
-                "tentativa de setar tile id " + tileId + " sem TileModel registrado"
+                "tentativa de setar tile id " + tileId + " sem tile registrada"
             );
         }
-
         grid[z][y][x] = tileId;
     }
 
     public int getGridDataAt(int z, int y, int x) {
         return grid[z][y][x];
+    }
+
+    /**
+     * Imprime no console o conte�do de uma camada espec�fica da grid, formatado
+     * como matriz. �til pra debug visual r�pido sem precisar acessar o array
+     * diretamente de fora.
+     *
+     * @param z �ndice da camada a ser impressa
+     * @throws IndexOutOfBoundsException se z estiver fora do intervalo de camadas existentes
+     */
+    public void printMatrixContentAtLayer(int z) {
+        int layerCount = getLayerCount();
+
+        if (layerCount == 0) {
+            System.out.println("A grid ainda n�o foi inicializada.");
+            return;
+        }
+
+        if (z < 0 || z >= layerCount) {
+            throw new IndexOutOfBoundsException(
+                "camada " + z + " fora do intervalo (0 a " + (layerCount - 1) + ")"
+            );
+        }
+
+        System.out.println("--- In�cio do Debug da Matrix [camada " + z + "] (" + gridHeight + "x" + gridWidth + ") ---");
+
+        for (int y = 0; y < gridHeight; y++) {
+            StringBuilder line = new StringBuilder("[");
+
+            for (int x = 0; x < gridWidth; x++) {
+                line.append(getGridDataAt(z, y, x)).append(",");
+            }
+
+            line.append("]");
+            System.out.println(line);
+        }
+
+        System.out.println("--- Fim do Debug da Matrix [camada " + z + "] ---");
+    }
+
+    /**
+     * Imprime todas as camadas da grid, uma ap�s a outra.
+     */
+    public void printMatrixContentOfAllLayers() {
+        int layerCount = getLayerCount();
+
+        for (int z = 0; z < layerCount; z++) {
+            printMatrixContentAtLayer(z);
+        }
     }
 
     public void dispose() {
@@ -158,17 +181,25 @@ public class PlayableRoom {
         disposed = true;
     }
 
-    protected void executeDispose(){
+    protected void executeDispose() {
         disposeLists();
 
-        tileModelIdMap = null;
+        registeredTileIds = null;
         roomGameObjectList = null;
     }
 
     /// Limpa todas as listas
     protected void disposeLists() {
-        tileModelIdMap.clear();
+        clearTileIdRegister();
+        clearObjectList();
+    }
+
+    public void clearObjectList(){
         roomGameObjectList.clear();
+    }
+
+    public void clearTileIdRegister(){
+        registeredTileIds.clear();
     }
 
     public float getRoomXPos() {
@@ -181,5 +212,10 @@ public class PlayableRoom {
 
     public int getRoomId() {
         return roomId;
+    }
+
+    // em PlayableRoom
+    public int getLayerCount() {
+        return grid == null ? 0 : grid.length;
     }
 }

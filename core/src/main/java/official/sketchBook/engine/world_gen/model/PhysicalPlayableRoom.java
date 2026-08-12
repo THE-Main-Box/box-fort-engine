@@ -123,9 +123,4 @@ public class PhysicalPlayableRoom extends PlayableRoom {
     public World getPhysicsWorld() {
         return physicsWorld;
     }
-
-    // em PlayableRoom
-    public int getLayerCount() {
-        return grid == null ? 0 : grid.length;
-    }
 }

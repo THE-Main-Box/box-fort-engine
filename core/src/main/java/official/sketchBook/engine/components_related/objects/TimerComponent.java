@@ -1,7 +1,5 @@
 package official.sketchBook.engine.components_related.objects;
 
-import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
-
 public class TimerComponent {
 
     private float timeElapsed = 0;
@@ -13,6 +11,7 @@ public class TimerComponent {
     public TimerComponent() {
     }
 
+    ///Seta o tempo alvo em ms
     public TimerComponent(float targetTime) {
         setTargetTimeSafe(targetTime);
     }

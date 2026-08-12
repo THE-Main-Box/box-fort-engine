@@ -24,7 +24,6 @@ import official.sketchBook.game.gameObject_related.player.Player;
 import official.sketchBook.game.gameObject_related.player.PlayerContext;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
@@ -107,7 +106,7 @@ public class SaveFileLoader {
             objectManager.getPhysicsWorld()
         );
 
-        currentRoom.addNewTileModel(
+        currentRoom.registerTileId(
             1
         );
 
