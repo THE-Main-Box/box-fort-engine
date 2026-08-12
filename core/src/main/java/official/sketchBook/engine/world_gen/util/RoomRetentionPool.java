@@ -1,4 +1,4 @@
-package official.sketchBook.engine.world_gen;
+package official.sketchBook.engine.world_gen.util;
 
 import com.badlogic.gdx.utils.Array;
 import official.sketchBook.engine.components_related.objects.TimerComponent;

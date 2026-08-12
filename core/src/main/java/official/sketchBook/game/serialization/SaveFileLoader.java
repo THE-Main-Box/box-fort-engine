@@ -13,15 +13,18 @@ import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.util_related.path.SerializationPaths;
 import official.sketchBook.engine.util_related.serialization.SaveDataInstanceRegistry;
 import official.sketchBook.engine.util_related.serialization.SaveManager;
-import official.sketchBook.engine.world_gen.PlayableRoomManager;
+import official.sketchBook.engine.world_gen.util.LayerGenerationRegistry;
+import official.sketchBook.engine.world_gen.util.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.model.PhysicalPlayableRoom;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
+import official.sketchBook.engine.world_gen.util.RoomGenerator;
 import official.sketchBook.game.components_related.vehicle.VehicleControllerComponent;
 import official.sketchBook.game.components_related.vehicle.VehicleDoor;
 import official.sketchBook.game.components_related.vehicle.VehicleEngineComponent;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;
 import official.sketchBook.game.gameObject_related.player.Player;
 import official.sketchBook.game.gameObject_related.player.PlayerContext;
+import official.sketchBook.game.world_gen.generation.LiquidGenerationResolver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,44 +64,28 @@ public class SaveFileLoader {
      * correta.
      */
     public void loadSaveFile() {
-        PlayableRoom room = loadCurrentRoom();
-        loadRoomLiquid(room);
+        loadRoomLiquid();
+
+        PlayableRoom room = loadCurrentRoom(); // cria a sala, define os estilos por camada
 
         loadPlayer(room);
         loadVehicles(room);
     }
 
-    private void loadRoomLiquid(PlayableRoom currentRoom) {
-        List<LiquidRegion> regionList = new ArrayList<>();
-        LiquidData data;
-
-        regionList.add(
-            new LiquidRegion(
-                200,
-                10,
-                5000,
-                150
+    private void loadRoomLiquid() {
+        // registro (uma vez, no boot do jogo — ex: static{} ou setup)
+        LayerGenerationRegistry.GLOBAL.register(
+            1, // estilo "líquido", por exemplo
+            new LiquidGenerationResolver(
+                objectManager,
+                new LiquidData("water", 2, 8f, 3f),
+                2,          // tileId que representa água na grid
+                TILE_SIZE_PX
             )
-        );
-
-        data = new LiquidData(
-            "water",
-            1,
-            8f,
-            3f
-        );
-
-        RoomLiquid water = new RoomLiquid(
-            objectManager,
-            currentRoom,
-            data,
-            regionList
         );
     }
 
     private PlayableRoom loadCurrentRoom() {
-        PlayableRoomManager manager = objectManager.getRoomManager();
-
         PhysicalPlayableRoom currentRoom = new PhysicalPlayableRoom(
             1,
             0,
@@ -106,43 +93,53 @@ public class SaveFileLoader {
             objectManager.getPhysicsWorld()
         );
 
-        currentRoom.registerTileId(
-            1
-        );
-
         currentRoom.initRoomGrid(
             initBaseTileMap(),
             TILE_SIZE_PX
         );
 
+        // camada 0 (estrutura): ainda sem resolver de física de tile, então
+        // fica marcada como -1 (skip) até esse sistema existir
+        currentRoom.setLayerGenerationStyle(0, -1);
+
+        //TO-DO:FAZER COM QUE O SISTEMA IDENTIFIQUE AS CAMADAS E A GERAÇÃO DELAS AUTOMATICAMENTE
+        // COM OS DADOS SERIALIZÁVEIS
+
+        // camada 1 (água): estilo 1, resolvido pelo LiquidGenerationResolver
+        // já registrado em loadRoomLiquid()
+        currentRoom.setLayerGenerationStyle(1, 1);
+
         objectManager.setCurrentRoom(currentRoom);
+
+        RoomGenerator.generate(currentRoom); // dispara a geração de fato
 
         return currentRoom;
     }
 
+    private static final int WATER_HEIGHT_TILES = 5;
+
     private int[][][] initBaseTileMap() {
         int
-            layers = 1,
+            layers = 2, // camada 0 = estrutura (chão), camada 1 = água
             width = TILES_VIEW_WIDTH * 3,
             height = TILES_VIEW_HEIGHT;
 
         int[][][] toReturn = new int[layers][height][width];
 
-        int layer = 0; // única camada gerada por este método, por enquanto
+        int structureLayer = 0;
+        int liquidLayer = 1;
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                toReturn[layer][y][x] = 0;
+                // chão sólido: y = 0 é a base do mundo (Box2D, Y cresce pra cima)
+                boolean isFloorTile = y == 0;
+                toReturn[structureLayer][y][x] = isFloorTile ? 1 : 0;
 
-                boolean isBorderTile =
-                    y >= height - 2 ||
-                        y == 0 ||
-                        x == 0 ||
-                        x == width - 1;
-
-                if (isBorderTile) {
-                    toReturn[layer][y][x] = 1;
-                }
+                // água: as WATER_HEIGHT_TILES linhas imediatamente acima do chão
+                boolean isWaterTile =
+                    y > 0 &&
+                        y <= WATER_HEIGHT_TILES;
+                toReturn[liquidLayer][y][x] = isWaterTile ? 2 : 0;
             }
         }
 

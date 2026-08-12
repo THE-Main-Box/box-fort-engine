@@ -1,4 +1,4 @@
-package official.sketchBook.engine.world_gen;
+package official.sketchBook.engine.world_gen.util;
 
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.ManagedUpdatableObject;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
