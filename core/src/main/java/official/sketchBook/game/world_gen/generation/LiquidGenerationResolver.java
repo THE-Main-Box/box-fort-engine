@@ -30,8 +30,6 @@ import java.util.List;
  */
 public class LiquidGenerationResolver implements LayerGenerationResolver {
 
-    private static final int EMPTY_TILE_ID = 0;
-
     private final PhysicalGameObjectDataManager worldDataManager;
     private final LiquidData liquidData;
     private final int liquidTileId;

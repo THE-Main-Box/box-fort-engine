@@ -6,15 +6,15 @@ import official.sketchBook.engine.game_object_related.vehicle_related.Submarine;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarinePart;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
-import official.sketchBook.engine.liquid_related.model.RoomLiquid;
-import official.sketchBook.engine.liquid_related.util.LiquidRegion;
+import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.util_related.path.SerializationPaths;
 import official.sketchBook.engine.util_related.serialization.SaveDataInstanceRegistry;
 import official.sketchBook.engine.util_related.serialization.SaveManager;
+import official.sketchBook.engine.world_gen.blueprint.RoomBlueprint;
+import official.sketchBook.engine.world_gen.model.TilePhysicsConfig;
 import official.sketchBook.engine.world_gen.util.LayerGenerationRegistry;
-import official.sketchBook.engine.world_gen.util.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.model.PhysicalPlayableRoom;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.engine.world_gen.util.RoomGenerator;
@@ -25,8 +25,10 @@ import official.sketchBook.game.dataManager_related.GameObjectDataManager;
 import official.sketchBook.game.gameObject_related.player.Player;
 import official.sketchBook.game.gameObject_related.player.PlayerContext;
 import official.sketchBook.game.world_gen.generation.LiquidGenerationResolver;
+import official.sketchBook.game.world_gen.generation.StandardTileGenerationResolver;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
@@ -65,11 +67,45 @@ public class SaveFileLoader {
      */
     public void loadSaveFile() {
         loadRoomLiquid();
+        loadRoomStructure();
 
         PlayableRoom room = loadCurrentRoom(); // cria a sala, define os estilos por camada
 
         loadPlayer(room);
         loadVehicles(room);
+    }
+
+    private void loadRoomStructure() {
+        LayerGenerationRegistry.GLOBAL.register(
+            0, // estilo "estrutura padrão"
+            new StandardTileGenerationResolver(
+                TILE_SIZE_PX,
+                Collections.singletonList((
+                    new TilePhysicsConfig(
+                        1,      // tileId da borda
+                        true,   // mergeable: agrupa bordas contíguas em retângulos maiores
+                        false,  // ownBodyPerCluster: false -> vai pra body compartilhada da sala
+                        ObjectType.ENVIRONMENT,
+                        (clusterWidthTiles, clusterHeightTiles) -> new FixtureData(
+                            0f,
+                            0f,
+                            0f,                                  // density, restitution, friction
+                            0,
+                            0,                                        // globalOffsetX, globalOffsetY
+                            0,
+                            0,                                        // offsetX, offsetY (attachFixture soma o offset do cluster depois)
+                            0,                                           // radius (não é círculo)
+                            clusterWidthTiles * TILE_SIZE_PX,
+                            clusterHeightTiles * TILE_SIZE_PX,
+                            ENVIRONMENT.bit(),
+                            (ENTITIES.bit() | PROJECTILES.bit() | SENSOR.bit() | VEHICLE.bit()),
+                            false,  // isCircle
+                            false   // isSensor
+                        )
+                    )
+                ))
+            )
+        );
     }
 
     private void loadRoomLiquid() {
@@ -86,43 +122,38 @@ public class SaveFileLoader {
     }
 
     private PlayableRoom loadCurrentRoom() {
+        RoomBlueprint bp = saveManager.loadAndInstantiate(
+            SerializationPaths.Blueprints.BP_ROOMS,
+            "flooded_test_room.json",
+            null // sem contexto — RoomBlueprintSaveData usa Void
+        );
+
         PhysicalPlayableRoom currentRoom = new PhysicalPlayableRoom(
-            1,
+            bp.id,
             0,
             0,
             objectManager.getPhysicsWorld()
         );
 
         currentRoom.initRoomGrid(
-            initBaseTileMap(),
+            initBaseTileMap(bp.layerGenerationStyles.length, bp.gridHeight, bp.gridWidth), // grid ainda vem do código
             TILE_SIZE_PX
         );
 
-        // camada 0 (estrutura): ainda sem resolver de física de tile, então
-        // fica marcada como -1 (skip) até esse sistema existir
-        currentRoom.setLayerGenerationStyle(0, -1);
-
-        //TO-DO:FAZER COM QUE O SISTEMA IDENTIFIQUE AS CAMADAS E A GERAÇÃO DELAS AUTOMATICAMENTE
-        // COM OS DADOS SERIALIZÁVEIS
-
-        // camada 1 (água): estilo 1, resolvido pelo LiquidGenerationResolver
-        // já registrado em loadRoomLiquid()
-        currentRoom.setLayerGenerationStyle(1, 1);
+        for (int layer = 0; layer < bp.layerGenerationStyles.length; layer++) {
+            currentRoom.setLayerGenerationStyle(layer, bp.layerGenerationStyles[layer]);
+        }
 
         objectManager.setCurrentRoom(currentRoom);
 
-        RoomGenerator.generate(currentRoom); // dispara a geração de fato
+        RoomGenerator.generate(currentRoom);
 
         return currentRoom;
     }
 
     private static final int WATER_HEIGHT_TILES = 5;
 
-    private int[][][] initBaseTileMap() {
-        int
-            layers = 2, // camada 0 = estrutura (chão), camada 1 = água
-            width = TILES_VIEW_WIDTH * 3,
-            height = TILES_VIEW_HEIGHT;
+    private int[][][] initBaseTileMap(int layers, int height, int width) {
 
         int[][][] toReturn = new int[layers][height][width];
 
@@ -131,9 +162,14 @@ public class SaveFileLoader {
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                // chão sólido: y = 0 é a base do mundo (Box2D, Y cresce pra cima)
-                boolean isFloorTile = y == 0;
-                toReturn[structureLayer][y][x] = isFloorTile ? 1 : 0;
+                // borda: topo, base, esquerda, direita da tela inteira
+                boolean isBorderTile =
+                    y == 0 ||
+                        y == height - 1 ||
+                        x == 0 ||
+                        x == width - 1;
+
+                toReturn[structureLayer][y][x] = isBorderTile ? 1 : 0;
 
                 // água: as WATER_HEIGHT_TILES linhas imediatamente acima do chão
                 boolean isWaterTile =
@@ -165,7 +201,7 @@ public class SaveFileLoader {
 
         objectManager.mainPlayer = saveManager.loadAndInstantiate(
             SerializationPaths.getCurrentSaveFilePath(),        //Path da pasta do save atual
-            Player.class.getSimpleName().toLowerCase(),         //Nome do arquivo a buscar (nome da classe minúscula)
+            Player.class.getSimpleName().toLowerCase()+".json",         //Nome do arquivo a buscar (nome da classe minúscula)
             context                                             //Contexto de instanciação
         );
 

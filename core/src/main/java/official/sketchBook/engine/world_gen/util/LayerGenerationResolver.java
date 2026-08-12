@@ -16,6 +16,8 @@ import official.sketchBook.engine.world_gen.model.PhysicalPlayableRoom;
  */
 public interface LayerGenerationResolver {
 
+    int EMPTY_TILE_ID = 0;
+
     /**
      * @param room  sala sendo gerada (f?sica, pois resolvers de gera??o
      *              sempre precisam de World/nativeBodies ou similar)

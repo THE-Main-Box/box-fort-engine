@@ -33,7 +33,6 @@ public final class SavableIO {
     /** Retorna null se o arquivo n�o existir ? quem chama decide o que fazer (default, erro, etc). */
     public static SaveData load(String path, String name) {
         FileHandle handle = fileFor(path, name);
-        System.out.println(handle);
         if (!handle.exists()) return null;
 
         return SaveDataJson.fromJson(handle.readString("UTF-8"));
@@ -56,6 +55,6 @@ public final class SavableIO {
 
     private static FileHandle fileFor(String path, String name) {
         String normalizedPath = path.endsWith("/") ? path : path + "/";
-        return Gdx.files.external(SerializationPaths.ROOT + normalizedPath + name + ".txt");
+        return Gdx.files.external(SerializationPaths.ROOT + normalizedPath + name);
     }
 }

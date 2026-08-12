@@ -1,8 +1,11 @@
 package official.sketchBook.engine.world_gen.model;
 
 import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.World;
+import official.sketchBook.engine.util_related.helper.body.FixtureData;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,96 +16,86 @@ public class PhysicalPlayableRoom extends PlayableRoom {
     protected final boolean physicsWorldAccessible;
 
     /**
-     * Estilo de geração física por camada, índice = índice da camada na grid.
-     * -1 = não gerar/ignorar essa camada, 0 = geração padrão (grid comum),
-     * 1+ = estilos especiais (resolvidos por um registry externo, ainda a definir).
-     * Alocado automaticamente em initRoomGrid, com o tamanho certo já garantido ?
-     * preenchido depois, camada por camada, via setLayerGenerationStyle.
+     * Estilo de gera??o f?sica por camada, ?ndice = ?ndice da camada na grid.
+     * -1 = n?o gerar/ignorar essa camada, 0 = gera??o padr?o (grid comum),
+     * 1+ = estilos especiais.
      */
     protected int[] layerGenerationStyles;
+
+    /**
+     * Body est?tica ?nica compartilhada da sala, onde vivem todas as fixtures
+     * de tiles configuradas com ownBodyPerCluster=false (a maioria: blocos
+     * comuns, slopes, etc). Criada sob demanda na primeira vez que alguma
+     * tile pedir ela ? nunca alocada preventivamente.
+     */
+    protected Body sharedStaticBody;
 
     public PhysicalPlayableRoom(int id, float roomX, float roomY, World physicsWorld) {
         super(id, roomX, roomY);
         this.physicsWorld = physicsWorld;
-        this.physicsWorldAccessible = physicsWorld != null; //Validamos se podemos usar o world
+        this.physicsWorldAccessible = physicsWorld != null;
     }
 
     @Override
     public void initRoomGrid(int[][][] roomTileGrid, int pixelsPerTile) {
         super.initRoomGrid(roomTileGrid, pixelsPerTile);
 
-        // a grid acabou de ser definida (ou redefinida) ? realocamos o array
-        // de estilos do tamanho certo, com -1 (n�o gerar) como padr�o at�
-        // que algu�m de fora preencha camada por camada
         this.layerGenerationStyles = new int[getLayerCount()];
         Arrays.fill(this.layerGenerationStyles, -1);
     }
 
     /**
-     * Define o estilo de geração de uma camada específica.
-     * S� pode ser chamado depois de initRoomGrid (array j� alocado).
-     *
-     * @throws IllegalStateException se a grid ainda n�o foi inicializada
-     */
+     * Determina o estilo de geração de uma camada
+     * @param layerIndex a camada que iremos atualizar o dado de geração
+     * @param style indice de geração
+     * */
     public void setLayerGenerationStyle(int layerIndex, int style) {
         if (layerGenerationStyles == null) {
-            throw new IllegalStateException("grid ainda não foi inicializada (initRoomGrid)");
+            throw new IllegalStateException("grid ainda n?o foi inicializada (initRoomGrid)");
         }
-
         layerGenerationStyles[layerIndex] = style;
     }
 
-    /**
-     * @return o estilo de geração da camada informada (-1 se ainda não definido).
-     * @throws IllegalStateException se a grid ainda não foi inicializada
-     */
     public int getLayerGenerationStyle(int layerIndex) {
         if (layerGenerationStyles == null) {
-            throw new IllegalStateException("grid ainda não foi inicializada (initRoomGrid)");
+            throw new IllegalStateException("grid ainda n?o foi inicializada (initRoomGrid)");
         }
-
         return layerGenerationStyles[layerIndex];
     }
 
-//    /// Cria as bodies das tiles
-//    public void createTileBodies(PlayableRoom room) {
-//        //Criamos as bodies das tiles da sala e armazenamos como bodies nativas da sala
-//        room.nativeBodies = RoomBodyFactory.createRoomBodies(
-//            prepareBodyIdGrid(room),
-//            room.getPhysicsWorld()
-//        );
-//    }
-//
-//    /// Percorre a grid e insere dentro da grid de body a id correspondente
-//    private int[][] prepareBodyIdGrid(
-//        PlayableRoom room
-//    ) {
-//        //Inicializa a grid das body
-//        int[][] bodyIdGrid = new int[room.gridHeight][room.gridWidth];
-//
-//        for (int h = 0; h < room.grid.length; h++) {
-//            for (int w = 0; w < room.grid[0].length; w++) {
-//
-//                //Obtemos a tile da coordenada passada
-//                TileModel currentTile = room.tileModelIdMap.get(
-//                    room.grid[h][w]
-//                );
-//
-//                //Se houver uma tile e sua id de body tiver sido passada
-//                if (currentTile != null && currentTile.getBodyId() != null) {
-//                    bodyIdGrid[h][w] = currentTile.getBodyId();
-//                }
-//
-//            }
-//        }
-//
-//        return bodyIdGrid;
-//    }
+    /**
+     * Retorna a body est?tica compartilhada da sala, criando-a na primeira
+     * chamada (sob demanda). Todas as fixtures de tiles n?o-independentes
+     * (ownBodyPerCluster=false) s?o anexadas nela, em vez de cada uma ganhar
+     * sua pr?pria Body ? reduz drasticamente o n?mero de bodies est?ticas
+     * no world.
+     *
+     * @throws IllegalStateException se o world f?sico n?o estiver acess?vel
+     */
+    public Body getOrCreateSharedStaticBody() {
+        if (!physicsWorldAccessible) {
+            throw new IllegalStateException("physicsWorld n?o est? acess?vel nesta sala");
+        }
+
+        if (sharedStaticBody == null) {
+            BodyDef bodyDef = new BodyDef();
+            bodyDef.type = BodyDef.BodyType.StaticBody;
+            bodyDef.position.set(roomXPos, roomYPos);
+
+            sharedStaticBody = physicsWorld.createBody(bodyDef);
+
+            if (nativeBodies == null) nativeBodies = new ArrayList<>();
+            nativeBodies.add(sharedStaticBody);
+        }
+
+        return sharedStaticBody;
+    }
 
     @Override
     protected void executeDispose() {
         disposeNativeBodies();
         layerGenerationStyles = null;
+        sharedStaticBody = null; // j? destru?da dentro de disposeNativeBodies, s? limpamos a refer?ncia
         super.executeDispose();
     }
 
