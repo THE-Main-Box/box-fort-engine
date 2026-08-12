@@ -6,6 +6,7 @@ import static official.sketchBook.engine.util_related.enumerators.CollisionLayer
 public class WorldConstants {
     /// Tamanho das tiles em pixels
     public static final int TILE_SIZE_PX = 8;
+    public static final int DEFAULT_ROOM_CLEANUP_TIME = 5;
 
     public static class ProjectilePoolConstants {
         //        public static final int MAX_PROJECTILE_PER_POOL = 900;

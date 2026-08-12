@@ -1,74 +1,91 @@
 package official.sketchBook.engine.world_gen.model;
 
-import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.game_object_related.base_game_object.BaseRoomGameObject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PlayableRoom {
 
     /// Id da sala
-    private final int roomId;
+    protected final int roomId;
 
-    /// Referência a posição da grid de world
-    private final float
+    /// Refer�ncia a posi��o da grid de world
+    protected float
         roomXPos,
         roomYPos;
 
-    /// Lista de referência a todas as tiles que estamos usando
-    public final Map<Integer, TileModel> tileModelIdMap;
-
-    /// Grade contendo os id das tile
-    public int[][] grid;
-
-    /// Dimensões da grid
+    /// Dimens�es da grid
     public int
         gridWidth,
         gridHeight;
 
-    /// Dimensões da sala vindas da grid
+    /// Dimens�es da sala vindas da grid
     public int
         roomWidthPx,
         roomHeightPx;
 
-    /// Referência ao mundo físico do box2d, apenas uma referencia para determinar
-    /// se a sala tem acesso a esse mundo ou não, ela é quem determinará o fluxo da geração das tiles,
-    /// se elas irão ter um corpo físico ou não,
-    /// porém isso não dita a existencia de um mundo físico para o manager de objetos nem aos seus objetos
-    private final World physicsWorld;
+    /// Grade em camadas
+    protected int[][][] grid;
 
-    /// Corpos nativos da sala, são gerenciados pelo manager de sala,
-    /// são na verdade os corpos das tiles e outros elementos nativos exclusivos da room
-    public List<Body> nativeBodies;
-
-    /// Lista de referência a objetos presentes na sala, são apenas referencias,
-    /// e não são gerenciados aqui dentro
+    /// Lista de refer�ncia a objetos presentes na sala, s�o apenas refer�ncias,
+    /// e n�o s�o gerenciados aqui dentro
     public List<BaseRoomGameObject> roomGameObjectList;
-
-    /// Flag que dita se podemos ou acessar o world
-    private final boolean physicsWorldAccessible;
 
     public boolean disposed = false;
 
     public PlayableRoom(
         int id,
         float roomX,
-        float roomY,
-        World physicsWorld
+        float roomY
     ) {
         this.roomId = id;                                   //Id da sala
-        this.roomXPos = roomX;                              //Posição que iremos começar a gerar a sala no eixo x
-        this.roomYPos = roomY;                              //Posição que iremos começar a gerar a sala no eixo y
+        this.roomXPos = roomX;                              //Posi��o que iremos come�ar a gerar a sala no eixo x
+        this.roomYPos = roomY;                              //Posi��o que iremos come�ar a gerar a sala no eixo y
 
-        this.physicsWorld = physicsWorld;                   //Inicializamos com o world
-        this.physicsWorldAccessible = physicsWorld != null; //Validamos se podemos usar o world
+        this.roomGameObjectList = new ArrayList<>();            //Iniciamos a lista
+    }
 
-        this.tileModelIdMap = new HashMap<>();               //Inicializamos o hashMap
-        roomGameObjectList = new ArrayList<>();
+    public void clearObjectList(){
+        roomGameObjectList.clear();
+    }
+
+    /**
+     * Inicializa a grid de uma sala jog�vel
+     *
+     * @param roomTileGrid grid contendo os ids das tiles, em camadas, registradas na sala previamente
+     */
+    public void initRoomGrid(
+        int[][][] roomTileGrid,
+        int pixelsPerTile
+    ) {
+        //Atualiza a grid completamente
+        this.grid = roomTileGrid;
+
+        /*
+        A primeira lista da grid s�o as camadas, � uma lista em 3 dimens�es,
+         portanto isso me permite muita coisa futuramente,
+         mas agora estaremos lidando com 2d apenas...
+
+        Como a grid � uma lista de lista,
+         a length � a altura, pois se refere � primeira lista,
+          ou seja � quantidade de linhas.
+
+          J� [0].length se refere � quantidade de colunas,
+           pois estamos acessando a primeira linha
+          */
+
+        //Determina a altura da grid obtendo a altura da primeira camada
+        this.gridHeight = roomTileGrid[0]
+            .length;
+
+        //Determina a largura da grid obtendo a largura da primeira camada
+        this.gridWidth = roomTileGrid[0][0].length;
+
+        //Determina a largura da sala em pixels com base na constante de dimens�es do sistema de grid
+        this.roomWidthPx = this.gridWidth * pixelsPerTile;
+
+        //Determina a altura da sala em pixels com base na constante de dimens�es do sistema de grid
+        this.roomHeightPx = this.gridHeight * pixelsPerTile;
     }
 
     public void addNewRoomGameObject(BaseRoomGameObject roomObject) {
@@ -79,39 +96,90 @@ public class PlayableRoom {
         this.roomGameObjectList.remove(roomObjectToRemove);
     }
 
+    /**
+     * Altera o id de uma tile em uma posi??o espec?fica da grid.
+     * ?nico ponto de escrita individual da grid ? qualquer sistema que
+     * precise modificar uma tile em runtime (escava??o, portas, etc)
+     * passa por aqui, nunca acessando o array diretamente.
+     */
+    public void setGridDataAt(int z, int y, int x, int tileId) {
+        grid[z][y][x] = tileId;
+    }
+
+    public int getGridDataAt(int z, int y, int x) {
+        return grid[z][y][x];
+    }
+
+    /**
+     * Imprime no console o conte?do de uma camada espec?fica da grid, formatado
+     * como matriz. ?til pra debug visual r?pido sem precisar acessar o array
+     * diretamente de fora.
+     *
+     * @param z ?ndice da camada a ser impressa
+     * @throws IndexOutOfBoundsException se z estiver fora do intervalo de camadas existentes
+     */
+    public void printMatrixContentAtLayer(int z) {
+        int layerCount = getLayerCount();
+
+        if (layerCount == 0) {
+            System.out.println("A grid ainda n?o foi inicializada.");
+            return;
+        }
+
+        if (z < 0 || z >= layerCount) {
+            throw new IndexOutOfBoundsException(
+                "camada " + z + " fora do intervalo (0 a " + (layerCount - 1) + ")"
+            );
+        }
+
+        System.out.println("--- In?cio do Debug da Matrix [camada " + z + "] (" + gridHeight + "x" + gridWidth + ") ---");
+
+        for (int y = 0; y < gridHeight; y++) {
+            StringBuilder line = new StringBuilder("[");
+
+            for (int x = 0; x < gridWidth; x++) {
+                line.append(getGridDataAt(z, y, x)).append(",");
+            }
+
+            line.append("]");
+            System.out.println(line);
+        }
+
+        System.out.println("--- Fim do Debug da Matrix [camada " + z + "] ---");
+    }
+
+    /**
+     * Imprime todas as camadas da grid, uma ap?s a outra.
+     */
+    public void printMatrixContentOfAllLayers() {
+        int layerCount = getLayerCount();
+
+        for (int z = 0; z < layerCount; z++) {
+            printMatrixContentAtLayer(z);
+        }
+    }
+
+    public void cleanUpRoom() {
+        clearObjectList();
+    }
+
     public void dispose() {
         if (disposed) return;
 
-        disposeNativeBodies();
-        disposeLists();
+        executeDispose();
 
         disposed = true;
     }
 
-    private void disposeNativeBodies() {
-        if (!physicsWorldAccessible || nativeBodies == null) return;
-        for (int i = nativeBodies.size() - 1; i >= 0; i--) {
-            physicsWorld.destroyBody(nativeBodies.get(i));
-        }
+    protected void executeDispose() {
+        disposeLists();
+
+        roomGameObjectList = null;
     }
 
     /// Limpa todas as listas
-    private void disposeLists() {
-        tileModelIdMap.clear();
-        roomGameObjectList.clear();
-
-        if (nativeBodies != null) {
-            nativeBodies.clear();
-        }
-
-    }
-
-    public boolean isPhysicsWorldAccessible() {
-        return physicsWorldAccessible;
-    }
-
-    public World getPhysicsWorld() {
-        return physicsWorld;
+    protected void disposeLists() {
+        clearObjectList();
     }
 
     public float getRoomXPos() {
@@ -124,5 +192,9 @@ public class PlayableRoom {
 
     public int getRoomId() {
         return roomId;
+    }
+
+    public int getLayerCount() {
+        return grid == null ? 0 : grid.length;
     }
 }
