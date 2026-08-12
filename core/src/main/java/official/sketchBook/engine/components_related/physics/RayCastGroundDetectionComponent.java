@@ -95,7 +95,7 @@ public class RayCastGroundDetectionComponent implements Component {
     }
 
     private boolean isValidGround(Fixture fixture) {
-        GameObjectTag tag = BodyTagHelper.getFromBodyTag(fixture);
+        GameObjectTag tag = BodyTagHelper.getFromFixtureTag(fixture);
         if (tag == null) return false;
 
         for (ObjectType type : validGroundType) {

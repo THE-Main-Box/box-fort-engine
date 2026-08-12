@@ -2,7 +2,9 @@ package official.sketchBook.game.world_gen.generation;
 
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.utils.Array;
+import official.sketchBook.engine.util_related.helper.GameObjectTag;
 import official.sketchBook.engine.util_related.helper.body.BodyCreatorHelper;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
 import official.sketchBook.engine.world_gen.model.PhysicalPlayableRoom;
@@ -16,12 +18,6 @@ import java.util.Map;
 
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.toMeters;
 
-/**
- * Resolver de f?sica de tile padr?o (estilo 0): para cada tileId configurado,
- * agrupa (ou n?o, conforme mergeable) tiles da camada, e cria fixtures ?
- * anexadas na body compartilhada da sala, ou em body pr?pria por cluster,
- * conforme ownBodyPerCluster de cada config.
- */
 public class StandardTileGenerationResolver implements LayerGenerationResolver {
 
     private static final int EMPTY_TILE_ID = 0;
@@ -57,7 +53,6 @@ public class StandardTileGenerationResolver implements LayerGenerationResolver {
         for (int i = 0; i < clusters.size; i++) {
             TileClusterUtil.ClusterRect cluster = clusters.get(i);
 
-            // s? processa clusters do id que esta config resolve
             if (layerData[cluster.y][cluster.x] != config.tileId) continue;
 
             FixtureData fixtureData = config.fixtureFactory.create(cluster.width, cluster.height);
@@ -66,7 +61,7 @@ public class StandardTileGenerationResolver implements LayerGenerationResolver {
                 ? createIndependentBody(room, cluster)
                 : room.getOrCreateSharedStaticBody();
 
-            attachFixture(room, targetBody, fixtureData, cluster, config.ownBodyPerCluster);
+            attachFixture(targetBody, fixtureData, cluster, config);
         }
     }
 
@@ -87,26 +82,20 @@ public class StandardTileGenerationResolver implements LayerGenerationResolver {
     }
 
     private void attachFixture(
-        PhysicalPlayableRoom room,
         Body targetBody,
         FixtureData fixtureData,
         TileClusterUtil.ClusterRect cluster,
-        boolean ownBody
+        TilePhysicsConfig config
     ) {
-        // centro do cluster em pixels, relativo ao canto onde ele come?a
         float clusterCenterOffsetX = (cluster.width * tileSizePx) / 2f;
         float clusterCenterOffsetY = (cluster.height * tileSizePx) / 2f;
 
         float offsetX, offsetY;
 
-        if (ownBody) {
-            // body j? nasce posicionada no canto do cluster (createIndependentBody) ?
-            // a fixture s? precisa se deslocar do canto at? o centro do cluster
+        if (config.ownBodyPerCluster) {
             offsetX = clusterCenterOffsetX;
             offsetY = clusterCenterOffsetY;
         } else {
-            // body compartilhada nasce na origem da sala ? offset final =
-            // canto do cluster dentro da grid + meio cluster pra chegar no centro
             offsetX = (cluster.x * tileSizePx) + clusterCenterOffsetX;
             offsetY = (cluster.y * tileSizePx) + clusterCenterOffsetY;
         }
@@ -128,8 +117,16 @@ public class StandardTileGenerationResolver implements LayerGenerationResolver {
             fixtureData.isSensor()
         );
 
-        BodyCreatorHelper.createFixturesFromData(positioned, targetBody);
+        List<Fixture> created = BodyCreatorHelper.createFixturesFromData(positioned, targetBody);
+
+        if (config.objectType == null) return; // sem tipo configurado, não marca
+
+        GameObjectTag tag = new GameObjectTag(config.objectType, null);
+        for (Fixture fixture : created) {
+            fixture.setUserData(tag);
+        }
     }
+
     private int[][] extractLayerData(PhysicalPlayableRoom room, int layer) {
         int height = room.gridHeight;
         int width = room.gridWidth;

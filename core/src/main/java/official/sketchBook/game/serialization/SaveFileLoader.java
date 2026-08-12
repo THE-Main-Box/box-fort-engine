@@ -6,16 +6,15 @@ import official.sketchBook.engine.game_object_related.vehicle_related.Submarine;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarinePart;
 import official.sketchBook.engine.liquid_related.model.LiquidData;
-import official.sketchBook.engine.liquid_related.model.RoomLiquid;
-import official.sketchBook.engine.liquid_related.util.LiquidRegion;
+import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
 import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.util_related.path.SerializationPaths;
 import official.sketchBook.engine.util_related.serialization.SaveDataInstanceRegistry;
 import official.sketchBook.engine.util_related.serialization.SaveManager;
+import official.sketchBook.engine.world_gen.blueprint.RoomBlueprint;
 import official.sketchBook.engine.world_gen.model.TilePhysicsConfig;
 import official.sketchBook.engine.world_gen.util.LayerGenerationRegistry;
-import official.sketchBook.engine.world_gen.util.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.model.PhysicalPlayableRoom;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.engine.world_gen.util.RoomGenerator;
@@ -86,6 +85,7 @@ public class SaveFileLoader {
                         1,      // tileId da borda
                         true,   // mergeable: agrupa bordas contíguas em retângulos maiores
                         false,  // ownBodyPerCluster: false -> vai pra body compartilhada da sala
+                        ObjectType.ENVIRONMENT,
                         (clusterWidthTiles, clusterHeightTiles) -> new FixtureData(
                             0f,
                             0f,
@@ -122,43 +122,38 @@ public class SaveFileLoader {
     }
 
     private PlayableRoom loadCurrentRoom() {
+        RoomBlueprint bp = saveManager.loadAndInstantiate(
+            SerializationPaths.Blueprints.BP_ROOMS,
+            "flooded_test_room.json",
+            null // sem contexto — RoomBlueprintSaveData usa Void
+        );
+
         PhysicalPlayableRoom currentRoom = new PhysicalPlayableRoom(
-            1,
+            bp.id,
             0,
             0,
             objectManager.getPhysicsWorld()
         );
 
         currentRoom.initRoomGrid(
-            initBaseTileMap(),
+            initBaseTileMap(bp.layerGenerationStyles.length, bp.gridHeight, bp.gridWidth), // grid ainda vem do código
             TILE_SIZE_PX
         );
 
-        // camada 0 (estrutura): ainda sem resolver de física de tile, então
-        // fica marcada como -1 (skip) até esse sistema existir
-        currentRoom.setLayerGenerationStyle(0, 0);
-
-        //TO-DO:FAZER COM QUE O SISTEMA IDENTIFIQUE AS CAMADAS E A GERAÇÃO DELAS AUTOMATICAMENTE
-        // COM OS DADOS SERIALIZÁVEIS
-
-        // camada 1 (água): estilo 1, resolvido pelo LiquidGenerationResolver
-        // já registrado em loadRoomLiquid()
-        currentRoom.setLayerGenerationStyle(1, 1);
+        for (int layer = 0; layer < bp.layerGenerationStyles.length; layer++) {
+            currentRoom.setLayerGenerationStyle(layer, bp.layerGenerationStyles[layer]);
+        }
 
         objectManager.setCurrentRoom(currentRoom);
 
-        RoomGenerator.generate(currentRoom); // dispara a geração de fato
+        RoomGenerator.generate(currentRoom);
 
         return currentRoom;
     }
 
     private static final int WATER_HEIGHT_TILES = 5;
 
-    private int[][][] initBaseTileMap() {
-        int
-            layers = 2, // camada 0 = estrutura (borda), camada 1 = água
-            width = TILES_VIEW_WIDTH * 3,
-            height = TILES_VIEW_HEIGHT;
+    private int[][][] initBaseTileMap(int layers, int height, int width) {
 
         int[][][] toReturn = new int[layers][height][width];
 
@@ -206,7 +201,7 @@ public class SaveFileLoader {
 
         objectManager.mainPlayer = saveManager.loadAndInstantiate(
             SerializationPaths.getCurrentSaveFilePath(),        //Path da pasta do save atual
-            Player.class.getSimpleName().toLowerCase(),         //Nome do arquivo a buscar (nome da classe minúscula)
+            Player.class.getSimpleName().toLowerCase()+".json",         //Nome do arquivo a buscar (nome da classe minúscula)
             context                                             //Contexto de instanciação
         );
 

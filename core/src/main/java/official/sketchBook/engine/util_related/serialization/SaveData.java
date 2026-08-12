@@ -91,6 +91,22 @@ public class SaveData {
         return this;
     }
 
+    public SaveData putIntList(String key, List<Integer> list) {
+        values.put(key, new ArrayList<Object>(list));
+        return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Integer> getIntList(String key) {
+        Object v = values.get(key);
+        if (!(v instanceof List)) return new ArrayList<>();
+        List<Integer> out = new ArrayList<>();
+        for (Object item : (List<Object>) v) {
+            if (item instanceof Number) out.add(((Number) item).intValue());
+        }
+        return out;
+    }
+
     // ============================================================
     // LEITURA ? sempre com default, nunca explode por campo ausente
     // ============================================================

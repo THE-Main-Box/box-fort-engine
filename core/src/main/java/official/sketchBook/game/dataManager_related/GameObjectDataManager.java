@@ -7,7 +7,9 @@ import official.sketchBook.engine.util_related.contact_listener.ContactUtils;
 import official.sketchBook.engine.util_related.contact_listener.listeners.*;
 import official.sketchBook.engine.util_related.pools.GlobalProjectilePool;
 import official.sketchBook.engine.util_related.pools.RayCastPool;
+import official.sketchBook.engine.util_related.serialization.SaveDataInstance;
 import official.sketchBook.engine.util_related.serialization.SaveDataInstanceRegistry;
+import official.sketchBook.engine.world_gen.blueprint.RoomBlueprintSaveData;
 import official.sketchBook.engine.world_gen.util.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.util.RoomRetentionPool;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
@@ -80,6 +82,7 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
     private void initSDIRegistration(){
         SaveDataInstanceRegistry.GLOBAL.register(PlayerSaveData.TYPE_KEY, PlayerSaveData::new);
+        SaveDataInstanceRegistry.GLOBAL.register(RoomBlueprintSaveData.TYPE_KEY, RoomBlueprintSaveData::new);
     }
 
     @Override

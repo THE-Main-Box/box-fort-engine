@@ -11,7 +11,7 @@ public class PhysicsConstants {
     public static int POSITION_ITERATIONS;
 
     static {
-        VELOCITY_ITERATIONS = 8;
+        VELOCITY_ITERATIONS = 12;
         POSITION_ITERATIONS = 3;
 
     }
