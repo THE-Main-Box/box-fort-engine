@@ -23,7 +23,7 @@ import official.sketchBook.game.components_related.vehicle.VehicleDoor;
 import official.sketchBook.game.components_related.vehicle.VehicleEngineComponent;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;
 import official.sketchBook.game.gameObject_related.player.Player;
-import official.sketchBook.game.gameObject_related.player.PlayerContext;
+import official.sketchBook.game.gameObject_related.player.PlayerSaveData;
 import official.sketchBook.game.world_gen.generation.LiquidGenerationResolver;
 import official.sketchBook.game.world_gen.generation.StandardTileGenerationResolver;
 
@@ -32,8 +32,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
-import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_HEIGHT;
-import static official.sketchBook.game.util_related.constants.RenderingConstants.TILES_VIEW_WIDTH;
 import static official.sketchBook.game.util_related.constants.WorldConstants.PlayerConstants.HEIGHT;
 import static official.sketchBook.game.util_related.constants.WorldConstants.PlayerConstants.WIDTH;
 import static official.sketchBook.game.util_related.constants.WorldConstants.TILE_SIZE_PX;
@@ -124,8 +122,7 @@ public class SaveFileLoader {
     private PlayableRoom loadCurrentRoom() {
         RoomBlueprint bp = saveManager.loadAndInstantiate(
             SerializationPaths.Blueprints.BP_ROOMS,
-            "flooded_test_room.json",
-            null // sem contexto — RoomBlueprintSaveData usa Void
+            "flooded_test_room.json"
         );
 
         PhysicalPlayableRoom currentRoom = new PhysicalPlayableRoom(
@@ -183,26 +180,13 @@ public class SaveFileLoader {
     }
 
     private void loadPlayer(PlayableRoom room) {
-        PlayerContext context = new PlayerContext(
-            objectManager,
-            room,
-            RoomObjectScope.GLOBAL,
-            0, 0, 0, 0,   // x,y,z,rotation: sobrescritos pelo loadFields do DTO a partir do SaveData
-            WIDTH,
-            HEIGHT,
-            1f,
-            1f,
-            false,
-            false,
-            0,
-            0,
-            false
-        );
+
+        PlayerSaveData.setWorldDataManager(objectManager);
+        PlayerSaveData.setOwnerRoom(room);
 
         objectManager.mainPlayer = saveManager.loadAndInstantiate(
             SerializationPaths.getCurrentSaveFilePath(),        //Path da pasta do save atual
-            Player.class.getSimpleName().toLowerCase()+".json",         //Nome do arquivo a buscar (nome da classe minúscula)
-            context                                             //Contexto de instanciação
+            Player.class.getSimpleName().toLowerCase()+".json"         //Nome do arquivo a buscar (nome da classe minúscula)
         );
 
     }

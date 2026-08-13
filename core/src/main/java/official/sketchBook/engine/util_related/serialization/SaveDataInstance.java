@@ -1,6 +1,8 @@
 package official.sketchBook.engine.util_related.serialization;
 
-public abstract class SaveDataInstance<T, C> {
+import java.security.InvalidAlgorithmParameterException;
+
+public abstract class SaveDataInstance<T> {
 
     /**
      * Extrai o estado atual do objeto de jogo J� EXISTENTE como
@@ -25,7 +27,7 @@ public abstract class SaveDataInstance<T, C> {
      * Aqui dentro passamos os dados obtidos no {@link #loadFields(SaveData)}
      * já que aqui apenas recebemos dados padrão já passados no context
      */
-    protected abstract T executeInstantiation(C context);
+    protected abstract T executeInstantiation() throws SaveDataException;
 
     /**
      * Ponto de entrada usado por quem carrega um save: tenta construir
@@ -35,9 +37,9 @@ public abstract class SaveDataInstance<T, C> {
      * pra quem l� o erro saber exatamente qual objeto falhou sem
      * vasculhar stacktrace.
      */
-    public final T newInstance(C context) {
+    public final T newInstance() {
         try {
-            return executeInstantiation(context);
+            return executeInstantiation();
         } catch (SaveDataException e) {
             // j� � um erro de dado estruturado ? s� acumula mais um
             // n�vel de contexto antes de repassar.

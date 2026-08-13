@@ -2,9 +2,12 @@ package official.sketchBook.engine.world_gen.blueprint;
 
 import official.sketchBook.engine.util_related.serialization.SaveData;
 import official.sketchBook.engine.util_related.serialization.SaveDataArrayUtil;
+import official.sketchBook.engine.util_related.serialization.SaveDataException;
 import official.sketchBook.engine.util_related.serialization.SaveDataInstance;
 
-public class RoomBlueprintSaveData extends SaveDataInstance<RoomBlueprint, Void> {
+import java.security.InvalidAlgorithmParameterException;
+
+public class RoomBlueprintSaveData extends SaveDataInstance<RoomBlueprint> {
 
     public static final String TYPE_KEY = "room_blueprint";
 
@@ -31,6 +34,18 @@ public class RoomBlueprintSaveData extends SaveDataInstance<RoomBlueprint, Void>
     }
 
     @Override
+    protected RoomBlueprint executeInstantiation() {
+        return new RoomBlueprint(
+            blueprintId,
+            debugName,
+            gridWidth,
+            gridHeight,
+            layerGenerationStyles,
+            grid
+        );
+    }
+
+    @Override
     public SaveData save(RoomBlueprint instance) {
         SaveData data = new SaveData();
 
@@ -45,17 +60,5 @@ public class RoomBlueprintSaveData extends SaveDataInstance<RoomBlueprint, Void>
         }
 
         return data;
-    }
-
-    @Override
-    protected RoomBlueprint executeInstantiation(Void context) {
-        return new RoomBlueprint(
-            blueprintId,
-            debugName,
-            gridWidth,
-            gridHeight,
-            layerGenerationStyles,
-            grid
-        );
     }
 }

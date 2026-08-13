@@ -1,11 +1,18 @@
 package official.sketchBook.game.gameObject_related.player;
 
+import official.sketchBook.engine.data_manager_related.PhysicalGameObjectDataManager;
 import official.sketchBook.engine.util_related.serialization.SaveData;
+import official.sketchBook.engine.util_related.serialization.SaveDataException;
 import official.sketchBook.engine.util_related.serialization.SaveDataInstance;
+import official.sketchBook.engine.world_gen.model.PlayableRoom;
+
+import java.security.InvalidAlgorithmParameterException;
 
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.toMeters;
+import static official.sketchBook.game.util_related.constants.WorldConstants.PlayerConstants.HEIGHT;
+import static official.sketchBook.game.util_related.constants.WorldConstants.PlayerConstants.WIDTH;
 
-public class PlayerSaveData extends SaveDataInstance<Player, PlayerContext> {
+public class PlayerSaveData extends SaveDataInstance<Player> {
 
     public static final String TYPE_KEY = "player";
 
@@ -40,19 +47,27 @@ public class PlayerSaveData extends SaveDataInstance<Player, PlayerContext> {
         canInteract = data.getBoolean("can_interact", true);
     }
 
-    @Override
-    protected Player executeInstantiation(PlayerContext context) {
+    private static PhysicalGameObjectDataManager worldDataManager;
+    private static PlayableRoom ownerRoom;
+
+    protected Player executeInstantiation() {
+        if(ownerRoom == null || worldDataManager == null) {
+            throw new SaveDataException(
+                "instantiation",
+                "PlayerSaveData: dependências de runtime não foram setadas antes de instanciar"
+            );
+        }
         Player player = new Player(
-            context.getGameObjectContextData().worldDataManager,
-            context.getRoomObjectContextData().ownerRoom,
+            worldDataManager,
+            ownerRoom,
             x,
             y,
             z,
             rotation,
-            context.getTransformContextData().width,
-            context.getTransformContextData().height,
-            context.getTransformContextData().scaleX,
-            context.getTransformContextData().scaleY,
+            WIDTH,
+            HEIGHT,
+            1,
+            1,
             mirrorX,
             mirrorY
         );
@@ -69,7 +84,18 @@ public class PlayerSaveData extends SaveDataInstance<Player, PlayerContext> {
             canInteract
         );
 
+        worldDataManager = null;
+        ownerRoom = null;
+
         return player;
+    }
+
+    public static void setWorldDataManager(PhysicalGameObjectDataManager worldDataManager) {
+        PlayerSaveData.worldDataManager = worldDataManager;
+    }
+
+    public static void setOwnerRoom(PlayableRoom ownerRoom) {
+        PlayerSaveData.ownerRoom = ownerRoom;
     }
 
     @Override

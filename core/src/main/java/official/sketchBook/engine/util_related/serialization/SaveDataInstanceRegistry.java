@@ -65,9 +65,9 @@ public class SaveDataInstanceRegistry {
      */
     public static final SaveDataInstanceRegistry GLOBAL = new SaveDataInstanceRegistry();
 
-    private final Map<String, Supplier<SaveDataInstance<?, ?>>> factories = new HashMap<>();
+    private final Map<String, Supplier<SaveDataInstance<?>>> factories = new HashMap<>();
 
-    public void register(String key, Supplier<SaveDataInstance<?, ?>> factory) {
+    public void register(String key, Supplier<SaveDataInstance<?>> factory) {
         if (key == null || key.isEmpty()) {
             throw new IllegalArgumentException("Type key n�o pode ser vazia");
         }
@@ -86,9 +86,9 @@ public class SaveDataInstanceRegistry {
      * dentro de outro DTO, tipo SubmarineNode resolvendo suas parts).
      */
     @SuppressWarnings("unchecked")
-    public <T, C> SaveDataInstance<T, C> loadByKey(String key, SaveData data) {
-        Supplier<SaveDataInstance<?, ?>> factory = require(key);
-        SaveDataInstance<T, C> dto = (SaveDataInstance<T, C>) factory.get();
+    public <T> SaveDataInstance<T> loadByKey(String key, SaveData data) {
+        Supplier<SaveDataInstance<?>> factory = require(key);
+        SaveDataInstance<T> dto = (SaveDataInstance<T>) factory.get();
         dto.loadFields(data);
         return dto;
     }
@@ -100,7 +100,7 @@ public class SaveDataInstanceRegistry {
      * exatamente como j� acontece hoje com {@code (SubmarinePassenger)
      * passengerTag.owner} em outros pontos do c�digo.
      */
-    public <T, C> SaveDataInstance<T, C> load(SaveData data) {
+    public <T> SaveDataInstance<T> load(SaveData data) {
         String key = data.getTypeKey();
         if (key == null) {
             throw new SaveDataException(
@@ -117,8 +117,8 @@ public class SaveDataInstanceRegistry {
      */
     @SuppressWarnings("unchecked")
     public <T> SaveData save(String key, T instance) {
-        Supplier<SaveDataInstance<?, ?>> factory = require(key);
-        SaveDataInstance<T, ?> dto = (SaveDataInstance<T, ?>) factory.get();
+        Supplier<SaveDataInstance<?>> factory = require(key);
+        SaveDataInstance<T> dto = (SaveDataInstance<T>) factory.get();
         return dto.save(instance).putTypeKey(key);
     }
 
@@ -126,8 +126,8 @@ public class SaveDataInstanceRegistry {
         return factories.containsKey(key);
     }
 
-    private Supplier<SaveDataInstance<?, ?>> require(String key) {
-        Supplier<SaveDataInstance<?, ?>> factory = factories.get(key);
+    private Supplier<SaveDataInstance<?>> require(String key) {
+        Supplier<SaveDataInstance<?>> factory = factories.get(key);
         if (factory == null) {
             throw new IllegalStateException("Nenhum SaveDataInstance registrado pra key: " + key);
         }

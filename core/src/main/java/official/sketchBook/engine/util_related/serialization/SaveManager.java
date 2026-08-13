@@ -57,7 +57,7 @@ public class SaveManager {
      * jogo final ? devolve o DTO pra quem chamou decidir com que
      * contexto instanciar. Lan�a se o arquivo n�o existir.
      */
-    public <T, C> SaveDataInstance<T, C> loadDto(String path, String name) {
+    public <T> SaveDataInstance<T> loadDto(String path, String name) {
         SaveData data = SavableIO.load(path, name);
         if (data == null) {
             throw new IllegalStateException("Arquivo n�o encontrado: " + path + "/" + name);
@@ -66,7 +66,7 @@ public class SaveManager {
     }
 
     /** Vers�o que devolve null quando o arquivo simplesmente n�o existe (ex: save novo, sem player salvo ainda). */
-    public <T, C> SaveDataInstance<T, C> loadDtoOrNull(String path, String name) {
+    public <T> SaveDataInstance<T> loadDtoOrNull(String path, String name) {
         SaveData data = SavableIO.load(path, name);
         if (data == null) return null;
         return registry.load(data);
@@ -79,9 +79,9 @@ public class SaveManager {
      * GameObjectDataManager.setupSystems(), que j� tem World/room em
      * m�os).
      */
-    public <T, C> T loadAndInstantiate(String path, String name, C context) {
-        SaveDataInstance<T, C> dto = loadDto(path, name);
-        return dto.newInstance(context);
+    public <T> T loadAndInstantiate(String path, String name) {
+        SaveDataInstance<T> dto = loadDto(path, name);
+        return dto.newInstance();
     }
 
     public SaveDataInstanceRegistry getRegistry() {
