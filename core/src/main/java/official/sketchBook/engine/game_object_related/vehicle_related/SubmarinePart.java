@@ -56,6 +56,25 @@ public class SubmarinePart implements Disposable {
 
     public boolean massDirty = false;
 
+    public SubmarinePart(
+        int id,
+        String tag,
+        float baseMass,
+        float marginLeft,
+        float marginRight,
+        float marginUp,
+        float marginDown,
+        List<FixtureData> fixtureDataList
+    ) {
+        this.id = id;
+        this.tag = tag;
+        this.fixtureDataList = new ArrayList<>(fixtureDataList);
+        this.internalFixtureList = new ArrayList<>();
+
+        setMargins(marginLeft, marginRight, marginUp, marginDown);
+        updateBaseMass(baseMass);
+    }
+
     public SubmarinePart(int id, String tag) {
         this.id = id;
         this.tag = tag;

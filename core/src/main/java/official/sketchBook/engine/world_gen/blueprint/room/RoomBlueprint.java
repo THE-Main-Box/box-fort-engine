@@ -1,4 +1,4 @@
-package official.sketchBook.engine.world_gen.blueprint;
+package official.sketchBook.engine.world_gen.blueprint.room;
 
 /**
  * Dados m?nimos pra reconstruir uma PhysicalPlayableRoom via RoomGenerator:

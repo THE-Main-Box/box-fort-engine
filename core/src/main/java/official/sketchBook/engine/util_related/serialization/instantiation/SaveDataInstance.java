@@ -1,6 +1,6 @@
-package official.sketchBook.engine.util_related.serialization;
+package official.sketchBook.engine.util_related.serialization.instantiation;
 
-import java.security.InvalidAlgorithmParameterException;
+import official.sketchBook.engine.util_related.exceptions.SaveDataException;
 
 public abstract class SaveDataInstance<T> {
 

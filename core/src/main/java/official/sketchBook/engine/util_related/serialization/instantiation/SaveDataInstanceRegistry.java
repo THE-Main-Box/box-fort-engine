@@ -1,4 +1,6 @@
-package official.sketchBook.engine.util_related.serialization;
+package official.sketchBook.engine.util_related.serialization.instantiation;
+
+import official.sketchBook.engine.util_related.exceptions.SaveDataException;
 
 import java.util.HashMap;
 import java.util.Map;

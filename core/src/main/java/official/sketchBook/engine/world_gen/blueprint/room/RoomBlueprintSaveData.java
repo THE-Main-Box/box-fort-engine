@@ -1,8 +1,8 @@
-package official.sketchBook.engine.world_gen.blueprint;
+package official.sketchBook.engine.world_gen.blueprint.room;
 
-import official.sketchBook.engine.util_related.serialization.SaveData;
-import official.sketchBook.engine.util_related.serialization.SaveDataArrayUtil;
-import official.sketchBook.engine.util_related.serialization.SaveDataInstance;
+import official.sketchBook.engine.util_related.serialization.instantiation.SaveData;
+import official.sketchBook.engine.util_related.serialization.persistance.SaveDataArrayUtil;
+import official.sketchBook.engine.util_related.serialization.instantiation.SaveDataInstance;
 
 public class RoomBlueprintSaveData extends SaveDataInstance<RoomBlueprint> {
 
