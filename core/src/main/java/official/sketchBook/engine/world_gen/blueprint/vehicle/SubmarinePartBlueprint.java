@@ -8,10 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SubmarinePartBlueprint {
-    public int id;
-    public String tag;
-    public float baseMass;
-    public float marginLeft, marginRight, marginUp, marginDown;
+    public final int id;
+    public final String tag;
+    public final float baseMass;
+    public final float
+        marginLeft,
+        marginRight,
+        marginUp,
+        marginDown;
 
     /**
      * Offset desta part em relação ao centro do node — dado de
@@ -23,7 +27,21 @@ public class SubmarinePartBlueprint {
 
     public List<FixtureDataBlueprint> fixtures = new ArrayList<>();
 
-    public SubmarinePartBlueprint() {
+    public SubmarinePartBlueprint(
+        int id, String tag,
+        float baseMass,
+        float marginLeft,
+        float marginRight,
+        float marginUp,
+        float marginDown
+    ) {
+        this.id = id;
+        this.tag = tag;
+        this.baseMass = baseMass;
+        this.marginLeft = marginLeft;
+        this.marginRight = marginRight;
+        this.marginUp = marginUp;
+        this.marginDown = marginDown;
     }
 
     public SubmarinePart toSubmarinePart() {

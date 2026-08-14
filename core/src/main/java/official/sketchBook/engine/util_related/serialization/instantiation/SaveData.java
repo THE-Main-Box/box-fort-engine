@@ -98,6 +98,28 @@ public class SaveData {
         return this;
     }
 
+    public SaveData putEmbedded(
+        String key,
+        EmbeddedSaveData value
+    ) {
+        if (value == null) return this;
+
+        return put(key, value.toSaveData());
+    }
+
+    public SaveData putEmbeddedList(
+        String key,
+        List<? extends EmbeddedSaveData> values
+    ) {
+        List<SaveData> data = new ArrayList<>();
+
+        for (EmbeddedSaveData value : values) {
+            data.add(value.toSaveData());
+        }
+
+        return putList(key, data);
+    }
+
     @SuppressWarnings("unchecked")
     public List<Integer> getIntList(String key) {
         Object v = values.get(key);
@@ -155,6 +177,50 @@ public class SaveData {
     public SaveData getSaveDataOrNull(String key) {
         Object v = values.get(key);
         return (v instanceof SaveData) ? (SaveData) v : null;
+    }
+
+    public <T extends EmbeddedSaveData> T getEmbedded(
+        String key,
+        Class<T> type
+    ) {
+        SaveData data = getSaveDataOrNull(key);
+
+        if (data == null) {
+            return null;
+        }
+
+        try {
+            T instance = type.newInstance();
+            instance.load(data);
+            return instance;
+        } catch (Exception e) {
+            throw new SaveDataException(
+                key,
+                "falha ao carregar embedded " + type.getSimpleName()
+            );
+        }
+    }
+
+    public <T extends EmbeddedSaveData> List<T> getEmbeddedList(
+        String key,
+        Class<T> type
+    ) {
+        List<T> result = new ArrayList<>();
+
+        for (SaveData data : getList(key)) {
+            try {
+                T instance = type.newInstance();
+                instance.load(data);
+                result.add(instance);
+            } catch (Exception e) {
+                throw new SaveDataException(
+                    key,
+                    "falha ao carregar embedded " + type.getSimpleName()
+                );
+            }
+        }
+
+        return result;
     }
 
     public boolean has(String key) {
