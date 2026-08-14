@@ -1,4 +1,4 @@
-package official.sketchBook.engine.util_related.serialization;
+package official.sketchBook.engine.util_related.exceptions;
 
 /**
  * Lan�ada quando um campo OBRIGAT�rio est� ausente ou com tipo errado

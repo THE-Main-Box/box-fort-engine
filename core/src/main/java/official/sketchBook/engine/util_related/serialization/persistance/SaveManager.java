@@ -1,4 +1,8 @@
-package official.sketchBook.engine.util_related.serialization;
+package official.sketchBook.engine.util_related.serialization.persistance;
+
+import official.sketchBook.engine.util_related.serialization.instantiation.SaveData;
+import official.sketchBook.engine.util_related.serialization.instantiation.SaveDataInstance;
+import official.sketchBook.engine.util_related.serialization.instantiation.SaveDataInstanceRegistry;
 
 /**
  * Manager central �nico do sistema de save ? equivalente ao

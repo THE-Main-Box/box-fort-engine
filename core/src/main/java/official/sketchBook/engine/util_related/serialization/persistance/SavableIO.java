@@ -1,8 +1,9 @@
-package official.sketchBook.engine.util_related.serialization;
+package official.sketchBook.engine.util_related.serialization.persistance;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import official.sketchBook.engine.util_related.path.SerializationPaths;
+import official.sketchBook.engine.util_related.serialization.instantiation.SaveData;
 
 /**
  * �nico componente de infraestrutura de I/O do sistema. N�O sabe nada
