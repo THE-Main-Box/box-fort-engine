@@ -8,11 +8,11 @@ import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineP
 import official.sketchBook.engine.liquid_related.model.LiquidData;
 import official.sketchBook.engine.util_related.enumerators.ObjectType;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
-import official.sketchBook.engine.util_related.enumerators.RoomObjectScope;
 import official.sketchBook.engine.util_related.path.SerializationPaths;
 import official.sketchBook.engine.util_related.serialization.SaveDataInstanceRegistry;
 import official.sketchBook.engine.util_related.serialization.SaveManager;
 import official.sketchBook.engine.world_gen.blueprint.RoomBlueprint;
+import official.sketchBook.engine.world_gen.blueprint.RoomBlueprintSaveData;
 import official.sketchBook.engine.world_gen.model.TilePhysicsConfig;
 import official.sketchBook.engine.world_gen.util.LayerGenerationRegistry;
 import official.sketchBook.engine.world_gen.model.PhysicalPlayableRoom;
@@ -32,8 +32,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
-import static official.sketchBook.game.util_related.constants.WorldConstants.PlayerConstants.HEIGHT;
-import static official.sketchBook.game.util_related.constants.WorldConstants.PlayerConstants.WIDTH;
 import static official.sketchBook.game.util_related.constants.WorldConstants.TILE_SIZE_PX;
 
 /**
@@ -67,11 +65,38 @@ public class SaveFileLoader {
         loadRoomLiquid();
         loadRoomStructure();
 
+//        saveTestRoomPersistence();
         PlayableRoom room = loadCurrentRoom(); // cria a sala, define os estilos por camada
 
         loadPlayer(room);
         loadVehicles(room);
     }
+
+
+//    private void saveTestRoomPersistence() {
+//        int
+//            width = 234,
+//            height = 42;
+//
+//        RoomBlueprint bp = new RoomBlueprint(
+//            "flooded_test_room",
+//            width,
+//            height,
+//            new int[]{0, 1},
+//            initBaseTileMap(
+//                2,
+//                height,
+//                width
+//            )
+//        );
+//
+//        saveManager.save(
+//            SerializationPaths.Blueprints.BP_ROOMS,
+//            bp.name + ".json",
+//            RoomBlueprintSaveData.TYPE_KEY,
+//            bp
+//        );
+//    }
 
     private void loadRoomStructure() {
         LayerGenerationRegistry.GLOBAL.register(
@@ -133,12 +158,15 @@ public class SaveFileLoader {
         );
 
         currentRoom.initRoomGrid(
-            initBaseTileMap(bp.layerGenerationStyles.length, bp.gridHeight, bp.gridWidth), // grid ainda vem do código
+            bp.grid,
             TILE_SIZE_PX
         );
 
         for (int layer = 0; layer < bp.layerGenerationStyles.length; layer++) {
-            currentRoom.setLayerGenerationStyle(layer, bp.layerGenerationStyles[layer]);
+            currentRoom.setLayerGenerationStyle(
+                layer,
+                bp.layerGenerationStyles[layer]
+            );
         }
 
         objectManager.setCurrentRoom(currentRoom);
@@ -186,7 +214,7 @@ public class SaveFileLoader {
 
         objectManager.mainPlayer = saveManager.loadAndInstantiate(
             SerializationPaths.getCurrentSaveFilePath(),        //Path da pasta do save atual
-            Player.class.getSimpleName().toLowerCase()+".json"         //Nome do arquivo a buscar (nome da classe minúscula)
+            Player.class.getSimpleName().toLowerCase() + ".json"         //Nome do arquivo a buscar (nome da classe minúscula)
         );
 
     }

@@ -2,10 +2,7 @@ package official.sketchBook.engine.world_gen.blueprint;
 
 import official.sketchBook.engine.util_related.serialization.SaveData;
 import official.sketchBook.engine.util_related.serialization.SaveDataArrayUtil;
-import official.sketchBook.engine.util_related.serialization.SaveDataException;
 import official.sketchBook.engine.util_related.serialization.SaveDataInstance;
-
-import java.security.InvalidAlgorithmParameterException;
 
 public class RoomBlueprintSaveData extends SaveDataInstance<RoomBlueprint> {
 
@@ -50,7 +47,7 @@ public class RoomBlueprintSaveData extends SaveDataInstance<RoomBlueprint> {
         SaveData data = new SaveData();
 
         data.put("blueprint_id", instance.id);
-        data.put("debug_name", instance.debugName);
+        data.put("debug_name", instance.name);
         data.put("grid_width", instance.gridWidth);
         data.put("grid_height", instance.gridHeight);
         data.put("layer_generation_styles", SaveDataArrayUtil.toSaveData(instance.layerGenerationStyles));

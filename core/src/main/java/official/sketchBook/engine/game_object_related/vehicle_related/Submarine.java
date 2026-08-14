@@ -13,14 +13,17 @@ import java.util.List;
 public class Submarine extends BaseRoomGameObject implements
     MultiLiquidInteractableObjectII,
     Vehicle,
-    CompositeRenderableObjectII{
+    CompositeRenderableObjectII {
 
     private final List<SubmarineNode> submarineNodeList;
+
+    private final String name;
 
     public int renderIndex;
 
     /// Importante ter em mente que a posição passada deverá ser o centro do sub, passado em pixels
     public Submarine(
+        String name,
         PhysicalGameObjectDataManager worldDataManager,
         PlayableRoom ownerRoom,
         List<SubmarineNode> submarineNodeList
@@ -31,9 +34,24 @@ public class Submarine extends BaseRoomGameObject implements
             RoomObjectScope.GLOBAL
         );
 
+        this.name = name;
+
         this.submarineNodeList = submarineNodeList;
 
         initObject();
+    }
+
+    public Submarine(
+        PhysicalGameObjectDataManager worldDataManager,
+        PlayableRoom ownerRoom,
+        List<SubmarineNode> submarineNodeList
+    ) {
+        this(
+            "",
+            worldDataManager,
+            ownerRoom,
+            submarineNodeList
+        );
     }
 
     @Override
@@ -109,6 +127,11 @@ public class Submarine extends BaseRoomGameObject implements
     @Override
     public void inLiquidUpdate() {
 
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override

@@ -14,7 +14,7 @@ public class RoomBlueprint {
     public final int id;
 
     /// Label opcional, s? pra debug/tooling ? nunca usado como chave
-    public final String debugName;
+    public final String name;
 
     public final int gridWidth;
     public final int gridHeight;
@@ -32,16 +32,16 @@ public class RoomBlueprint {
 
     public RoomBlueprint(
         int id,
-        String debugName,
+        String name,
         int gridWidth,
         int gridHeight,
         int[] layerGenerationStyles,
         int[][][] grid
     ) {
         this.id = id;
-        this.debugName = (debugName == null || debugName.isEmpty())
+        this.name = (name == null || name.isEmpty())
             ? String.valueOf(id)
-            : debugName;
+            : name;
         this.gridWidth = gridWidth;
         this.gridHeight = gridHeight;
         this.layerGenerationStyles = layerGenerationStyles;
@@ -49,7 +49,7 @@ public class RoomBlueprint {
     }
 
     public RoomBlueprint(
-        String debugName,
+        String name,
         int gridWidth,
         int gridHeight,
         int[] layerGenerationStyles,
@@ -57,7 +57,7 @@ public class RoomBlueprint {
     ) {
         this(
             generateId(),
-            debugName,
+            name,
             gridWidth,
             gridHeight,
             layerGenerationStyles,
