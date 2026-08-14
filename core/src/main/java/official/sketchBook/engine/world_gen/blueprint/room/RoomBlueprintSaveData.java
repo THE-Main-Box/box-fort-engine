@@ -8,8 +8,8 @@ public class RoomBlueprintSaveData extends SaveDataInstance<RoomBlueprint> {
 
     public static final String TYPE_KEY = "room_blueprint";
 
-    private int blueprintId;
-    private String debugName;
+    private int id;
+    private String name;
     private int gridWidth;
     private int gridHeight;
     private int[] layerGenerationStyles;
@@ -17,8 +17,8 @@ public class RoomBlueprintSaveData extends SaveDataInstance<RoomBlueprint> {
 
     @Override
     public void loadFields(SaveData data) {
-        this.blueprintId = data.getIntRequired("blueprint_id");
-        this.debugName = data.getString("debug_name", String.valueOf(blueprintId));
+        this.id = data.getIntRequired("id");
+        this.name = data.getString("name", String.valueOf(id));
         this.gridWidth = data.getIntRequired("grid_width");
         this.gridHeight = data.getIntRequired("grid_height");
 
@@ -33,8 +33,8 @@ public class RoomBlueprintSaveData extends SaveDataInstance<RoomBlueprint> {
     @Override
     protected RoomBlueprint executeInstantiation() {
         return new RoomBlueprint(
-            blueprintId,
-            debugName,
+            id,
+            name,
             gridWidth,
             gridHeight,
             layerGenerationStyles,
@@ -46,8 +46,8 @@ public class RoomBlueprintSaveData extends SaveDataInstance<RoomBlueprint> {
     public SaveData save(RoomBlueprint instance) {
         SaveData data = new SaveData();
 
-        data.put("blueprint_id", instance.id);
-        data.put("debug_name", instance.name);
+        data.put("id", instance.id);
+        data.put("name", instance.name);
         data.put("grid_width", instance.gridWidth);
         data.put("grid_height", instance.gridHeight);
         data.put("layer_generation_styles", SaveDataArrayUtil.toSaveData(instance.layerGenerationStyles));
