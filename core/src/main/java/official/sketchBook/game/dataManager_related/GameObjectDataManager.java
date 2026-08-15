@@ -9,6 +9,9 @@ import official.sketchBook.engine.util_related.pools.GlobalProjectilePool;
 import official.sketchBook.engine.util_related.pools.RayCastPool;
 import official.sketchBook.engine.util_related.serialization.instantiation.SaveDataInstanceRegistry;
 import official.sketchBook.engine.world_gen.blueprint.room.RoomBlueprintSaveData;
+import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.save_data.SubmarineBlueprintSaveData;
+import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.save_data.SubmarinePartBlueprintSaveData;
+import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.save_data.SubmarineStateSaveData;
 import official.sketchBook.engine.world_gen.util.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.util.RoomRetentionPool;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
@@ -80,8 +83,27 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
     }
 
     private void initSDIRegistration(){
-        SaveDataInstanceRegistry.GLOBAL.register(PlayerSaveData.TYPE_KEY, PlayerSaveData::new);
-        SaveDataInstanceRegistry.GLOBAL.register(RoomBlueprintSaveData.TYPE_KEY, RoomBlueprintSaveData::new);
+        SaveDataInstanceRegistry.GLOBAL.register(
+            PlayerSaveData.TYPE_KEY,
+            PlayerSaveData::new
+        );
+        SaveDataInstanceRegistry.GLOBAL.register(
+            RoomBlueprintSaveData.TYPE_KEY,
+            RoomBlueprintSaveData::new
+        );
+        SaveDataInstanceRegistry.GLOBAL.register(
+            SubmarineBlueprintSaveData.TYPE_KEY,
+            SubmarineBlueprintSaveData::new
+        );
+        SaveDataInstanceRegistry.GLOBAL.register(
+            SubmarinePartBlueprintSaveData.TYPE_KEY,
+            SubmarinePartBlueprintSaveData::new
+        );
+        SaveDataInstanceRegistry.GLOBAL.register(
+            SubmarineStateSaveData.TYPE_KEY,
+            SubmarineStateSaveData::new
+        );
+
     }
 
     @Override

@@ -73,18 +73,35 @@ public class FixtureDataBlueprint
         isSensor = data.getBooleanRequired("is_sensor");
     }
 
+    public static FixtureDataBlueprint toBlueprint(FixtureData data) {
+        FixtureDataBlueprint fb = new FixtureDataBlueprint();
+        fb.density = data.density;
+        fb.restitution = data.restitution;
+        fb.friction = data.friction;
+        fb.offsetX = data.offsetX;
+        fb.offsetY = data.offsetY;
+        fb.radius = data.radius;
+        fb.width = data.width;
+        fb.height = data.height;
+        fb.categoryBit = data.categoryBit;
+        fb.maskBit = data.maskBit;
+        fb.isCircle = data.isCircle();
+        fb.isSensor = data.isSensor();
+        return fb;
+    }
+
     public FixtureData toFixtureData(
-        float compositionOffsetX,
-        float compositionOffsetY
+        float offsetX,
+        float offsetY
     ) {
         return new FixtureData(
             density,
             restitution,
             friction,
-            compositionOffsetX,
-            compositionOffsetY,
             offsetX,
             offsetY,
+            this.offsetX,
+            this.offsetY,
             radius,
             width,
             height,

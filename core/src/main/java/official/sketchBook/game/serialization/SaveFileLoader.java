@@ -1,7 +1,6 @@
 package official.sketchBook.game.serialization;
 
-import com.badlogic.gdx.physics.box2d.Transform;
-import official.sketchBook.engine.components_related.system_utils.ControllerGroup;
+import com.badlogic.gdx.math.Vector2;
 import official.sketchBook.engine.game_object_related.vehicle_related.Submarine;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarinePart;
@@ -12,14 +11,16 @@ import official.sketchBook.engine.util_related.path.SerializationPaths;
 import official.sketchBook.engine.util_related.serialization.instantiation.SaveDataInstanceRegistry;
 import official.sketchBook.engine.util_related.serialization.persistance.SaveManager;
 import official.sketchBook.engine.world_gen.blueprint.room.RoomBlueprint;
-import official.sketchBook.engine.world_gen.model.TilePhysicsConfig;
-import official.sketchBook.engine.world_gen.util.LayerGenerationRegistry;
+import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.SubmarineBlueprint;
+import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.SubmarineNodeBlueprint;
+import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.save_data.SubmarineBlueprintSaveData;
+import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.save_data.SubmarineStateSaveData;
 import official.sketchBook.engine.world_gen.model.PhysicalPlayableRoom;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
+import official.sketchBook.engine.world_gen.model.TilePhysicsConfig;
+import official.sketchBook.engine.world_gen.util.LayerGenerationRegistry;
 import official.sketchBook.engine.world_gen.util.RoomGenerator;
-import official.sketchBook.game.components_related.vehicle.VehicleControllerComponent;
-import official.sketchBook.game.components_related.vehicle.VehicleDoor;
-import official.sketchBook.game.components_related.vehicle.VehicleEngineComponent;
+import official.sketchBook.engine.world_gen.util.SubmarinePersistence;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;
 import official.sketchBook.game.gameObject_related.player.Player;
 import official.sketchBook.game.gameObject_related.player.PlayerSaveData;
@@ -31,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.toPixels;
 import static official.sketchBook.game.util_related.constants.WorldConstants.TILE_SIZE_PX;
 
 /**
@@ -50,11 +52,14 @@ public class SaveFileLoader {
 
     private final GameObjectDataManager objectManager;
     private final SaveManager saveManager;
+    private final SubmarinePersistence submarinePersistence;
 
     public SaveFileLoader(GameObjectDataManager objectManager) {
         this.objectManager = objectManager;
         this.saveManager = new SaveManager(SaveDataInstanceRegistry.GLOBAL);
+        this.submarinePersistence = new SubmarinePersistence(saveManager, objectManager);
     }
+
 
     /**
      * Ponto de entrada �nico: carrega um save inteiro, na ordem
@@ -64,10 +69,11 @@ public class SaveFileLoader {
         loadRoomLiquid();
         loadRoomStructure();
 
-//        saveTestRoomPersistence();
         PlayableRoom room = loadCurrentRoom(); // cria a sala, define os estilos por camada
 
         loadPlayer(room);
+
+        testSubmarinePersistence(room);
         loadVehicles(room);
     }
 
@@ -175,36 +181,36 @@ public class SaveFileLoader {
         return currentRoom;
     }
 
-    private static final int WATER_HEIGHT_TILES = 5;
+//    private static final int WATER_HEIGHT_TILES = 5;
 
-    private int[][][] initBaseTileMap(int layers, int height, int width) {
-
-        int[][][] toReturn = new int[layers][height][width];
-
-        int structureLayer = 0;
-        int liquidLayer = 1;
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                // borda: topo, base, esquerda, direita da tela inteira
-                boolean isBorderTile =
-                    y == 0 ||
-                        y == height - 1 ||
-                        x == 0 ||
-                        x == width - 1;
-
-                toReturn[structureLayer][y][x] = isBorderTile ? 1 : 0;
-
-                // água: as WATER_HEIGHT_TILES linhas imediatamente acima do chão
-                boolean isWaterTile =
-                    y > 0 &&
-                        y <= WATER_HEIGHT_TILES;
-                toReturn[liquidLayer][y][x] = isWaterTile ? 2 : 0;
-            }
-        }
-
-        return toReturn;
-    }
+//    private int[][][] initBaseTileMap(int layers, int height, int width) {
+//
+//        int[][][] toReturn = new int[layers][height][width];
+//
+//        int structureLayer = 0;
+//        int liquidLayer = 1;
+//
+//        for (int y = 0; y < height; y++) {
+//            for (int x = 0; x < width; x++) {
+//                // borda: topo, base, esquerda, direita da tela inteira
+//                boolean isBorderTile =
+//                    y == 0 ||
+//                        y == height - 1 ||
+//                        x == 0 ||
+//                        x == width - 1;
+//
+//                toReturn[structureLayer][y][x] = isBorderTile ? 1 : 0;
+//
+//                // água: as WATER_HEIGHT_TILES linhas imediatamente acima do chão
+//                boolean isWaterTile =
+//                    y > 0 &&
+//                        y <= WATER_HEIGHT_TILES;
+//                toReturn[liquidLayer][y][x] = isWaterTile ? 2 : 0;
+//            }
+//        }
+//
+//        return toReturn;
+//    }
 
     private void loadPlayer(PlayableRoom room) {
 
@@ -212,118 +218,47 @@ public class SaveFileLoader {
         PlayerSaveData.setOwnerRoom(room);
 
         objectManager.mainPlayer = saveManager.loadAndInstantiate(
-            SerializationPaths.getCurrentSaveFilePath(),        //Path da pasta do save atual
+            SerializationPaths.SaveCategories.entities(),        //Path da pasta do save atual
             Player.class.getSimpleName().toLowerCase() + ".json"         //Nome do arquivo a buscar (nome da classe minúscula)
         );
 
     }
 
     private void loadVehicles(PlayableRoom currentRoom) {
-        float
-            subX = 400,
-            subY = 190;
+        submarinePersistence.convertToSubmarine(
+            submarinePersistence.loadStateOrNull("walrus"),
+            currentRoom
+        );
+    }
 
+    private void testSubmarinePersistence(PlayableRoom currentRoom) {
         List<SubmarinePart> subParts = getBaseSubmarineParts();
-
         List<SubmarineNode> nodeList = new ArrayList<>();
 
         SubmarineNode node_1 = new SubmarineNode(
             objectManager.getPhysicsWorld(),
             subParts,
-            subX,
-            subY,
+            400,
+            190,
             0,
             0,
             false,
             false
         );
 
-        SubmarineNode node_2 = new SubmarineNode(
-            objectManager.getPhysicsWorld(),
-            getBaseSubmarineParts(),
-            subX + 120,
-            subY,
-            0,
-            0,
-            false,
-            false
-        );
-
-        nodeList.add(node_2);
         nodeList.add(node_1);
 
         Submarine baseSubmarine = new Submarine(
+            "walrus",
             objectManager,
             currentRoom,
             nodeList
         );
 
-        VehicleDoor door = new VehicleDoor(
-            node_1,
-            new FixtureData(
-                0, 0, 55, 0, 0, 9, 40,
-                VEHICLE.bit(), VEHICLE_PASSENGER.bit(), false, false
-            ),
-            new FixtureData(
-                0, 0, 55 - 9, 0, 0, 9 * 4, 40,
-                INTERACTABLE.bit(), INTERACTABLE_TRIGGERER.bit(), false, true
-            ),
-            false, false, false
-        );
+        submarinePersistence.saveAsBlueprint(baseSubmarine);
+        submarinePersistence.saveSubmarineState(baseSubmarine);
 
-        VehicleDoor door2 = new VehicleDoor(
-            node_1,
-            new FixtureData(
-                0, 0, 0, 0, 0, -55, 0, 0, 9, 40,
-                VEHICLE.bit(), VEHICLE_PASSENGER.bit(), false, false
-            ),
-            new FixtureData(
-                0, 0, -55 + 9, 0, 0, 9 * 4, 40,
-                INTERACTABLE.bit(), INTERACTABLE_TRIGGERER.bit(), false, true
-            ),
-            false, false, true
-        );
-
-        VehicleControllerComponent controller = new VehicleControllerComponent(
-            node_1,
-            new FixtureData(
-                0, 0, 0, 0, 0, 0, 0,
-                VEHICLE.bit(), VEHICLE_PASSENGER.bit(), false, false
-            ),
-            new FixtureData(
-                0, 0, 0, 0, 0, 12 * 4, 30,
-                INTERACTABLE.bit(), INTERACTABLE_TRIGGERER.bit(), false, true
-            )
-        );
-
-        VehicleEngineComponent engine = new VehicleEngineComponent(
-            node_1,
-            node_1.getBody(),
-            1f, 0f, 0f, 0f, 500f, -1f, 1f, 0f, 10f, false, false
-        );
-
-        ControllerGroup engineForwardGroup = controller.addGroup("engine_drive");
-        ControllerGroup engineReverseGroup = controller.addGroup("engine_reverse");
-        ControllerGroup turnOff = controller.addGroup("engine_off");
-
-        engineForwardGroup.add(engine);
-        engineReverseGroup.add(engine);
-        turnOff.add(engine);
-
-        engineForwardGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(1f, true));
-        engineReverseGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(-1f, true));
-        turnOff.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(0f, false));
-
-        node_1.addVehicleComponent(engine, false, true, true);
-        node_1.addVehicleComponent(door, true, true, true);
-        node_1.addVehicleComponent(door2, false, true, true);
-        node_1.addVehicleComponent(controller, false, true, true);
-
-        Transform t = node_1.getBody().getTransform();
-        node_1.getBody().setTransform(
-            t.getPosition(),
-            45
-        );
+        baseSubmarine.markToDestroy();
     }
 
     private static List<SubmarinePart> getBaseSubmarineParts() {
