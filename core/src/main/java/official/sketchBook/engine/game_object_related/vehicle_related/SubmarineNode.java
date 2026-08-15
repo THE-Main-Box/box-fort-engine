@@ -791,4 +791,8 @@ public class SubmarineNode
     public boolean hasInternalArea() {
         return true;
     }
+
+    public List<SubmarinePart> getPhysicalParts() {
+        return physicalParts;
+    }
 }

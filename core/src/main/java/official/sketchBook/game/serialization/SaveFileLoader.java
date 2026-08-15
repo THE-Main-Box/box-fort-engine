@@ -1,5 +1,6 @@
 package official.sketchBook.game.serialization;
 
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Transform;
 import official.sketchBook.engine.components_related.system_utils.ControllerGroup;
 import official.sketchBook.engine.game_object_related.vehicle_related.Submarine;
@@ -12,6 +13,11 @@ import official.sketchBook.engine.util_related.path.SerializationPaths;
 import official.sketchBook.engine.util_related.serialization.instantiation.SaveDataInstanceRegistry;
 import official.sketchBook.engine.util_related.serialization.persistance.SaveManager;
 import official.sketchBook.engine.world_gen.blueprint.room.RoomBlueprint;
+import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.SubmarineBlueprint;
+import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.SubmarineNodeBlueprint;
+import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.SubmarinePartBlueprint;
+import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.save_data.SubmarineBlueprintSaveData;
+import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.save_data.SubmarineStateSaveData;
 import official.sketchBook.engine.world_gen.model.TilePhysicsConfig;
 import official.sketchBook.engine.world_gen.util.LayerGenerationRegistry;
 import official.sketchBook.engine.world_gen.model.PhysicalPlayableRoom;
@@ -31,6 +37,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
+import static official.sketchBook.game.util_related.constants.PhysicsConstants.toPixels;
 import static official.sketchBook.game.util_related.constants.WorldConstants.TILE_SIZE_PX;
 
 /**
@@ -68,6 +75,8 @@ public class SaveFileLoader {
         PlayableRoom room = loadCurrentRoom(); // cria a sala, define os estilos por camada
 
         loadPlayer(room);
+
+//        testSubmarinePersistence(room);
         loadVehicles(room);
     }
 
@@ -175,36 +184,36 @@ public class SaveFileLoader {
         return currentRoom;
     }
 
-    private static final int WATER_HEIGHT_TILES = 5;
+//    private static final int WATER_HEIGHT_TILES = 5;
 
-    private int[][][] initBaseTileMap(int layers, int height, int width) {
-
-        int[][][] toReturn = new int[layers][height][width];
-
-        int structureLayer = 0;
-        int liquidLayer = 1;
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                // borda: topo, base, esquerda, direita da tela inteira
-                boolean isBorderTile =
-                    y == 0 ||
-                        y == height - 1 ||
-                        x == 0 ||
-                        x == width - 1;
-
-                toReturn[structureLayer][y][x] = isBorderTile ? 1 : 0;
-
-                // água: as WATER_HEIGHT_TILES linhas imediatamente acima do chão
-                boolean isWaterTile =
-                    y > 0 &&
-                        y <= WATER_HEIGHT_TILES;
-                toReturn[liquidLayer][y][x] = isWaterTile ? 2 : 0;
-            }
-        }
-
-        return toReturn;
-    }
+//    private int[][][] initBaseTileMap(int layers, int height, int width) {
+//
+//        int[][][] toReturn = new int[layers][height][width];
+//
+//        int structureLayer = 0;
+//        int liquidLayer = 1;
+//
+//        for (int y = 0; y < height; y++) {
+//            for (int x = 0; x < width; x++) {
+//                // borda: topo, base, esquerda, direita da tela inteira
+//                boolean isBorderTile =
+//                    y == 0 ||
+//                        y == height - 1 ||
+//                        x == 0 ||
+//                        x == width - 1;
+//
+//                toReturn[structureLayer][y][x] = isBorderTile ? 1 : 0;
+//
+//                // água: as WATER_HEIGHT_TILES linhas imediatamente acima do chão
+//                boolean isWaterTile =
+//                    y > 0 &&
+//                        y <= WATER_HEIGHT_TILES;
+//                toReturn[liquidLayer][y][x] = isWaterTile ? 2 : 0;
+//            }
+//        }
+//
+//        return toReturn;
+//    }
 
     private void loadPlayer(PlayableRoom room) {
 
@@ -219,12 +228,31 @@ public class SaveFileLoader {
     }
 
     private void loadVehicles(PlayableRoom currentRoom) {
+        SubmarineStateSaveData.SubmarineSpawnState state = saveManager.loadAndInstantiate(
+            SerializationPaths.getCurrentSaveFilePath(),
+            "walrus_state.json"
+        );
+
+        SubmarineBlueprint bp = saveManager.loadAndInstantiate(
+            SerializationPaths.getCurrentSaveFilePath(),
+            state.blueprintTag + ".json"
+        );
+
+        List<SubmarineNode> nodes = bp.toSubmarineNodes(
+            objectManager.getPhysicsWorld(),
+            state.spawnX,
+            state.spawnY
+        );
+
+        new Submarine(bp.tag, objectManager, currentRoom, nodes);
+    }
+
+    private void testSubmarinePersistence(PlayableRoom currentRoom){
         float
             subX = 400,
             subY = 190;
 
         List<SubmarinePart> subParts = getBaseSubmarineParts();
-
         List<SubmarineNode> nodeList = new ArrayList<>();
 
         SubmarineNode node_1 = new SubmarineNode(
@@ -238,91 +266,63 @@ public class SaveFileLoader {
             false
         );
 
-        SubmarineNode node_2 = new SubmarineNode(
-            objectManager.getPhysicsWorld(),
-            getBaseSubmarineParts(),
-            subX + 120,
-            subY,
-            0,
-            0,
-            false,
-            false
-        );
-
-        nodeList.add(node_2);
         nodeList.add(node_1);
 
         Submarine baseSubmarine = new Submarine(
+            "walrus",
             objectManager,
             currentRoom,
             nodeList
         );
 
-        VehicleDoor door = new VehicleDoor(
-            node_1,
-            new FixtureData(
-                0, 0, 55, 0, 0, 9, 40,
-                VEHICLE.bit(), VEHICLE_PASSENGER.bit(), false, false
-            ),
-            new FixtureData(
-                0, 0, 55 - 9, 0, 0, 9 * 4, 40,
-                INTERACTABLE.bit(), INTERACTABLE_TRIGGERER.bit(), false, true
-            ),
-            false, false, false
+        saveSubmarineBlueprint(
+            baseSubmarine,
+            SerializationPaths.getCurrentSaveFilePath()
         );
 
-        VehicleDoor door2 = new VehicleDoor(
-            node_1,
-            new FixtureData(
-                0, 0, 0, 0, 0, -55, 0, 0, 9, 40,
-                VEHICLE.bit(), VEHICLE_PASSENGER.bit(), false, false
-            ),
-            new FixtureData(
-                0, 0, -55 + 9, 0, 0, 9 * 4, 40,
-                INTERACTABLE.bit(), INTERACTABLE_TRIGGERER.bit(), false, true
-            ),
-            false, false, true
+        SubmarineStateSaveData.SubmarineSpawnState state = new SubmarineStateSaveData.SubmarineSpawnState(
+            baseSubmarine.getName(),                          // referencia o blueprint por tag
+            toPixels(baseSubmarine.getSections().get(0).getBody().getPosition().x),
+            toPixels(baseSubmarine.getSections().get(0).getBody().getPosition().y)
         );
 
-        VehicleControllerComponent controller = new VehicleControllerComponent(
-            node_1,
-            new FixtureData(
-                0, 0, 0, 0, 0, 0, 0,
-                VEHICLE.bit(), VEHICLE_PASSENGER.bit(), false, false
-            ),
-            new FixtureData(
-                0, 0, 0, 0, 0, 12 * 4, 30,
-                INTERACTABLE.bit(), INTERACTABLE_TRIGGERER.bit(), false, true
-            )
+        saveManager.save(
+            SerializationPaths.getCurrentSaveFilePath(),
+            baseSubmarine.getName() + "_state.json",
+            SubmarineStateSaveData.TYPE_KEY,
+            state
         );
 
-        VehicleEngineComponent engine = new VehicleEngineComponent(
-            node_1,
-            node_1.getBody(),
-            1f, 0f, 0f, 0f, 500f, -1f, 1f, 0f, 10f, false, false
-        );
+        baseSubmarine.markToDestroy();
+    }
 
-        ControllerGroup engineForwardGroup = controller.addGroup("engine_drive");
-        ControllerGroup engineReverseGroup = controller.addGroup("engine_reverse");
-        ControllerGroup turnOff = controller.addGroup("engine_off");
+    private void saveSubmarineBlueprint(Submarine submarine, String path) {
+        SubmarineBlueprint bp = new SubmarineBlueprint();
+        bp.tag = submarine.getName();
 
-        engineForwardGroup.add(engine);
-        engineReverseGroup.add(engine);
-        turnOff.add(engine);
+        List<SubmarineNode> nodes = submarine.getSections();
 
-        engineForwardGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(1f, true));
-        engineReverseGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(-1f, true));
-        turnOff.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(0f, false));
+        // node[0] é o node de referência — offset relativo a si mesmo é sempre (0,0).
+        // Todo node subsequente tem offset relativo à posição do node[0], não ao
+        // ponto de spawn abstrato (que não existe como dado persistido — ver
+        // discussão anterior sobre Submarine não ter posição própria).
+        Vector2 originPos = nodes.get(0).getBody().getPosition();
 
-        node_1.addVehicleComponent(engine, false, true, true);
-        node_1.addVehicleComponent(door, true, true, true);
-        node_1.addVehicleComponent(door2, false, true, true);
-        node_1.addVehicleComponent(controller, false, true, true);
+        for (int i = 0; i < nodes.size(); i++) {
+            SubmarineNode node = nodes.get(i);
+            Vector2 nodePos = node.getBody().getPosition();
 
-        Transform t = node_1.getBody().getTransform();
-        node_1.getBody().setTransform(
-            t.getPosition(),
-            45
+            float relOffsetX = toPixels(nodePos.x - originPos.x);
+            float relOffsetY = toPixels(nodePos.y - originPos.y);
+
+            bp.nodes.add(new SubmarineNodeBlueprint(node, relOffsetX, relOffsetY));
+        }
+
+        saveManager.save(
+            path,
+            bp.tag + ".json",
+            SubmarineBlueprintSaveData.TYPE_KEY,
+            bp
         );
     }
 

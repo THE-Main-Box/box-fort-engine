@@ -37,6 +37,7 @@ public abstract class BaseRoomGameObject extends BaseGameObject {
         if(ownerRoom != null){
             ownerRoom.removeRoomObject(this);
         }
+
     }
 
     @Override

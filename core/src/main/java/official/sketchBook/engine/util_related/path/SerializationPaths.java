@@ -36,7 +36,7 @@ public class SerializationPaths {
      * dentro do reposit�rio) ? save n�o � c�digo nem asset, tem
      * localiza��o pr�pria no disco do usu�rio.
      */
-    public static final String ROOT = "dws_save_data/";
+    public static final String ROOT = "dws_files/";
     ///Pasta de arquivos de save
     public static final String SAVE_ROOT = "save_files/";
 
@@ -44,7 +44,14 @@ public class SerializationPaths {
     public static class Blueprints{
 
         public static final String BP_ROOT = "blueprint_files/";
+
         public static final String BP_ROOMS = BP_ROOT + "def_rooms";
+
+        public static final String BP_VEHICLES = BP_ROOT + "vehicles_bp";
+
+        public static final String BP_SUB = BP_VEHICLES + "/submarines/";
+
+        public static final String BP_SUB_PARTS = BP_SUB + "parts";
 
     }
 
