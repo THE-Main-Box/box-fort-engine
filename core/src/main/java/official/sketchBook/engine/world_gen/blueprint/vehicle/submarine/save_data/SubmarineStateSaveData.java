@@ -4,39 +4,40 @@ package official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.save_da
 import official.sketchBook.engine.util_related.exceptions.SaveDataException;
 import official.sketchBook.engine.util_related.serialization.instantiation.SaveData;
 import official.sketchBook.engine.util_related.serialization.instantiation.SaveDataInstance;
+import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.SubmarineBlueprint;
 
-public class SubmarineStateSaveData extends SaveDataInstance<SubmarineStateSaveData.SubmarineSpawnState> {
+public class SubmarineStateSaveData extends SaveDataInstance<SubmarineStateSaveData.SubmarineState> {
     public static final String TYPE_KEY = "submarine_state";
 
-    private String blueprintTag; // qual arquivo em BP_SUB carregar
+    private SubmarineBlueprint submarine;
     private float spawnX, spawnY;
 
     @Override
     public void loadFields(SaveData data) {
-        blueprintTag = data.getStringRequired("blueprint_tag");
+        submarine = data.getEmbedded("submarine", SubmarineBlueprint.class);
         spawnX = data.getFloatRequired("spawn_x");
         spawnY = data.getFloatRequired("spawn_y");
     }
 
     @Override
-    protected SubmarineSpawnState executeInstantiation() throws SaveDataException {
-        return new SubmarineSpawnState(blueprintTag, spawnX, spawnY);
+    protected SubmarineState executeInstantiation() throws SaveDataException {
+        return new SubmarineState(submarine, spawnX, spawnY);
     }
 
     @Override
-    public SaveData save(SubmarineSpawnState instance) {
+    public SaveData save(SubmarineState instance) {
         return new SaveData()
-            .put("blueprint_tag", instance.blueprintTag)
+            .putEmbedded("submarine", instance.submarine)
             .put("spawn_x", instance.spawnX)
             .put("spawn_y", instance.spawnY);
     }
 
-    public static class SubmarineSpawnState {
-        public final String blueprintTag;
+    public static class SubmarineState {
+        public final SubmarineBlueprint submarine;
         public final float spawnX, spawnY;
 
-        public SubmarineSpawnState(String blueprintTag, float spawnX, float spawnY) {
-            this.blueprintTag = blueprintTag;
+        public SubmarineState(SubmarineBlueprint submarine, float spawnX, float spawnY) {
+            this.submarine = submarine;
             this.spawnX = spawnX;
             this.spawnY = spawnY;
         }

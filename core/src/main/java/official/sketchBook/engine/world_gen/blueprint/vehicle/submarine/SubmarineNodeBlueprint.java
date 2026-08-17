@@ -6,7 +6,6 @@ import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineN
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarinePart;
 import official.sketchBook.engine.util_related.serialization.instantiation.EmbeddedSaveData;
 import official.sketchBook.engine.util_related.serialization.instantiation.SaveData;
-import official.sketchBook.engine.world_gen.blueprint.embedded.PartPlacement;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,8 +1,6 @@
 package official.sketchBook.game.serialization;
 
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Transform;
-import official.sketchBook.engine.components_related.system_utils.ControllerGroup;
 import official.sketchBook.engine.game_object_related.vehicle_related.Submarine;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarinePart;
@@ -15,17 +13,14 @@ import official.sketchBook.engine.util_related.serialization.persistance.SaveMan
 import official.sketchBook.engine.world_gen.blueprint.room.RoomBlueprint;
 import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.SubmarineBlueprint;
 import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.SubmarineNodeBlueprint;
-import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.SubmarinePartBlueprint;
 import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.save_data.SubmarineBlueprintSaveData;
 import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.save_data.SubmarineStateSaveData;
-import official.sketchBook.engine.world_gen.model.TilePhysicsConfig;
-import official.sketchBook.engine.world_gen.util.LayerGenerationRegistry;
 import official.sketchBook.engine.world_gen.model.PhysicalPlayableRoom;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
+import official.sketchBook.engine.world_gen.model.TilePhysicsConfig;
+import official.sketchBook.engine.world_gen.util.LayerGenerationRegistry;
 import official.sketchBook.engine.world_gen.util.RoomGenerator;
-import official.sketchBook.game.components_related.vehicle.VehicleControllerComponent;
-import official.sketchBook.game.components_related.vehicle.VehicleDoor;
-import official.sketchBook.game.components_related.vehicle.VehicleEngineComponent;
+import official.sketchBook.engine.world_gen.util.SubmarinePersistence;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;
 import official.sketchBook.game.gameObject_related.player.Player;
 import official.sketchBook.game.gameObject_related.player.PlayerSaveData;
@@ -57,11 +52,14 @@ public class SaveFileLoader {
 
     private final GameObjectDataManager objectManager;
     private final SaveManager saveManager;
+    private final SubmarinePersistence submarinePersistence;
 
     public SaveFileLoader(GameObjectDataManager objectManager) {
         this.objectManager = objectManager;
         this.saveManager = new SaveManager(SaveDataInstanceRegistry.GLOBAL);
+        this.submarinePersistence = new SubmarinePersistence(saveManager, objectManager);
     }
+
 
     /**
      * Ponto de entrada �nico: carrega um save inteiro, na ordem
@@ -71,12 +69,11 @@ public class SaveFileLoader {
         loadRoomLiquid();
         loadRoomStructure();
 
-//        saveTestRoomPersistence();
         PlayableRoom room = loadCurrentRoom(); // cria a sala, define os estilos por camada
 
         loadPlayer(room);
 
-//        testSubmarinePersistence(room);
+        testSubmarinePersistence(room);
         loadVehicles(room);
     }
 
@@ -221,45 +218,28 @@ public class SaveFileLoader {
         PlayerSaveData.setOwnerRoom(room);
 
         objectManager.mainPlayer = saveManager.loadAndInstantiate(
-            SerializationPaths.getCurrentSaveFilePath(),        //Path da pasta do save atual
+            SerializationPaths.SaveCategories.entities(),        //Path da pasta do save atual
             Player.class.getSimpleName().toLowerCase() + ".json"         //Nome do arquivo a buscar (nome da classe minúscula)
         );
 
     }
 
     private void loadVehicles(PlayableRoom currentRoom) {
-        SubmarineStateSaveData.SubmarineSpawnState state = saveManager.loadAndInstantiate(
-            SerializationPaths.getCurrentSaveFilePath(),
-            "walrus_state.json"
+        submarinePersistence.convertToSubmarine(
+            submarinePersistence.loadStateOrNull("walrus"),
+            currentRoom
         );
-
-        SubmarineBlueprint bp = saveManager.loadAndInstantiate(
-            SerializationPaths.getCurrentSaveFilePath(),
-            state.blueprintTag + ".json"
-        );
-
-        List<SubmarineNode> nodes = bp.toSubmarineNodes(
-            objectManager.getPhysicsWorld(),
-            state.spawnX,
-            state.spawnY
-        );
-
-        new Submarine(bp.tag, objectManager, currentRoom, nodes);
     }
 
-    private void testSubmarinePersistence(PlayableRoom currentRoom){
-        float
-            subX = 400,
-            subY = 190;
-
+    private void testSubmarinePersistence(PlayableRoom currentRoom) {
         List<SubmarinePart> subParts = getBaseSubmarineParts();
         List<SubmarineNode> nodeList = new ArrayList<>();
 
         SubmarineNode node_1 = new SubmarineNode(
             objectManager.getPhysicsWorld(),
             subParts,
-            subX,
-            subY,
+            400,
+            190,
             0,
             0,
             false,
@@ -275,55 +255,10 @@ public class SaveFileLoader {
             nodeList
         );
 
-        saveSubmarineBlueprint(
-            baseSubmarine,
-            SerializationPaths.getCurrentSaveFilePath()
-        );
-
-        SubmarineStateSaveData.SubmarineSpawnState state = new SubmarineStateSaveData.SubmarineSpawnState(
-            baseSubmarine.getName(),                          // referencia o blueprint por tag
-            toPixels(baseSubmarine.getSections().get(0).getBody().getPosition().x),
-            toPixels(baseSubmarine.getSections().get(0).getBody().getPosition().y)
-        );
-
-        saveManager.save(
-            SerializationPaths.getCurrentSaveFilePath(),
-            baseSubmarine.getName() + "_state.json",
-            SubmarineStateSaveData.TYPE_KEY,
-            state
-        );
+        submarinePersistence.saveAsBlueprint(baseSubmarine);
+        submarinePersistence.saveSubmarineState(baseSubmarine);
 
         baseSubmarine.markToDestroy();
-    }
-
-    private void saveSubmarineBlueprint(Submarine submarine, String path) {
-        SubmarineBlueprint bp = new SubmarineBlueprint();
-        bp.tag = submarine.getName();
-
-        List<SubmarineNode> nodes = submarine.getSections();
-
-        // node[0] é o node de referência — offset relativo a si mesmo é sempre (0,0).
-        // Todo node subsequente tem offset relativo à posição do node[0], não ao
-        // ponto de spawn abstrato (que não existe como dado persistido — ver
-        // discussão anterior sobre Submarine não ter posição própria).
-        Vector2 originPos = nodes.get(0).getBody().getPosition();
-
-        for (int i = 0; i < nodes.size(); i++) {
-            SubmarineNode node = nodes.get(i);
-            Vector2 nodePos = node.getBody().getPosition();
-
-            float relOffsetX = toPixels(nodePos.x - originPos.x);
-            float relOffsetY = toPixels(nodePos.y - originPos.y);
-
-            bp.nodes.add(new SubmarineNodeBlueprint(node, relOffsetX, relOffsetY));
-        }
-
-        saveManager.save(
-            path,
-            bp.tag + ".json",
-            SubmarineBlueprintSaveData.TYPE_KEY,
-            bp
-        );
     }
 
     private static List<SubmarinePart> getBaseSubmarineParts() {

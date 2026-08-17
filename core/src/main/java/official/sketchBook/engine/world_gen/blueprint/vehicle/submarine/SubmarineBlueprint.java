@@ -2,11 +2,13 @@ package official.sketchBook.engine.world_gen.blueprint.vehicle.submarine;
 
 import com.badlogic.gdx.physics.box2d.World;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
+import official.sketchBook.engine.util_related.serialization.instantiation.EmbeddedSaveData;
+import official.sketchBook.engine.util_related.serialization.instantiation.SaveData;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SubmarineBlueprint {
+public class SubmarineBlueprint implements EmbeddedSaveData {
     public String tag;
     public List<SubmarineNodeBlueprint> nodes = new ArrayList<>();
 
@@ -38,5 +40,18 @@ public class SubmarineBlueprint {
         }
 
         return result;
+    }
+
+    @Override
+    public SaveData toSaveData() {
+        return new SaveData()
+            .put("tag", tag)
+            .putEmbeddedList("nodes", nodes);
+    }
+
+    @Override
+    public void load(SaveData data) {
+        tag = data.getStringRequired("tag");
+        nodes = data.getEmbeddedList("nodes", SubmarineNodeBlueprint.class);
     }
 }
