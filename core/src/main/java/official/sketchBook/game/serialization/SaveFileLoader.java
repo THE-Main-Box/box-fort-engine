@@ -1,6 +1,5 @@
 package official.sketchBook.game.serialization;
 
-import com.badlogic.gdx.math.Vector2;
 import official.sketchBook.engine.game_object_related.vehicle_related.Submarine;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarinePart;
@@ -11,16 +10,12 @@ import official.sketchBook.engine.util_related.path.SerializationPaths;
 import official.sketchBook.engine.util_related.serialization.instantiation.SaveDataInstanceRegistry;
 import official.sketchBook.engine.util_related.serialization.persistance.SaveManager;
 import official.sketchBook.engine.world_gen.blueprint.room.RoomBlueprint;
-import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.SubmarineBlueprint;
-import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.SubmarineNodeBlueprint;
-import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.save_data.SubmarineBlueprintSaveData;
-import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.save_data.SubmarineStateSaveData;
+import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.SubmarinePersistence;
 import official.sketchBook.engine.world_gen.model.PhysicalPlayableRoom;
 import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.engine.world_gen.model.TilePhysicsConfig;
 import official.sketchBook.engine.world_gen.util.LayerGenerationRegistry;
 import official.sketchBook.engine.world_gen.util.RoomGenerator;
-import official.sketchBook.engine.world_gen.util.SubmarinePersistence;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;
 import official.sketchBook.game.gameObject_related.player.Player;
 import official.sketchBook.game.gameObject_related.player.PlayerSaveData;
@@ -32,7 +27,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static official.sketchBook.engine.util_related.enumerators.CollisionLayers.*;
-import static official.sketchBook.game.util_related.constants.PhysicsConstants.toPixels;
 import static official.sketchBook.game.util_related.constants.WorldConstants.TILE_SIZE_PX;
 
 /**
@@ -75,6 +69,7 @@ public class SaveFileLoader {
 
         testSubmarinePersistence(room);
         loadVehicles(room);
+
     }
 
 
@@ -225,8 +220,9 @@ public class SaveFileLoader {
     }
 
     private void loadVehicles(PlayableRoom currentRoom) {
-        submarinePersistence.convertToSubmarine(
-            submarinePersistence.loadStateOrNull("walrus"),
+
+        submarinePersistence.createSubmarineFromState(
+            "walrus",
             currentRoom
         );
     }
@@ -235,18 +231,32 @@ public class SaveFileLoader {
         List<SubmarinePart> subParts = getBaseSubmarineParts();
         List<SubmarineNode> nodeList = new ArrayList<>();
 
-        SubmarineNode node_1 = new SubmarineNode(
-            objectManager.getPhysicsWorld(),
-            subParts,
-            400,
-            190,
-            0,
-            0,
-            false,
-            false
+        nodeList.add(
+            new SubmarineNode(
+                objectManager.getPhysicsWorld(),
+                subParts,
+                400,
+                190,
+                0,
+                0,
+                false,
+                false
+            )
         );
 
-        nodeList.add(node_1);
+        nodeList.add(
+            new SubmarineNode(
+                objectManager.getPhysicsWorld(),
+                subParts,
+                400 + 120,
+                190,
+                0,
+                0,
+                false,
+                false
+            )
+        );
+
 
         Submarine baseSubmarine = new Submarine(
             "walrus",

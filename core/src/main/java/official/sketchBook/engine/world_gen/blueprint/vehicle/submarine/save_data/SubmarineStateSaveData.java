@@ -5,8 +5,9 @@ import official.sketchBook.engine.util_related.exceptions.SaveDataException;
 import official.sketchBook.engine.util_related.serialization.instantiation.SaveData;
 import official.sketchBook.engine.util_related.serialization.instantiation.SaveDataInstance;
 import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.SubmarineBlueprint;
+import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.SubmarineState;
 
-public class SubmarineStateSaveData extends SaveDataInstance<SubmarineStateSaveData.SubmarineState> {
+public class SubmarineStateSaveData extends SaveDataInstance<SubmarineState> {
     public static final String TYPE_KEY = "submarine_state";
 
     private SubmarineBlueprint submarine;
@@ -30,16 +31,5 @@ public class SubmarineStateSaveData extends SaveDataInstance<SubmarineStateSaveD
             .putEmbedded("submarine", instance.submarine)
             .put("spawn_x", instance.spawnX)
             .put("spawn_y", instance.spawnY);
-    }
-
-    public static class SubmarineState {
-        public final SubmarineBlueprint submarine;
-        public final float spawnX, spawnY;
-
-        public SubmarineState(SubmarineBlueprint submarine, float spawnX, float spawnY) {
-            this.submarine = submarine;
-            this.spawnX = spawnX;
-            this.spawnY = spawnY;
-        }
     }
 }
