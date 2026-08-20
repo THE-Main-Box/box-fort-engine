@@ -4,75 +4,64 @@ import official.sketchBook.engine.components_related.intefaces.integration_inter
 import official.sketchBook.engine.components_related.intefaces.integration_interfaces.object_tree.interaction.ProximityInteractableObjectII;
 import official.sketchBook.engine.components_related.objects.TangibleSwitchComponent;
 import official.sketchBook.engine.components_related.vehicle.VehicleInteractableComponent;
-import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
 import official.sketchBook.engine.util_related.enumerators.VehicleComponentType;
 import official.sketchBook.engine.util_related.helper.body.FixtureData;
+import official.sketchBook.engine.util_related.serialization.instantiation.SaveData;
+import official.sketchBook.engine.world_gen.blueprint.embedded.FixtureDataBlueprint;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class VehicleDoor extends VehicleInteractableComponent implements ProximityInteractableObjectII {
-    public static int quantity;
 
-    /// Flags de estado
+    public static final String TYPE_KEY = "vehicle_door";
+
     public boolean
-        open,           //Se está aberta
-        broken,         //Se a porta está quebrada
-        locked;         //Se a porta está trancada
+        open,
+        broken,
+        locked;
 
     private TangibleSwitchComponent tangibleComponent;
-
     private boolean pendingStateUpdate = false;
-
     private List<InteractionTriggerer> nearList;
 
+    /// Construtor "vivo" ? usado quando o jogo cria a porta diretamente
+    /// (editor, spawn manual, testSubmarinePersistence etc).
     public VehicleDoor(
-        VehicleSection ownerSection,
+        String id,
         FixtureData fixData,
         FixtureData triggerFixData,
         boolean broken,
         boolean locked,
         boolean open
     ) {
-
-        super(
-            "Door_id: " + quantity,
-            String.valueOf(quantity),
-            ownerSection,
-            VehicleComponentType.PHYSICAL_INTERNAL,
-            fixData,
-            triggerFixData
-        );
-
+        super(id, VehicleComponentType.PHYSICAL_INTERNAL, fixData, triggerFixData);
         this.broken = broken;
         this.locked = locked;
         this.open = open;
+    }
 
-        initObject();
-
-        quantity++;
+    /// Construtor vazio ? exigido pra reflection (getEmbeddedList/newInstance).
+    /// Fica em estado incompleto de prop�sito at� load() popular os campos.
+    public VehicleDoor() {
+        super();
     }
 
     @Override
     public void initObject() {
         super.initObject();
-
         this.tangibleComponent = new TangibleSwitchComponent(
             fixList.get(0).getFilterData().maskBits,
             open,
             fixList
         );
-
         this.nearList = new ArrayList<>();
     }
 
     @Override
     public void update(float delta) {
         super.update(delta);
-
-        //Se não tiver nenhum objeto que possa abrir a porta por perto, fechamos automaticamente
         if (!isNear() && open) {
-            //Atualizamos para fechar a porta
             this.updateDoorOpenState(false);
         }
     }
@@ -85,29 +74,15 @@ public class VehicleDoor extends VehicleInteractableComponent implements Proximi
     @Override
     public void postUpdate() {
         super.postUpdate();
-        //Se estivermos pendendo uma atualização
         if (!pendingStateUpdate) return;
-
-        //Atualizamos o estado de tangível em si
         tangibleComponent.updateTangibleState();
-        //Desmarcamos pra não entrar aqui de novo sem necessidade
         pendingStateUpdate = false;
     }
 
-    /***
-     * Atualiza o estado de aberto da porta
-     *
-     * @param newOpenState novo estado a passar pro open
-     */
     protected void updateDoorOpenState(boolean newOpenState) {
-        //Evitamos passar por tudo isso se o estado for repetido
         if (newOpenState == open) return;
-
-        //Atualizamos o estado da porta
         this.open = newOpenState;
-        //Atualizamos o estado de tangível
         this.tangibleComponent.setTangible(!newOpenState);
-        //Marcamos para atualizar o estado de tangível
         this.pendingStateUpdate = true;
     }
 
@@ -120,4 +95,49 @@ public class VehicleDoor extends VehicleInteractableComponent implements Proximi
         return nearList;
     }
 
+    // ============================================================
+    // SERIALIZA��O ? o pr�prio componente sabe se descrever
+    // ============================================================
+
+    @Override
+    public SaveData toSaveData() {
+        return new SaveData()
+            .put("id", id)
+            .putTypeKey(TYPE_KEY)
+            .putEmbedded("fix_data", FixtureDataBlueprint.toBlueprint(fixData))
+            .putEmbedded("trigger_fix_data", FixtureDataBlueprint.toBlueprint(triggerFixData))
+            .put("broken", broken)
+            .put("locked", locked)
+            .put("open", open);
+    }
+
+    @Override
+    public void load(SaveData data) {
+        this.id = data.getStringRequired("id");
+
+        FixtureDataBlueprint fixBp = data.getEmbedded("fix_data", FixtureDataBlueprint.class);
+        FixtureDataBlueprint triggerBp = data.getEmbedded("trigger_fix_data", FixtureDataBlueprint.class);
+
+        // globalOffset s� existe no momento de attach (depende de onde o
+        // componente est� no node) ? aqui usamos 0,0, e attachToSection
+        // pode reaplicar o offset real antes de initObject() se precisar.
+        this.fixData = fixBp.toFixtureData(0, 0);
+        this.triggerFixData = triggerBp.toFixtureData(0, 0);
+
+        this.broken = data.getBoolean("broken", false);
+        this.locked = data.getBoolean("locked", false);
+        this.open = data.getBoolean("open", false);
+
+        this.type = VehicleComponentType.PHYSICAL_INTERNAL;
+    }
+
+    @Override
+    public boolean toUpdate() {
+        return true;
+    }
+
+    @Override
+    public boolean toPostUpdate() {
+        return true;
+    }
 }

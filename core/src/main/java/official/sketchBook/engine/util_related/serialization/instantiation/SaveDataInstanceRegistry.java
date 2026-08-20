@@ -6,58 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-/**
- * Registro central �nico: String key -> f�brica de {@link
- * SaveDataInstance} (o DTO), N�O da classe de jogo final.
- * <p>
- * Cada classe savable do jogo registra AQUI, uma �nica vez (bloco
- * {@code static} ou m�todo {@code registerType(registry)} chamado uma
- * vez no boot), como criar um DTO VAZIO daquele tipo ? {@code
- * Supplier<SaveDataInstance<?, ?>>}, tipicamente s� {@code
- * PlayerSaveData::new}.
- * <p>
- * Fluxo de load: l� o JSON -> SaveData bruto -> pega o "__type" ->
- * pede ao registry um DTO vazio daquele tipo -> chama
- * {@code dto.loadFields(data)} pra popular ? devolve o DTO j� pronto.
- * Quem pediu ent�o chama {@code dto.newInstance(context)} quando tiver
- * o contexto (World, room) dispon�vel ? o registry nunca precisa saber
- * desse contexto, ele s� entrega DTOs.
- * <p>
- * A key � String, n�o Class&lt;T&gt; ? mesma decis�o de antes: permite
- * duas keys apontarem pra DTOs diferentes mesmo quando a classe de
- * jogo final � a mesma (ex: "submarine_enemy" vs "submarine_player").
- * <p>
- * MEM�RIA: um registro custa uma entrada de Map com uma refer�ncia de
- * m�todo (ex: {@code EnemySaveData::new}) ? NENHUM objeto de jogo, DTO
- * populado, World ou coisa pesada � criado no registro em si. O
- * Supplier s� roda (criando um DTO VAZIO) quando algu�m efetivamente
- * pede um load daquele tipo. Registrar 50 tipos de inimigo que talvez
- * nunca sejam carregados numa partida custa, na pr�tica, nada ?
- * "poluir a mem�ria" nunca foi um risco real desse registro, o risco
- * real (objetos de jogo pesados vivos sem necessidade) j� � resolvido
- * pelo ciclo normal de dispose() do BaseGameObjectDataManager, uma
- * camada completamente separada desta.
- * <p>
- * GLOBAL POR DESIGN: {@link #GLOBAL} � a inst�ncia �nica do jogo
- * inteiro, criada estaticamente aqui mesmo. Isso � seguro porque cada
- * classe savable (Player, SubmarineNode, ...) se registra sozinha, uma
- * vez, atrav�s de um bloco {@code static { }} na PR�PRIA classe ? ex:
- * <pre>{@code
- * public class Player extends ... {
- *     static {
- *         SaveDataInstanceRegistry.GLOBAL.register("player", PlayerSaveData::new);
- *     }
- *     ...
- * }
- * }</pre>
- * Isso funciona sem risco de ordem de inicializa��o neste projeto
- * porque nenhum c�digo pode carregar um save ANTES do
- * GameObjectDataManager/boot do jogo terminar de subir ? e esse boot
- * j� acontece antes de qualquer Player/SubmarineNode ser tocado pela
- * primeira vez. "O que � do Player fica no Player": a classe cuida do
- * pr�prio registro, sem exigir uma lista central que algu�m precisa
- * lembrar de manter atualizada a cada classe savable nova.
- */
+
 public class SaveDataInstanceRegistry {
 
     /**

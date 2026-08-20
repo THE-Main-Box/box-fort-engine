@@ -3,32 +3,42 @@ package official.sketchBook.engine.components_related.vehicle;
 import official.sketchBook.engine.components_related.intefaces.base_interfaces.Component;
 import official.sketchBook.engine.game_object_related.vehicle_related.VehicleSection;
 import official.sketchBook.engine.util_related.enumerators.VehicleComponentType;
+import official.sketchBook.engine.util_related.serialization.instantiation.EmbeddedSaveData;
+import official.sketchBook.engine.util_related.serialization.instantiation.SaveData;
 
-public abstract class VehicleBaseComponent implements Component{
+public abstract class VehicleBaseComponent implements Component, EmbeddedSaveData {
 
     /// Identificação
-    protected final String
-        name,           //Nome do componente
-        id;             //Id importante para decifrar quem é
+    protected String  id;             //Id importante para decifrar quem é
 
-    /// Referência ao local de instancia
-    protected final VehicleSection ownerSection;
-    protected final VehicleComponentType type;
+    ///Tipo de componente
+    protected VehicleComponentType type;
 
-    protected boolean isFunctional;
+    /// Seção que iremos anexar o objeto
+    protected VehicleSection ownerSection;
 
     private boolean disposed = false;
 
-    public VehicleBaseComponent(
-        String name,
-        String id,
-        VehicleSection ownerSection,
-        VehicleComponentType type
-    ) {
-        this.name = name;
+    public VehicleBaseComponent() {
+    }
+
+    public VehicleBaseComponent(String id, VehicleComponentType type) {
         this.id = id;
-        this.ownerSection = ownerSection;
         this.type = type;
+    }
+
+    @Override
+    public void load(SaveData data) {
+
+    }
+
+    @Override
+    public SaveData toSaveData() {
+        return null;
+    }
+
+    public void attachToSection(VehicleSection section) {
+        this.ownerSection = section;
     }
 
     @Override
@@ -54,17 +64,35 @@ public abstract class VehicleBaseComponent implements Component{
         disposed = true;
     }
 
-    protected void executeDispose(){
-
+    protected void executeDispose() {
     }
 
     protected void nullifyReferences() {
-
+        this.id = null;
+        this.type = null;
+        this.ownerSection = null;
     }
 
-    /// Para aqueles com lógica especial,
-    ///  poderemos usar para determinar se podemos executar ou não sua função primária ou não
     public boolean canUse() {
-        return isFunctional;
+        return true;
     }
+
+    public boolean toUpdate(){
+        return false;
+    }
+    public boolean toPostUpdate(){
+        return false;
+    }
+    public boolean toRender(){
+        return false;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public VehicleComponentType getType() {
+        return type;
+    }
+
 }

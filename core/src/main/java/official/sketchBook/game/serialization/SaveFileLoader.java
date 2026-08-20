@@ -16,6 +16,7 @@ import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.engine.world_gen.model.TilePhysicsConfig;
 import official.sketchBook.engine.world_gen.util.LayerGenerationRegistry;
 import official.sketchBook.engine.world_gen.util.RoomGenerator;
+import official.sketchBook.game.components_related.vehicle.VehicleDoor;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;
 import official.sketchBook.game.gameObject_related.player.Player;
 import official.sketchBook.game.gameObject_related.player.PlayerSaveData;
@@ -244,18 +245,18 @@ public class SaveFileLoader {
             )
         );
 
-        nodeList.add(
-            new SubmarineNode(
-                objectManager.getPhysicsWorld(),
-                subParts,
-                400 + 120,
-                190,
-                0,
-                0,
-                false,
-                false
-            )
-        );
+//        nodeList.add(
+//            new SubmarineNode(
+//                objectManager.getPhysicsWorld(),
+//                subParts,
+//                400 + 120,
+//                190,
+//                0,
+//                0,
+//                false,
+//                false
+//            )
+//        );
 
 
         Submarine baseSubmarine = new Submarine(
@@ -264,6 +265,43 @@ public class SaveFileLoader {
             currentRoom,
             nodeList
         );
+
+        List<VehicleDoor> doorList = new ArrayList<>();
+
+        doorList.add(new VehicleDoor(
+            "2",
+            new FixtureData(
+                0, 0, 55, 0, 0, 9, 40,
+                VEHICLE.bit(), VEHICLE_PASSENGER.bit(), false, false
+            ),
+            new FixtureData(
+                0, 0, 55, 0, 0, 9 * 4, 40,
+                INTERACTABLE.bit(), INTERACTABLE_TRIGGERER.bit(), false, true
+            ),
+            false, false, false
+        ));
+
+        doorList.add(new VehicleDoor(
+            "1",
+            new FixtureData(
+                0, 0, -55, 0, 0, 9, 40,
+                VEHICLE.bit(), VEHICLE_PASSENGER.bit(), false, false
+            ),
+            new FixtureData(
+                0, 0, -55, 0, 0, 9 * 4, 40,
+                INTERACTABLE.bit(), INTERACTABLE_TRIGGERER.bit(), false, true
+            ),
+            false, false, false
+        ));
+
+        for(VehicleDoor door : doorList){
+            SubmarineNode node = nodeList.get(0);
+
+            door.attachToSection(node);
+            door.initObject();
+
+            node.addVehicleComponent(door);
+        }
 
         submarinePersistence.saveAsBlueprint(baseSubmarine);
         submarinePersistence.saveSubmarineState(baseSubmarine);

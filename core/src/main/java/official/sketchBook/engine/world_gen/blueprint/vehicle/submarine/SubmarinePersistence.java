@@ -56,18 +56,30 @@ public class SubmarinePersistence {
     // ============================================================
 
     /**
-     * Converte um SubmarineBlueprint já carregado num Submarine, na posição informada.
-     */
-    public Submarine convertToSubmarine(SubmarineBlueprint bp, PlayableRoom room, float spawnX, float spawnY) {
-        List<SubmarineNode> nodes = bp.toSubmarineNodes(objectManager.getPhysicsWorld(), spawnX, spawnY);
-        return new Submarine(bp.tag, objectManager, room, nodes);
-    }
-
-    /**
      * Converte um SubmarineState já carregado num Submarine, usando a posição gravada no state.
      */
     public Submarine convertToSubmarine(SubmarineState state, PlayableRoom room) {
         return convertToSubmarine(state.submarine, room, state.spawnX, state.spawnY);
+    }
+
+    public Submarine convertToSubmarine(SubmarineBlueprint bp, PlayableRoom room, float spawnX, float spawnY) {
+        List<SubmarineNode> nodes = bp.toSubmarineNodes(objectManager.getPhysicsWorld(), spawnX, spawnY);
+
+        Submarine submarine = new Submarine(bp.tag, objectManager, room, nodes);
+        // aqui, presumindo que o construtor/inicialização de Submarine já chama
+        // node.initObject() pra cada node internamente ? é esse o passo que
+        // faltava antes dos componentes serem anexados
+
+        attachAllNodeComponents(bp, nodes);
+
+        return submarine;
+    }
+
+    private void attachAllNodeComponents(SubmarineBlueprint bp, List<SubmarineNode> nodes) {
+        List<SubmarineNodeBlueprint> nodeBlueprints = bp.nodes;
+        for (int i = 0; i < nodeBlueprints.size(); i++) {
+            nodeBlueprints.get(i).attachComponentsToNode(nodes.get(i));
+        }
     }
 
     // ============================================================
