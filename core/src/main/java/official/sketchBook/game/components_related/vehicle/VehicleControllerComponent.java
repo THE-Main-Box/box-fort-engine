@@ -11,28 +11,22 @@ import java.util.ArrayList;
 
 public class VehicleControllerComponent extends VehicleInteractableComponent {
 
-    public static int quantity;
-
     /// Lista de grupos de controle
     private final ArrayList<ControllerGroup> groups;
 
     public VehicleControllerComponent(
-        VehicleSection ownerSection,
+        String id,
         FixtureData fixData,
         FixtureData triggerFixData
     ) {
         super(
-            "Controller_id: " + quantity,
-            String.valueOf(quantity),
-            ownerSection,
+            id,
             VehicleComponentType.LOGICAL_INTERNAL,
             fixData,
             triggerFixData
         );
-        quantity++;
         this.groups = new ArrayList<>();
 
-        this.initObject();
     }
 
     @Override
@@ -94,7 +88,7 @@ public class VehicleControllerComponent extends VehicleInteractableComponent {
 
         public static void set(VehicleControllerComponent controller) {
             pendingController = controller;
-            System.out.println("Controller ativo: " + controller.name);
+            System.out.println("Controller ativo: " + controller.id);
             System.out.println("Grupos disponíveis:");
             for (int i = 0; i < controller.groups.size(); i++) {
                 System.out.println("  [" + i + "] " + controller.groups.get(i).name);

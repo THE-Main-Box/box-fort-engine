@@ -66,7 +66,7 @@ public class VehicleEngineComponent extends VehicleBaseComponent implements
     private boolean inScreen;
 
     public VehicleEngineComponent(
-        VehicleSection ownerSection,
+        String id,
         Body body,
         float localDirX,
         float localDirY,
@@ -81,9 +81,7 @@ public class VehicleEngineComponent extends VehicleBaseComponent implements
         boolean isBroken
     ) {
         super(
-            "engine",
-            "engine",
-            ownerSection,
+            id,
             VehicleComponentType.PHYSICAL_INTERNAL
         );
 

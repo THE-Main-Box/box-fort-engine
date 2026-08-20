@@ -214,7 +214,7 @@ public class SubmarineNode
 
     }
 
-    // ============================================================
+   // ============================================================
     // MASSA / CENTRO DE MASSA
     // ============================================================
 
@@ -655,20 +655,17 @@ public class SubmarineNode
     }
 
     public void addVehicleComponent(
-        VehicleBaseComponent component,
-        boolean toRender,
-        boolean toUpdate,
-        boolean toPostUpdate
+        VehicleBaseComponent component
     ) {
         this.vehicleComponentList.add(component);
 
-        if (toRender && component instanceof RenderableObjectII) this.managerC.addToRender(component);
+        if (component.toRender() && component instanceof RenderableObjectII) this.managerC.addToRender(component);
 
         if (component instanceof InteractableObjectII) {
             this.interactableObjectManagerC.addToList((InteractableObjectII) component);
         }
 
-        this.managerC.add(component, toUpdate, toPostUpdate);
+        this.managerC.add(component, component.toUpdate(), component.toPostUpdate());
     }
 
     @Override
@@ -794,5 +791,33 @@ public class SubmarineNode
 
     public List<SubmarinePart> getPhysicalParts() {
         return physicalParts;
+    }
+
+    public List<SubmarinePassenger> getPendingRemove() {
+        return pendingRemove;
+    }
+
+    public List<SubmarinePassenger> getPendingAdd() {
+        return pendingAdd;
+    }
+
+    public List<SubmarinePassenger> getPassengerList() {
+        return passengerList;
+    }
+
+    public List<ObjectMassContributor> getContributorPendingRemove() {
+        return contributorPendingRemove;
+    }
+
+    public List<ObjectMassContributor> getContributorPendingAdd() {
+        return contributorPendingAdd;
+    }
+
+    public List<ObjectMassContributor> getContributorList() {
+        return contributorList;
+    }
+
+    public List<VehicleBaseComponent> getVehicleComponentList() {
+        return vehicleComponentList;
     }
 }

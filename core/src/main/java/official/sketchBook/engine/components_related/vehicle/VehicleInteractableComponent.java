@@ -22,41 +22,33 @@ public abstract class VehicleInteractableComponent extends VehicleBaseComponent 
         fixData;
 
     /// Lista de fixtures do objeto
-    public List<Fixture> fixList;
+    public List<Fixture> fixList = new ArrayList<>();
 
     /// Buffer de dados relacionados à Transform
     private Vector2
-        buffedDimensionsInMeters,
-        buffedPosInMeters;
+        buffedDimensionsInMeters = new Vector2(),
+        buffedPosInMeters = new Vector2();
 
     public VehicleInteractableComponent(
-        String name,
         String id,
-        VehicleSection ownerSection,
         VehicleComponentType type,
         FixtureData fixData,
         FixtureData triggerFixData
     ) {
-        super(
-            name,
-            id,
-            ownerSection,
-            type
-        );
+        super(id,type);
 
         this.triggerFixData = triggerFixData;
         this.fixData = fixData;
 
-        this.fixList = new ArrayList<>();
+    }
 
-        this.buffedPosInMeters = new Vector2();
-        this.buffedDimensionsInMeters = new Vector2();
-
+    public VehicleInteractableComponent() {
     }
 
     @Override
     public void initObject() {
         super.initObject();
+
         initPhysicalFixtures();
         initTriggerFixtures();
 

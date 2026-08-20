@@ -15,6 +15,11 @@ public class SubmarineBlueprint implements EmbeddedSaveData {
     public SubmarineBlueprint() {
     }
 
+    public SubmarineBlueprint(String tag, List<SubmarineNodeBlueprint> nodes) {
+        this.tag = tag;
+        this.nodes = nodes;
+    }
+
     /**
      * spawnX/spawnY é o ponto de origem do submarino inteiro — cada node
      * soma seu próprio offsetX/Y a este mesmo ponto (não encadeado entre
