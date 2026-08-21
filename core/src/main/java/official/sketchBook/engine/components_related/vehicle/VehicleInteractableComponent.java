@@ -48,27 +48,15 @@ public abstract class VehicleInteractableComponent extends VehicleBaseComponent 
     @Override
     public void initObject() {
         super.initObject();
-
-        initPhysicalFixtures();
+        if (fixData != null) {
+            initPhysicalFixtures();
+            this.buffedDimensionsInMeters.set(toMeters(fixData.width), toMeters(fixData.height));
+        }
         initTriggerFixtures();
-
-        this.buffedDimensionsInMeters.set(
-            toMeters(
-                fixData.width
-            ),
-            toMeters(
-                fixData.height
-            )
-        );
     }
 
     private void initPhysicalFixtures() {
-        fixList.addAll(
-            BodyCreatorHelper.createFixturesFromData(
-                fixData,
-                ownerSection.getInternalBody()
-            )
-        );
+        fixList.addAll(BodyCreatorHelper.createFixturesFromData(fixData, ownerSection.getInternalBody()));
         for (Fixture fix : fixList) {
             fix.setUserData(new GameObjectTag(ObjectType.VEHICLE, this));
         }
@@ -85,18 +73,10 @@ public abstract class VehicleInteractableComponent extends VehicleBaseComponent 
     }
 
     public Vector2 getCoordinatesInMeters() {
-        buffedPosInMeters.set(
-            ownerSection.getBody().getPosition()
-        );
+        buffedPosInMeters.set(ownerSection.getBody().getPosition());
 
-        buffedPosInMeters.x += toMeters(
-            fixData.globalOffsetX
-                + fixData.offsetX
-        );
-        buffedPosInMeters.y += toMeters(
-            fixData.globalOffsetY
-                + fixData.offsetY
-        );
+        buffedPosInMeters.x += toMeters(triggerFixData.globalOffsetX + triggerFixData.offsetX);
+        buffedPosInMeters.y += toMeters(triggerFixData.globalOffsetY + triggerFixData.offsetY);
 
         return buffedPosInMeters;
     }
