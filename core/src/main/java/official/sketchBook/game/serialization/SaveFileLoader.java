@@ -1,5 +1,6 @@
 package official.sketchBook.game.serialization;
 
+import official.sketchBook.engine.components_related.system_utils.ControllerGroup;
 import official.sketchBook.engine.game_object_related.vehicle_related.Submarine;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarinePart;
@@ -16,7 +17,10 @@ import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.engine.world_gen.model.TilePhysicsConfig;
 import official.sketchBook.engine.world_gen.util.LayerGenerationRegistry;
 import official.sketchBook.engine.world_gen.util.RoomGenerator;
+import official.sketchBook.engine.world_gen.util.SubmarineComponentUtils;
+import official.sketchBook.game.components_related.vehicle.VehicleControllerComponent;
 import official.sketchBook.game.components_related.vehicle.VehicleDoor;
+import official.sketchBook.game.components_related.vehicle.VehicleEngineComponent;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;
 import official.sketchBook.game.gameObject_related.player.Player;
 import official.sketchBook.game.gameObject_related.player.PlayerSaveData;
@@ -222,9 +226,14 @@ public class SaveFileLoader {
 
     private void loadVehicles(PlayableRoom currentRoom) {
 
-        submarinePersistence.createSubmarineFromState(
-            "walrus",
-            currentRoom
+        System.out.println(
+            submarinePersistence.createSubmarineFromState(
+                    "walrus",
+                    currentRoom
+                )
+                .getSections().get(0)
+                .getVehicleComponentList().get(0)
+                .getId()
         );
     }
 
@@ -236,28 +245,9 @@ public class SaveFileLoader {
             new SubmarineNode(
                 objectManager.getPhysicsWorld(),
                 subParts,
-                400,
-                190,
-                0,
-                0,
-                false,
-                false
+                400, 190, 0, 0, false, false
             )
         );
-
-//        nodeList.add(
-//            new SubmarineNode(
-//                objectManager.getPhysicsWorld(),
-//                subParts,
-//                400 + 120,
-//                190,
-//                0,
-//                0,
-//                false,
-//                false
-//            )
-//        );
-
 
         Submarine baseSubmarine = new Submarine(
             "walrus",
@@ -266,42 +256,90 @@ public class SaveFileLoader {
             nodeList
         );
 
+        SubmarineNode node = nodeList.get(0);
+
+        // --- Portas ---
         List<VehicleDoor> doorList = new ArrayList<>();
 
         doorList.add(new VehicleDoor(
-            "2",
-            new FixtureData(
-                0, 0, 55, 0, 0, 9, 40,
-                VEHICLE.bit(), VEHICLE_PASSENGER.bit(), false, false
-            ),
-            new FixtureData(
-                0, 0, 55, 0, 0, 9 * 4, 40,
-                INTERACTABLE.bit(), INTERACTABLE_TRIGGERER.bit(), false, true
-            ),
+            SubmarineComponentUtils.generateComponentId(VehicleDoor.TYPE_KEY, doorList),
+            new FixtureData(0, 0, 55, 0, 0, 9, 40, VEHICLE.bit(), VEHICLE_PASSENGER.bit(), false, false),
+            new FixtureData(0, 0, 55, 0, 0, 9 * 4, 40, INTERACTABLE.bit(), INTERACTABLE_TRIGGERER.bit(), false, true),
             false, false, false
         ));
 
         doorList.add(new VehicleDoor(
-            "1",
-            new FixtureData(
-                0, 0, -55, 0, 0, 9, 40,
-                VEHICLE.bit(), VEHICLE_PASSENGER.bit(), false, false
-            ),
-            new FixtureData(
-                0, 0, -55, 0, 0, 9 * 4, 40,
-                INTERACTABLE.bit(), INTERACTABLE_TRIGGERER.bit(), false, true
-            ),
+            SubmarineComponentUtils.generateComponentId(VehicleDoor.TYPE_KEY, doorList),
+            new FixtureData(0, 0, -55, 0, 0, 9, 40, VEHICLE.bit(), VEHICLE_PASSENGER.bit(), false, false),
+            new FixtureData(0, 0, -55, 0, 0, 9 * 4, 40, INTERACTABLE.bit(), INTERACTABLE_TRIGGERER.bit(), false, true),
             false, false, false
         ));
 
-        for(VehicleDoor door : doorList){
-            SubmarineNode node = nodeList.get(0);
-
+        for (VehicleDoor door : doorList) {
             door.attachToSection(node);
             door.initObject();
-
             node.addVehicleComponent(door);
         }
+
+        // --- Motor ---
+        List<VehicleEngineComponent> engineList = new ArrayList<>();
+
+        VehicleEngineComponent engine = new VehicleEngineComponent(
+            SubmarineComponentUtils.generateComponentId(VehicleEngineComponent.TYPE_KEY, engineList),
+            1f, 0f,      // localDirX, localDirY
+            0f, 0f,      // offsetX, offsetY
+            500f,        // maxForce
+            -1f, 1f,     // minPower, maxPower
+            0f,          // defaultPower
+            10f,         // accelerationRate
+            true,       // startActive
+            false        // isBroken
+        );
+
+        engineList.add(engine);
+
+        engine.attachToSection(node);
+        engine.initObject();
+        node.addVehicleComponent(engine);
+
+        // --- Controller ---
+        List<VehicleControllerComponent> controllerList = new ArrayList<>();
+
+        VehicleControllerComponent controller = new VehicleControllerComponent(
+            SubmarineComponentUtils.generateComponentId(VehicleControllerComponent.TYPE_KEY, controllerList),
+            null, // fixData nullable ? controller não tem corpo físico
+            new FixtureData(
+                0,
+                0,
+                0,
+                0,
+                0,
+                12 * 4,
+                30,
+                INTERACTABLE.bit(),
+                INTERACTABLE_TRIGGERER.bit(),
+                false,
+                true
+            )
+        );
+
+        controllerList.add(controller);
+
+        controller.attachToSection(node);
+        controller.initObject();
+        node.addVehicleComponent(controller);
+
+        ControllerGroup engineForwardGroup = controller.addGroup("engine_drive");
+        ControllerGroup engineReverseGroup = controller.addGroup("engine_reverse");
+        ControllerGroup turnOff = controller.addGroup("engine_off");
+
+        engineForwardGroup.add(engine);
+        engineReverseGroup.add(engine);
+        turnOff.add(engine);
+
+        engineForwardGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(1f, true));
+        engineReverseGroup.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(-1f, true));
+        turnOff.setConfig(engine, new VehicleEngineComponent.VehicleEngineConfig(0f, false));
 
         submarinePersistence.saveAsBlueprint(baseSubmarine);
         submarinePersistence.saveSubmarineState(baseSubmarine);

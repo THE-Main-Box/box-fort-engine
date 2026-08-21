@@ -13,9 +13,9 @@ import official.sketchBook.engine.world_gen.blueprint.room.RoomBlueprintSaveData
 import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.save_data.SubmarineBlueprintSaveData;
 import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.save_data.SubmarinePartBlueprintSaveData;
 import official.sketchBook.engine.world_gen.blueprint.vehicle.submarine.save_data.SubmarineStateSaveData;
+import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.engine.world_gen.util.PlayableRoomManager;
 import official.sketchBook.engine.world_gen.util.RoomRetentionPool;
-import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.components_related.vehicle.VehicleControllerComponent;
 import official.sketchBook.game.components_related.vehicle.VehicleDoor;
 import official.sketchBook.game.components_related.vehicle.VehicleEngineComponent;
@@ -89,8 +89,8 @@ public class GameObjectDataManager extends PhysicalGameObjectDataManager {
 
     private void initVehicleComponentRegistration() {
         VehicleComponentTypeRegistry.GLOBAL.register(VehicleDoor.TYPE_KEY, VehicleDoor::new);
-//        VehicleComponentTypeRegistry.GLOBAL.register(VehicleControllerComponent.TYPE_KEY, VehicleControllerComponent::new);
-//        VehicleComponentTypeRegistry.GLOBAL.register(VehicleEngineComponent.TYPE_KEY, VehicleEngineComponent::new);
+        VehicleComponentTypeRegistry.GLOBAL.register(VehicleEngineComponent.TYPE_KEY, VehicleEngineComponent::new);
+        VehicleComponentTypeRegistry.GLOBAL.register(VehicleControllerComponent.TYPE_KEY, VehicleControllerComponent::new);
     }
 
     ///inicia registro de save data registry

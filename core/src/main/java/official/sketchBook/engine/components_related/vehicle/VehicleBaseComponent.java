@@ -6,6 +6,8 @@ import official.sketchBook.engine.util_related.enumerators.VehicleComponentType;
 import official.sketchBook.engine.util_related.serialization.instantiation.EmbeddedSaveData;
 import official.sketchBook.engine.util_related.serialization.instantiation.SaveData;
 
+import java.util.Map;
+
 public abstract class VehicleBaseComponent implements Component, EmbeddedSaveData {
 
     /// Identificação
@@ -55,6 +57,8 @@ public abstract class VehicleBaseComponent implements Component, EmbeddedSaveDat
     public void initObject() {
 
     }
+
+    public void resolveReferences(Map<String, VehicleBaseComponent> byId){}
 
     @Override
     public void dispose() {

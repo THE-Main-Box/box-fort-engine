@@ -1,6 +1,7 @@
 package official.sketchBook.engine.world_gen.blueprint.vehicle.submarine;
 
 import com.badlogic.gdx.math.Vector2;
+import official.sketchBook.engine.components_related.vehicle.VehicleBaseComponent;
 import official.sketchBook.engine.game_object_related.vehicle_related.Submarine;
 import official.sketchBook.engine.game_object_related.vehicle_related.SubmarineNode;
 import official.sketchBook.engine.util_related.path.SerializationPaths;
@@ -12,7 +13,9 @@ import official.sketchBook.engine.world_gen.model.PlayableRoom;
 import official.sketchBook.game.dataManager_related.GameObjectDataManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static official.sketchBook.game.util_related.constants.PhysicsConstants.toPixels;
 
@@ -62,15 +65,16 @@ public class SubmarinePersistence {
         return convertToSubmarine(state.submarine, room, state.spawnX, state.spawnY);
     }
 
+
+
+
     public Submarine convertToSubmarine(SubmarineBlueprint bp, PlayableRoom room, float spawnX, float spawnY) {
         List<SubmarineNode> nodes = bp.toSubmarineNodes(objectManager.getPhysicsWorld(), spawnX, spawnY);
 
         Submarine submarine = new Submarine(bp.tag, objectManager, room, nodes);
-        // aqui, presumindo que o construtor/inicialização de Submarine já chama
-        // node.initObject() pra cada node internamente ? é esse o passo que
-        // faltava antes dos componentes serem anexados
 
         attachAllNodeComponents(bp, nodes);
+        resolveComponentReferences(nodes);
 
         return submarine;
     }
@@ -79,6 +83,25 @@ public class SubmarinePersistence {
         List<SubmarineNodeBlueprint> nodeBlueprints = bp.nodes;
         for (int i = 0; i < nodeBlueprints.size(); i++) {
             nodeBlueprints.get(i).attachComponentsToNode(nodes.get(i));
+        }
+    }
+
+    private void resolveComponentReferences(List<SubmarineNode> nodes) {
+        Map<String, VehicleBaseComponent> byId = new HashMap<>();
+
+        for (int i = 0; i < nodes.size(); i++) {
+            List<VehicleBaseComponent> components = nodes.get(i).getVehicleComponentList();
+            for (int j = 0; j < components.size(); j++) {
+                VehicleBaseComponent component = components.get(j);
+                byId.put(component.getId(), component);
+            }
+        }
+
+        for (int i = 0; i < nodes.size(); i++) {
+            List<VehicleBaseComponent> components = nodes.get(i).getVehicleComponentList();
+            for (int j = 0; j < components.size(); j++) {
+                components.get(j).resolveReferences(byId);
+            }
         }
     }
 
